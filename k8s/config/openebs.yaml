@@ -1,0 +1,39 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    name: openebs
+  name: openebs
+---
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: openebs
+  namespace: kube-system
+spec:
+  repo: https://openebs.github.io/openebs
+  chart: openebs
+  targetNamespace: openebs
+  valuesContent: |-
+    mayastor:
+      etcd:
+        replicaCount: 1
+    engines:
+      local:
+        lvm:
+          enabled: false
+        zfs:
+          enabled: false
+      replicated:
+        mayastor:
+          enabled: true
+---
+apiVersion: "openebs.io/v1beta2"
+kind: DiskPool
+metadata:
+  name: pool-on-@nodeName@
+  namespace: openebs
+spec:
+  node: @nodeName@
+  disks: ["aio://@diskPoolID@"]

@@ -58,9 +58,8 @@ in
   # Disk Configuration
   disko.devices = {
     disk = {
-      sda = {
+      main = {
         type = "disk";
-        device = "/dev/sda";
         content = {
           type = "gpt";
           partitions = {

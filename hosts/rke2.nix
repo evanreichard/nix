@@ -1,6 +1,11 @@
 { config, pkgs, ... }:
 
 {
+  imports = [
+    ../k8s
+  ];
+  k8s.manifestsDir = "/var/lib/rancher/rke2/server/manifests";
+
   # Enable Flakes
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
@@ -16,9 +21,8 @@
   # Disk Configuration
   disko.devices = {
     disk = {
-      nvme0n1 = {
+      main = {
         type = "disk";
-        device = "/dev/nvme0n1";
         content = {
           type = "gpt";
           partitions = {
@@ -79,7 +83,17 @@
     enable = true;
 
     disable = [
+      # Utilize Traefik
       "rke2-ingress-nginx"
+
+      # Utilize OpenEBS's Snapshot Controller
+      "rke2-snapshot-controller"
+      "rke2-snapshot-controller-crd"
+      "rke2-snapshot-validation-webhook"
+    ];
+
+    nodeLabel = [
+      "openebs.io/engine=mayastor"
     ];
 
     # -------------------
@@ -95,7 +109,6 @@
     # tokenFile = "";
     # agentTokenFile = "";
   };
-
 
   # Enable SSH Server
   services.openssh = {

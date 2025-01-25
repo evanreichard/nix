@@ -10,7 +10,7 @@ scp -r * nixos@10.10.10.10:/tmp/
 
 ```bash
 # Validate Disk
-sudo fdisk -l
+ls -l /dev/disk/by-id
 
 # Partition Disk
 sudo nix \

@@ -15,6 +15,7 @@
         ./hosts/llama-server.nix
         {
           networking.hostName = "lin-va-llama1";
+          disko.devices.disk.main.device = "/dev/sda";
         }
       ];
     };
@@ -27,6 +28,7 @@
         ./hosts/k3s.nix
         {
           networking.hostName = "lin-va-k3s1";
+          disko.devices.disk.main.device = "/dev/sda";
         }
       ];
     };
@@ -39,6 +41,8 @@
         ./hosts/rke2.nix
         {
           networking.hostName = "lin-va-rke1";
+          disko.devices.disk.main.device = "/dev/nvme0n1";
+          k8s.diskPoolID = "/dev/disk/by-id/ata-INTEL_SSDSC2BW240A4_CVDA418201Z42403GN";
         }
       ];
     };
