@@ -9,7 +9,7 @@ scp -r * nixos@10.10.10.10:/tmp/
 ## Partition Drives
 
 ```bash
-# WARNING: Be sure to check drive mappings
+# Validate Disk
 sudo fdisk -l
 
 # Partition Disk
@@ -17,7 +17,7 @@ sudo nix \
     --experimental-features "nix-command flakes" \
     run github:nix-community/disko -- \
     --mode disko \
-    --flake /tmp#lin-va-llama1
+    --flake /tmp#lin-va-rke1
 ```
 
 ## Install NixOS
@@ -25,6 +25,7 @@ sudo nix \
 ```bash
 # Install
 sudo nixos-install --flake /tmp#lin-va-llama1
+sudo nixos-install --flake /tmp#lin-va-rke1
 
 # Reboot
 sudo reboot
