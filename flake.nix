@@ -16,6 +16,7 @@
         {
           networking.hostName = "lin-va-llama1";
           disko.devices.disk.main.device = "/dev/sda";
+          k8s.diskPoolID = "/dev/disk/by-id/unknown";
         }
       ];
     };

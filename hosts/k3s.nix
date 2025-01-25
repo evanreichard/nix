@@ -1,6 +1,11 @@
 { config, pkgs, ... }:
 
 {
+  imports = [
+    ../k8s
+  ];
+  k8s.manifestsDir = "/var/lib/rancher/k3s/server/manifests";
+
   # Enable Flakes
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
 
