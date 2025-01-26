@@ -96,10 +96,10 @@
       "openebs.io/engine=mayastor"
     ];
 
+    role = "server";
     # -------------------
     # --- Server Node ---
     # -------------------
-    role = "server";
 
     # -------------------
     # --- Worker Node ---

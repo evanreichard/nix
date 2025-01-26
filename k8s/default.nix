@@ -18,11 +18,16 @@
       deps = [ ];
       text = ''
         mkdir -p ${config.k8s.manifestsDir}
+
+        # Storage - OpenEBS
         cp ${pkgs.substituteAll {
           src = ./config/openebs.yaml;
           nodeName = config.networking.hostName;
           diskPoolID = config.k8s.diskPoolID;
         }} ${config.k8s.manifestsDir}/openebs.yaml
+
+        # Backup - Kasten
+        cp ${./config/kasten.yaml} ${config.k8s.manifestsDir}/kasten.yaml
       '';
     };
   };
