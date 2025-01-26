@@ -55,3 +55,7 @@ cat /var/lib/rancher/rke2/server/node-token
 echo "<TOKEN>" > ./k8s/rke2-token
 sudo nixos-install --flake /etc/nixos#lin-va-rke2
 ```
+
+## TODO
+
+OpenEBS DiskPool Configuration not being applied. Likely need to consolidate RKE2 config, generate DiskPool config in complete, then apply.

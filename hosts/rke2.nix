@@ -58,16 +58,21 @@
 
       # https://docs.rke2.io/install/requirements#networking
       allowedTCPPorts = [
-        # Control Plane
+        # K8s Control Plane
         6443 # Kubernetes API
         9345 # RKE2 supervisor API
         2379 # etcd Client Port
         2380 # etcd Peer Port
         2381 # etcd Metrics Port
 
-        # Node Communication
+        # K8s Node Communication
         10250 # kubelet metrics
         9099 # Canal CNI health checks
+
+        # OpenEBS Mayastor
+        10124 # Mayastor REST API
+        8420 # NVMf
+        4421 # NVMf
       ];
 
       allowedUDPPorts = [
@@ -129,6 +134,7 @@
 
   # System Packages
   environment.systemPackages = with pkgs; [
+    htop
     k9s
     kubectl
     kubernetes-helm
