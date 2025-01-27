@@ -1,6 +1,6 @@
-{ config, lib, pkgs, ... }:
+{ pkgs, ... }:
 let
-  inherit (pkgs.lib) mkIf optionals;
+  inherit (pkgs.lib) optionals;
   inherit (pkgs.stdenv) isLinux isDarwin;
 in
 {

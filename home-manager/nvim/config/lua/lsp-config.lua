@@ -137,6 +137,13 @@ nvim_lsp.templ.setup({
 	capabilities = capabilities,
 })
 
+-- Nix LSP Configuration
+nvim_lsp.nil_ls.setup({
+	on_attach = on_attach,
+	flags = lsp_flags,
+	capabilities = capabilities,
+})
+
 -- Go LSP Configuration
 nvim_lsp.gopls.setup({
 	on_attach = function(client, bufnr)

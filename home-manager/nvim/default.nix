@@ -1,6 +1,5 @@
-{ config, pkgs, ... }:
+{ pkgs, ... }:
 let
-  inherit (pkgs.lib.lists) subtractLists;
   unstable = import <nixpkgs-unstable> { };
 in
 {
@@ -151,6 +150,7 @@ in
       golangci-lint-langserver
       gopls
       lua-language-server
+      nil
       nodePackages.eslint
       nodePackages.svelte-language-server
       nodePackages.typescript

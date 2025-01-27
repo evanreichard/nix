@@ -1,5 +1,3 @@
-{ config, pkgs, ... }:
-
 {
   programs.git = {
     enable = true;
@@ -32,13 +30,11 @@
     };
   };
 
+  # Copy Configuration
   xdg.configFile = {
-
-    # Copy Configuration
     git = {
       source = ./config;
       recursive = true;
     };
-
   };
 }

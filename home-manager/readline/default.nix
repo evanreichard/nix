@@ -1,5 +1,3 @@
-{ config, pkgs, ... }:
-
 {
   programs.readline = {
     enable = true;
@@ -9,5 +7,4 @@
       set vi-cmd-mode-string \1\e[01;38;5;22;48;5;148m\2 C \1\e[38;5;148;48;5;238m\2\1\e[0m\2
     '';
   };
-
 }

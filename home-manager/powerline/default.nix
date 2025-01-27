@@ -1,5 +1,3 @@
-{ config, pkgs, ... }:
-
 {
   programs.powerline-go = {
     enable = true;

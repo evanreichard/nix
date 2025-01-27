@@ -1,4 +1,3 @@
-{ config, pkgs, ... }:
 {
   xdg.configFile = {
     "ghostty/config" = {
