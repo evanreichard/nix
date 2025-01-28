@@ -1,0 +1,164 @@
+---
+# Namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    name: rook-ceph
+  name: rook-ceph
+
+---
+# HelpChart
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: ceph
+  namespace: kube-system
+spec:
+  repo: https://charts.rook.io/release
+  chart: rook-ceph
+  targetNamespace: rook-ceph
+  valuesContent: |-
+    enableDiscoveryDaemon: true
+
+---
+# CephCluster
+apiVersion: ceph.rook.io/v1
+kind: CephCluster
+metadata:
+  name: rook-ceph
+  namespace: rook-ceph
+spec:
+  dataDirHostPath: /var/lib/rook
+  cephVersion:
+    image: quay.io/ceph/ceph:v19.2
+    allowUnsupported: false
+
+  # HA - One monitor per node
+  mon:
+    count: 3
+    allowMultiplePerNode: false
+
+  # Ceph Dashboard
+  dashboard:
+    enabled: true
+    ssl: true
+
+  # Network Configuration
+  network:
+    provider: host
+
+  # Storage Configuration
+  storage:
+    useAllNodes: true
+    useAllDevices: true
+    config:
+      osdsPerDevice: "1"
+      replicatedSize: "3"
+
+  # Disruption Management
+  disruptionManagement:
+    managePodBudgets: true
+    osdMaintenanceTimeout: 30
+
+  # Resource Management
+  # resources:
+  #   mgr:
+  #     limits:
+  #       cpu: "1000m"
+  #       memory: "1Gi"
+  #     requests:
+  #       cpu: "500m"
+  #       memory: "512Mi"
+  #   mon:
+  #     limits:
+  #       cpu: "1000m"
+  #       memory: "1Gi"
+  #     requests:
+  #       cpu: "500m"
+  #       memory: "512Mi"
+  #   osd:
+  #     limits:
+  #       cpu: "2000m"
+  #       memory: "4Gi"
+  #     requests:
+  #       cpu: "1000m"
+  #       memory: "2Gi"
+
+---
+# BlockPool - Single Replica
+apiVersion: ceph.rook.io/v1
+kind: CephBlockPool
+metadata:
+  name: ceph-block-pool-single
+  namespace: rook-ceph
+spec:
+  failureDomain: host
+  replicated:
+    size: 1
+
+---
+# BlockPool - Three Replica
+apiVersion: ceph.rook.io/v1
+kind: CephBlockPool
+metadata:
+  name: ceph-block-pool-triple
+  namespace: rook-ceph
+spec:
+  failureDomain: host
+  replicated:
+    size: 3
+
+---
+# StorageClass - Three Replica
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: ceph-block-triple
+  annotations:
+    storageclass.kubernetes.io/is-default-class: "true"
+provisioner: rook-ceph.rbd.csi.ceph.com
+parameters:
+  pool: ceph-block-pool-triple
+  clusterID: rook-ceph
+  imageFormat: "2"
+  imageFeatures: layering
+
+  # Ceph CSI driver
+  csi.storage.k8s.io/provisioner-secret-name: rook-csi-rbd-provisioner
+  csi.storage.k8s.io/provisioner-secret-namespace: rook-ceph
+  csi.storage.k8s.io/controller-expand-secret-name: rook-csi-rbd-provisioner
+  csi.storage.k8s.io/controller-expand-secret-namespace: rook-ceph
+  csi.storage.k8s.io/node-stage-secret-name: rook-csi-rbd-node
+  csi.storage.k8s.io/node-stage-secret-namespace: rook-ceph
+  csi.storage.k8s.io/fstype: ext4
+
+allowVolumeExpansion: true
+volumeBindingMode: Immediate
+reclaimPolicy: Delete
+
+---
+# StorageClass - Single Replica
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: ceph-block-single
+provisioner: rook-ceph.rbd.csi.ceph.com
+parameters:
+  pool: ceph-block-pool-single
+  clusterID: rook-ceph
+  imageFormat: "2"
+  imageFeatures: layering
+
+  # Ceph CSI driver
+  csi.storage.k8s.io/provisioner-secret-name: rook-csi-rbd-provisioner
+  csi.storage.k8s.io/provisioner-secret-namespace: rook-ceph
+  csi.storage.k8s.io/controller-expand-secret-name: rook-csi-rbd-provisioner
+  csi.storage.k8s.io/controller-expand-secret-namespace: rook-ceph
+  csi.storage.k8s.io/node-stage-secret-name: rook-csi-rbd-node
+  csi.storage.k8s.io/node-stage-secret-namespace: rook-ceph
+  csi.storage.k8s.io/fstype: ext4
+
+allowVolumeExpansion: true
+volumeBindingMode: Immediate
+reclaimPolicy: Delete

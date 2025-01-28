@@ -45,7 +45,39 @@ spec:
   repo: https://charts.kasten.io/
   chart: k10
   targetNamespace: kasten
-  valuesContent: |-
-    global:
-      persistence:
-        storageClass: mayastor-r1
+---
+kind: Profile
+apiVersion: config.kio.kasten.io/v1alpha1
+metadata:
+  name: k10-backup-profile
+  namespace: kasten
+spec:
+  locationSpec:
+    type: FileStore
+    fileStore:
+      claimName: va-unraid-backup-rw
+    credential:
+      secretType: ""
+      secret:
+        apiVersion: ""
+        kind: ""
+        name: ""
+        namespace: ""
+  type: Location
+---
+apiVersion: config.kio.kasten.io/v1alpha1
+kind: TransformSet
+metadata:
+  name: storage-class-rename
+  namespace: kasten
+spec:
+  comment: Renames cstor-r1 to ceph-block-triple
+  transforms:
+    - json:
+        - op: replace
+          path: /spec/storageClassName
+          value: ceph-block-triple
+      name: StorageClassRename
+      subject:
+        name: ""
+        resource: persistentvolumeclaims

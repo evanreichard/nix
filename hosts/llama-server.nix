@@ -5,7 +5,7 @@ let
     cudaSupport = true;
   }).overrideAttrs (oldAttrs: {
     cmakeFlags = oldAttrs.cmakeFlags ++ [
-      "-DGGML_CUDA_ENABLE_UNIFIED_MEMORY=ON"
+      "-DGGML_CUDA_ENABLE_UNIFIED_MEMORY=1"
 
       # Disable CPU Instructions - Intel(R) Core(TM) i5-3570K CPU @ 3.40GHz
       "-DLLAMA_FMA=OFF"
@@ -19,20 +19,19 @@ let
 
   # Define Model Vars
   modelDir = "/models";
-  modelName = "qwen2.5-coder-7b-q8_0.gguf";
+
+  # 7B
+  # modelName = "qwen2.5-coder-7b-q8_0.gguf";
+  # modelUrl = "https://huggingface.co/ggml-org/Qwen2.5-Coder-7B-Q8_0-GGUF/resolve/main/${modelName}?download=true";
+
+  # 3B
+  modelName = "qwen2.5-coder-3b-q8_0.gguf";
+  modelUrl = "https://huggingface.co/ggml-org/Qwen2.5-Coder-3B-Q8_0-GGUF/resolve/main/${modelName}?download=true";
+
   modelPath = "${modelDir}/${modelName}";
-  modelUrl = "https://huggingface.co/ggml-org/Qwen2.5-Coder-7B-Q8_0-GGUF/resolve/main/${modelName}?download=true";
 in
 
 {
-  # Enable Flakes
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
-
-  # System Configuration
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
-  boot.loader.efi.efiSysMountPoint = "/boot";
-
   # Allow Nvidia & CUDA
   nixpkgs.config.allowUnfree = true;
 
@@ -54,39 +53,6 @@ in
     open = false;
     nvidiaSettings = true;
   };
-
-  # Disk Configuration
-  disko.devices = {
-    disk = {
-      main = {
-        type = "disk";
-        content = {
-          type = "gpt";
-          partitions = {
-            boot = {
-              size = "512M";
-              type = "EF00"; # EFI
-              content = {
-                type = "filesystem";
-                format = "vfat";
-                mountpoint = "/boot";
-                mountOptions = [ "umask=0077" ];
-              };
-            };
-            root = {
-              size = "100%";
-              content = {
-                type = "filesystem";
-                format = "ext4";
-                mountpoint = "/";
-              };
-            };
-          };
-        };
-      };
-    };
-  };
-
 
   # Network Configuration
   networking.networkmanager.enable = true;
@@ -138,38 +104,38 @@ in
     model = modelPath;
     port = 8080;
     openFirewall = true;
+
+    # 7B
+    # extraFlags = [
+    #   "-ngl"
+    #   "99"
+    #   "-fa"
+    #   "-ub"
+    #   "512"
+    #   "-b"
+    #   "512"
+    #   "-dt"
+    #   "0.1"
+    #   "--ctx-size"
+    #   "4096"
+    #   "--cache-reuse"
+    #   "256"
+    # ];
+
+    # 3B
     extraFlags = [
       "-ngl"
       "99"
       "-fa"
       "-ub"
-      "512"
+      "1024"
       "-b"
-      "512"
-      "-dt"
-      "0.1"
+      "1024"
       "--ctx-size"
-      "4096"
+      "0"
       "--cache-reuse"
       "256"
     ];
-  };
-
-  # Enable SSH Server
-  services.openssh = {
-    enable = true;
-    settings = {
-      PasswordAuthentication = false; # Disable Password Login
-      PermitRootLogin = "prohibit-password"; # Disable Password Login
-    };
-  };
-
-  # User Configuration
-  users.users.root = {
-    openssh.authorizedKeys.keys = [
-      "ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAQEA8P84lWL/p13ZBFNwITm/dLWWL8s9pVmdOImM5gaJAiTLY+DheUvG6YsveB2/5STseiJ34g7Na9TW1mtTLL8zDqPvj3NbprQiYlLJKMbCk6dtfdD4nLMHl8B48e1h699XiZDp2/c+jJb0MkLOFrps+FbPqt7pFt1Pj29tFy8BCg0LGndu6KO+HqYS+aM5tp5hZESo1RReiJ8aHsu5X7wW46brN4gfyyu+8X4etSZAB9raWqlln9NKK7G6as6X+uPypvSjYGSTC8TSePV1iTPwOxPk2+1xBsK7EBLg3jNrrYaiXLnZvBOOhm11JmHzqEJ6386FfQO+0r4iDVxmvi+ojw== rsa-key-20141114"
-    ];
-    hashedPassword = null; # Disable Password Login
   };
 
   # System Packages
@@ -180,7 +146,4 @@ in
     vim
     wget
   ];
-
-  # System State Version
-  system.stateVersion = "24.11";
 }

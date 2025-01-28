@@ -47,33 +47,10 @@
     # ---------- Base Configuration ----------
     # ----------------------------------------
 
-    # Longhorn Requirements
-    boot.kernelModules = [
-      "iscsi_tcp"
-      "dm_crypt"
-    ];
-
-    # Longhorn Data Disk
-    disko.devices = {
-      disk.longhorn = {
-        type = "disk";
-        device = config.dataDiskID;
-        content = {
-          type = "gpt";
-          partitions = {
-            longhorn = {
-              size = "100%";
-              content = {
-                type = "filesystem";
-                format = "xfs";
-                mountpoint = "/storage/longhorn";
-                mountOptions = [ "defaults" "nofail" ];
-                extraArgs = [ "-d" "su=128k,sw=8" ];
-              };
-            };
-          };
-        };
-      };
+    # OpenEBS Mayastor Requirements
+    boot.kernelModules = [ "nvme_tcp" ];
+    boot.kernel.sysctl = {
+      "vm.nr_hugepages" = 1024;
     };
 
     # Network Configuration
@@ -101,8 +78,10 @@
           10250 # kubelet metrics
           9099 # Canal CNI health checks
 
-          # iSCSI Port
-          3260
+          # OpenEBS Mayastor - https://openebs.io/docs/user-guides/replicated-storage-user-guide/replicated-pv-mayastor/rs-installation#network-requirements
+          10124 # REST API
+          8420 # NVMf
+          4421 # NVMf
         ];
 
         allowedUDPPorts = [
@@ -121,8 +100,6 @@
       kubectl
       kubernetes-helm
       nfs-utils
-      openiscsi
-      tmux
       vim
     ];
 
@@ -147,20 +124,20 @@
         # Disable - Utilizing Traefik
         "rke2-ingress-nginx"
 
-        # Disable - Utilizing Longhorn's Snapshot Controller
+        # Distable - Utilizing OpenEBS's Snapshot Controller
         "rke2-snapshot-controller"
         "rke2-snapshot-controller-crd"
         "rke2-snapshot-validation-webhook"
       ];
+
+      # OpenEBS Scheduleable 
+      nodeLabel = [
+        "openebs.io/engine=mayastor"
+      ];
+
     } // lib.optionalAttrs (config.serverAddr != "") {
       serverAddr = config.serverAddr;
       tokenFile = "/etc/rancher/rke2/node-token";
-    };
-
-    # Enable OpeniSCSI
-    services.openiscsi = {
-      enable = true;
-      name = "iqn.2025-01.${config.hostName}:initiator";
     };
 
     # Bootstrap Kubernetes Manifests
@@ -170,16 +147,16 @@
         mkdir -p /var/lib/rancher/rke2/server/manifests
 
         # Base Configs
-        cp ${../k8s/longhorn.yaml} /var/lib/rancher/rke2/server/manifests/longhorn-base.yaml
-        # cp ${../k8s/kasten.yaml} /var/lib/rancher/rke2/server/manifests/kasten-base.yaml
+        cp ${../k8s/openebs.yaml} /var/lib/rancher/rke2/server/manifests/openebs-base.yaml
+        cp ${../k8s/kasten.yaml} /var/lib/rancher/rke2/server/manifests/kasten-base.yaml
+
+        # OpenEBS Disk Pool
+        cp ${pkgs.substituteAll {
+          src = ../k8s/openebs-disk-pool.yaml;
+          hostName = config.hostName;
+          dataDiskID = config.dataDiskID;
+        }} /var/lib/rancher/rke2/server/manifests/openebs-disk-pool-${config.hostName}.yaml
       '';
     };
-
-    # Add Symlinks Expected by Longhorn
-    system.activationScripts.add-symlinks = ''
-      mkdir -p /usr/bin
-      ln -sf ${pkgs.openiscsi}/bin/iscsiadm /usr/bin/iscsiadm
-      ln -sf ${pkgs.openiscsi}/bin/iscsid /usr/bin/iscsid
-    '';
   };
 }

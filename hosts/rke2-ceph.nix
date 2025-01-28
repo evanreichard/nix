@@ -47,34 +47,8 @@
     # ---------- Base Configuration ----------
     # ----------------------------------------
 
-    # Longhorn Requirements
-    boot.kernelModules = [
-      "iscsi_tcp"
-      "dm_crypt"
-    ];
-
-    # Longhorn Data Disk
-    disko.devices = {
-      disk.longhorn = {
-        type = "disk";
-        device = config.dataDiskID;
-        content = {
-          type = "gpt";
-          partitions = {
-            longhorn = {
-              size = "100%";
-              content = {
-                type = "filesystem";
-                format = "xfs";
-                mountpoint = "/storage/longhorn";
-                mountOptions = [ "defaults" "nofail" ];
-                extraArgs = [ "-d" "su=128k,sw=8" ];
-              };
-            };
-          };
-        };
-      };
-    };
+    # Ceph Requirements
+    boot.kernelModules = [ "rbd" ];
 
     # Network Configuration
     networking = {
@@ -101,9 +75,10 @@
           10250 # kubelet metrics
           9099 # Canal CNI health checks
 
-          # iSCSI Port
-          3260
-        ];
+          # Ceph Ports
+          3300 # Ceph MON daemon
+          6789 # Ceph MON service
+        ] ++ lib.range 6800 7300; # Ceph OSD range
 
         allowedUDPPorts = [
           # RKE2 Ports - https://docs.rke2.io/install/requirements#networking
@@ -121,7 +96,6 @@
       kubectl
       kubernetes-helm
       nfs-utils
-      openiscsi
       tmux
       vim
     ];
@@ -147,20 +121,15 @@
         # Disable - Utilizing Traefik
         "rke2-ingress-nginx"
 
-        # Disable - Utilizing Longhorn's Snapshot Controller
+        # Distable - Utilizing OpenEBS's Snapshot Controller
         "rke2-snapshot-controller"
         "rke2-snapshot-controller-crd"
         "rke2-snapshot-validation-webhook"
       ];
+
     } // lib.optionalAttrs (config.serverAddr != "") {
       serverAddr = config.serverAddr;
       tokenFile = "/etc/rancher/rke2/node-token";
-    };
-
-    # Enable OpeniSCSI
-    services.openiscsi = {
-      enable = true;
-      name = "iqn.2025-01.${config.hostName}:initiator";
     };
 
     # Bootstrap Kubernetes Manifests
@@ -170,16 +139,9 @@
         mkdir -p /var/lib/rancher/rke2/server/manifests
 
         # Base Configs
-        cp ${../k8s/longhorn.yaml} /var/lib/rancher/rke2/server/manifests/longhorn-base.yaml
-        # cp ${../k8s/kasten.yaml} /var/lib/rancher/rke2/server/manifests/kasten-base.yaml
+        cp ${../k8s/ceph.yaml} /var/lib/rancher/rke2/server/manifests/ceph-base.yaml
+        cp ${../k8s/kasten.yaml} /var/lib/rancher/rke2/server/manifests/kasten-base.yaml
       '';
     };
-
-    # Add Symlinks Expected by Longhorn
-    system.activationScripts.add-symlinks = ''
-      mkdir -p /usr/bin
-      ln -sf ${pkgs.openiscsi}/bin/iscsiadm /usr/bin/iscsiadm
-      ln -sf ${pkgs.openiscsi}/bin/iscsid /usr/bin/iscsid
-    '';
   };
 }
