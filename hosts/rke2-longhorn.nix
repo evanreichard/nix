@@ -1,36 +1,16 @@
 { config, pkgs, lib, ... }:
 
-let
-  formatPrivateKey = indentLevel: value:
-    let
-      indent = lib.strings.fixedWidthString indentLevel " " "";
-      indentedLines = lib.strings.concatMapStrings
-        (line: "${indent}${line}\n")
-        (lib.strings.splitString "\n" value);
-    in
-    "|\n${indentedLines}";
-in
 {
   # Node Nix Config
   options = {
+    dataDiskID = lib.mkOption {
+      type = lib.types.str;
+      description = "The device ID for the data disk";
+    };
     serverAddr = lib.mkOption {
       type = lib.types.str;
       description = "The server to join";
       default = "";
-    };
-    democraticConfig = lib.mkOption {
-      type = lib.types.submodule {
-        options = {
-          apiKeyFile = lib.mkOption {
-            type = lib.types.path;
-            description = "Path to file containing the TrueNAS API key";
-          };
-          sshKeyFile = lib.mkOption {
-            type = lib.types.path;
-            description = "Path to file containing the TrueNAS User SSH private key";
-          };
-        };
-      };
     };
     networkConfig = lib.mkOption {
       type = lib.types.submodule {
@@ -66,24 +46,35 @@ in
     # ----------------------------------------
     # ---------- Base Configuration ----------
     # ----------------------------------------
-    # Democratic Requirements
-    boot.initrd = {
-      availableKernelModules = [ "xen_blkfront" "xen_netfront" ];
-      kernelModules = [ "xen_netfront" "xen_blkfront" ];
-      supportedFilesystems = [ "ext4" "xenfs" ];
-    };
 
+    # Longhorn Requirements
     boot.kernelModules = [
-      # Xen VM Requirements
-      "xen_netfront"
-      "xen_blkfront"
-      "xenfs"
-
-      # iSCSI & Multipath
       "iscsi_tcp"
-      "dm_multipath"
-      "dm_round_robin"
+      "dm_crypt"
     ];
+
+    # Longhorn Data Disk
+    disko.devices = {
+      disk.longhorn = {
+        type = "disk";
+        device = config.dataDiskID;
+        content = {
+          type = "gpt";
+          partitions = {
+            longhorn = {
+              size = "100%";
+              content = {
+                type = "filesystem";
+                format = "xfs";
+                mountpoint = "/storage/longhorn";
+                mountOptions = [ "defaults" "nofail" ];
+                extraArgs = [ "-d" "su=128k,sw=8" ];
+              };
+            };
+          };
+        };
+      };
+    };
 
     # Network Configuration
     networking = {
@@ -92,13 +83,10 @@ in
 
       # Interface Configuration
       inherit (config.networkConfig) defaultGateway nameservers;
-      interfaces."${config.networkConfig.interface}" = {
-        mtu = 9000;
-        ipv4.addresses = [{
-          address = config.networkConfig.address;
-          prefixLength = 24;
-        }];
-      };
+      interfaces.${config.networkConfig.interface}.ipv4.addresses = [{
+        inherit (config.networkConfig) address;
+        prefixLength = 24;
+      }];
 
       firewall = {
         enable = true;
@@ -112,6 +100,9 @@ in
           2381 # etcd Metrics Port
           10250 # kubelet metrics
           9099 # Canal CNI health checks
+
+          # iSCSI Port
+          3260
         ];
 
         allowedUDPPorts = [
@@ -129,6 +120,7 @@ in
       k9s
       kubectl
       kubernetes-helm
+      nfs-utils
       openiscsi
       tmux
       vim
@@ -155,45 +147,21 @@ in
         # Disable - Utilizing Traefik
         "rke2-ingress-nginx"
 
-        # Disable
-        # "rke2-snapshot-controller"
-        # "rke2-snapshot-controller-crd"
-        # "rke2-snapshot-validation-webhook"
+        # Disable - Utilizing Longhorn's Snapshot Controller
+        "rke2-snapshot-controller"
+        "rke2-snapshot-controller-crd"
+        "rke2-snapshot-validation-webhook"
       ];
     } // lib.optionalAttrs (config.serverAddr != "") {
       serverAddr = config.serverAddr;
       tokenFile = "/etc/rancher/rke2/node-token";
     };
 
-    # Enable Xe Guest Utilities
-    services.xe-guest-utilities.enable = true;
-
     # Enable OpeniSCSI
     services.openiscsi = {
       enable = true;
-      name = "iqn.2025-02.${config.hostName}:initiator";
+      name = "iqn.2025-01.${config.hostName}:initiator";
     };
-
-    # Enable Multipath
-    services.multipath = {
-      enable = true;
-      defaults = ''
-        defaults {
-            user_friendly_names yes
-            find_multipaths yes
-        }
-      '';
-      pathGroups = [ ];
-    };
-
-    time.timeZone = "UTC";
-
-    # Add Symlinks Expected by Democratic
-    system.activationScripts.add-symlinks = ''
-      mkdir -p /usr/bin
-      ln -sf ${pkgs.openiscsi}/bin/iscsiadm /usr/bin/iscsiadm
-      ln -sf ${pkgs.openiscsi}/bin/iscsid /usr/bin/iscsid
-    '';
 
     # Bootstrap Kubernetes Manifests
     system.activationScripts.k8s-manifests = {
@@ -202,14 +170,16 @@ in
         mkdir -p /var/lib/rancher/rke2/server/manifests
 
         # Base Configs
-        cp ${pkgs.substituteAll {
-          src = ../k8s/democratic.yaml;
-          apiKey = lib.strings.removeSuffix "\n" (builtins.readFile config.democraticConfig.apiKeyFile);
-          privateKey = formatPrivateKey 12 (lib.strings.removeSuffix "\n" (builtins.readFile config.democraticConfig.sshKeyFile));
-        }} /var/lib/rancher/rke2/server/manifests/democratic-base.yaml
-
-        cp ${../k8s/kasten.yaml} /var/lib/rancher/rke2/server/manifests/kasten-base.yaml
+        cp ${../k8s/longhorn.yaml} /var/lib/rancher/rke2/server/manifests/longhorn-base.yaml
+        # cp ${../k8s/kasten.yaml} /var/lib/rancher/rke2/server/manifests/kasten-base.yaml
       '';
     };
+
+    # Add Symlinks Expected by Longhorn
+    system.activationScripts.add-symlinks = ''
+      mkdir -p /usr/bin
+      ln -sf ${pkgs.openiscsi}/bin/iscsiadm /usr/bin/iscsiadm
+      ln -sf ${pkgs.openiscsi}/bin/iscsid /usr/bin/iscsid
+    '';
   };
 }

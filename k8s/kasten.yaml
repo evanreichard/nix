@@ -32,9 +32,9 @@ spec:
 apiVersion: v1
 kind: Namespace
 metadata:
+  name: kasten
   labels:
     name: kasten
-  name: kasten
 ---
 apiVersion: helm.cattle.io/v1
 kind: HelmChart
@@ -71,12 +71,12 @@ metadata:
   name: storage-class-rename
   namespace: kasten
 spec:
-  comment: Renames cstor-r1 to ceph-block-triple
+  comment: Renames cstor-r1 to truenas-iscsi
   transforms:
     - json:
         - op: replace
           path: /spec/storageClassName
-          value: ceph-block-triple
+          value: truenas-iscsi
       name: StorageClassRename
       subject:
         name: ""

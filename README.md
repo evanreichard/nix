@@ -1,12 +1,20 @@
-# Deploy NixOS
+# Description
 
-## Copy Config
+This repository contains the configuration for multiple machines, as well as my home / IDE config (home-manager).
+
+## Home Manager
+
+Utilizing [Home Manager](https://nix-community.github.io/home-manager/)
+
+## NixOS
+
+### Copy Config
 
 ```bash
 scp -r * root@10.10.10.10:/etc/nixos
 ```
 
-## Partition Drives
+### Partition Drives
 
 ```bash
 # Validate Disk
@@ -21,7 +29,7 @@ sudo nix \
     --flake /etc/nixos#lin-va-rke1
 ```
 
-## Install NixOS
+### Install NixOS
 
 ```bash
 # Install
@@ -31,13 +39,13 @@ sudo nixos-install --flake /etc/nixos#lin-va-rke1
 sudo reboot
 ```
 
-## Copy Config Back to Host
+### Copy Config Back to Host
 
 ```bash
 scp -r * nixos@10.0.20.201:/etc/nixos
 ```
 
-## Rebuild NixOS
+### Rebuild NixOS
 
 ```bash
 sudo nixos-rebuild switch
@@ -53,13 +61,13 @@ sudo nixos-install --flake /etc/nixos#lin-va-rke1
 cat /var/lib/rancher/rke2/server/node-token
 
 # Deploy Following Nodes
-echo "<TOKEN>" > rke2-token
+echo "<TOKEN>" > ./_scratch/rke2-token
 sudo nixos-install --flake /etc/nixos#lin-va-rke2
 ```
 
-## Notes
+### Notes
 
-## Kasten Port Forward
+### Kasten Port Forward
 
 ```bash
 kubectl port-forward -n kasten svc/gateway 8000:80

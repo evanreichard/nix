@@ -109,7 +109,7 @@
 
     # RKE2 Join Token
     environment.etc."rancher/rke2/node-token" = lib.mkIf (config.serverAddr != "") {
-      source = ../rke2-token;
+      source = ../_scratch/rke2-token;
       mode = "0600";
       user = "root";
       group = "root";

@@ -35,11 +35,15 @@
           systemConfig = ./hosts/rke2.nix;
           moduleConfig = {
             hostName = "lin-va-rke1";
-            mainDiskID = "/dev/disk/by-id/ata-VBOX_HARDDISK_VB0af7d668-04b70404";
-            dataDiskID = "/dev/disk/by-id/ata-VBOX_HARDDISK_VBcd9425b8-d666f9b8";
+            mainDiskID = "/dev/xvda";
+
+            democraticConfig = {
+              apiKeyFile = ./_scratch/truenas-api;
+              sshKeyFile = ./_scratch/truenas-ssh;
+            };
 
             networkConfig = {
-              interface = "enp0s3";
+              interface = "enX0";
               address = "10.0.20.201";
               defaultGateway = "10.0.20.254";
               nameservers = [ "10.0.20.254" ];
