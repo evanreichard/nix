@@ -70,5 +70,25 @@ sudo nixos-install --flake /etc/nixos#lin-va-rke2
 ### Kasten Port Forward
 
 ```bash
+# http://localhost:8000/k10/#/dashboard
 kubectl port-forward -n kasten svc/gateway 8000:80
+```
+
+### Cloud Init
+
+```
+#cloud-config
+hostname: rke-test
+```
+
+```
+network:
+  version: 1
+  config:
+    - type: physical
+      name: enX0
+      subnets:
+         - type: static
+           address: 10.0.50.5/24
+           gateway: 10.0.50.254
 ```

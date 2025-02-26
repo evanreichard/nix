@@ -4,9 +4,13 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
     disko.url = "github:nix-community/disko";
+    nixos-generators = {
+      url = "github:nix-community/nixos-generators";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, disko }:
+  outputs = { self, nixpkgs, disko, nixos-generators }:
     let
       mkSystem = { systemConfig, moduleConfig }: nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
@@ -20,6 +24,16 @@
       };
     in
     {
+      packages.x86_64-linux = {
+        rke2-image = nixos-generators.nixosGenerate {
+          system = "x86_64-linux";
+          format = "vmware";
+          modules = [
+            ./hosts/rke2-image.nix
+          ];
+        };
+      };
+
       nixosConfigurations = {
         # LLaMA C++ Server
         lin-va-llama1 = mkSystem {
@@ -27,6 +41,27 @@
           moduleConfig = {
             hostName = "lin-va-llama1";
             mainDiskID = "/dev/disk/by-id/ata-MTFDDAK512MBF-1AN1ZABHA_161212233628";
+          };
+        };
+
+        # RKE2 Primary Server
+        lin-va-kube1 = mkSystem {
+          systemConfig = ./hosts/rke2.nix;
+          moduleConfig = {
+            hostName = "lin-va-kube1";
+            mainDiskID = "/dev/xvda";
+
+            democraticConfig = {
+              apiKeyFile = ./_scratch/truenas-api;
+              sshKeyFile = ./_scratch/truenas-ssh;
+            };
+
+            networkConfig = {
+              interface = "enX0";
+              address = "10.0.50.50";
+              defaultGateway = "10.0.50.254";
+              nameservers = [ "10.0.50.254" ];
+            };
           };
         };
 

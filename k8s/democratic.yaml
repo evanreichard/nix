@@ -37,12 +37,12 @@ spec:
         instance_id: kube
         httpConnection:
           protocol: http
-          host: 10.0.20.138
+          host: 10.0.50.60
           port: 80
           apiKey: @apiKey@
           apiVersion: 2
         sshConnection:
-          host: 10.0.20.138
+          host: 10.0.50.60
           port: 22
           username: k8s-csi
           privateKey: @privateKey@
@@ -58,7 +58,7 @@ spec:
           detachedSnapshotsDatasetParentName: KubeStorage/pv/iscsi/s
           zvolEnableReservation: false
         iscsi:
-          targetPortal: "10.0.20.138:3260"
+          targetPortal: "10.0.50.60:3260"
           targetPortals: []
           namePrefix: csi-
           nameSuffix: "-cluster"
