@@ -1,11 +1,5 @@
 local ns = vim.api.nvim_create_namespace("weird-chars")
 
-vim.diagnostic.config({
-	virtual_text = true,
-	signs = true,
-	underline = true,
-})
-
 local weird_chars = {
 	["–"] = "en dash found, consider using regular hyphen (-)",
 	["—"] = "em dash found, consider using regular hyphen (-)",
