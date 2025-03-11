@@ -1,9 +1,0 @@
----
-apiVersion: "openebs.io/v1beta2"
-kind: DiskPool
-metadata:
-  name: pool-on-@hostName@
-  namespace: openebs
-spec:
-  node: @hostName@
-  disks: ["aio://@dataDiskID@"]
