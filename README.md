@@ -8,6 +8,13 @@ Utilizing [Home Manager](https://nix-community.github.io/home-manager/)
 
 ## NixOS
 
+### Image Build
+
+```bash
+# Remote Build
+nix build .#packages.x86_64-linux.rke2-image -j0
+```
+
 ### Copy Config
 
 ```bash

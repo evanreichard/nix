@@ -46,6 +46,7 @@
 
         # Nix Builder
         lin-va-nix-builder = mkSystem {
+          systemConfig = ./hosts/builder.nix;
           moduleConfig = {
             hostName = "lin-va-nix-builder";
             mainDiskID = "/dev/xvda";
