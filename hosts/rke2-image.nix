@@ -31,10 +31,8 @@
         "xen_blkfront"
         "xenfs"
 
-        # iSCSI & Multipath
+        # iSCSI
         "iscsi_tcp"
-        "dm_multipath"
-        "dm_round_robin"
       ];
     };
 
@@ -64,6 +62,11 @@
           # 51820 # Canal CNI with WireGuard IPv4 (if using encryption)
           # 51821 # Canal CNI with WireGuard IPv6 (if using encryption)
         ];
+
+        # Allow Multicast
+        extraCommands = ''
+          iptables -A INPUT -m pkttype --pkt-type multicast -j ACCEPT
+        '';
       };
     };
 
@@ -75,18 +78,6 @@
       openiscsi = {
         enable = true;
         name = "iqn.2025.placeholder:initiator"; # Overridden @ Runtime
-      };
-
-      # Enable Multipath
-      multipath = {
-        enable = true;
-        defaults = ''
-          defaults {
-              user_friendly_names yes
-              find_multipaths yes
-          }
-        '';
-        pathGroups = [ ];
       };
 
       # Cloud Init
