@@ -21,6 +21,38 @@
         safecrlf = "true";
         excludesFile = "~/.config/git/.gitignore";
       };
+      column = {
+        ui = "auto";
+      };
+      fetch = {
+        prune = true;
+        pruneTags = true;
+        all = true;
+      };
+      help = {
+        autocorrect = true;
+      };
+      diff = {
+        algorithm = "histogram";
+        colorMoved = "plain";
+        mnemonicPrefix = true;
+        renames = true;
+      };
+      rebase = {
+        autoSquash = true;
+        autoStash = true;
+        updateRefs = true;
+      };
+      rerere = {
+        enabled = true;
+        autoupdate = true;
+      };
+      commit = {
+        verbose = true;
+      };
+      branch = {
+        sort = "-committerdate";
+      };
       merge = {
         conflictstyle = "zdiff3";
       };
