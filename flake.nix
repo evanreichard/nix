@@ -24,7 +24,9 @@
       };
     in
     {
+      # NixOS Generators
       packages.x86_64-linux = {
+        # RKE2
         rke2-image = nixos-generators.nixosGenerate {
           system = "x86_64-linux";
           format = "vmware";
@@ -34,6 +36,7 @@
         };
       };
 
+      # NixOS Configurations
       nixosConfigurations = {
         # LLaMA C++ Server
         lin-va-llama1 = mkSystem {
@@ -51,6 +54,12 @@
             hostName = "lin-va-nix-builder";
             mainDiskID = "/dev/xvda";
             enableXenGuest = true;
+            network = {
+              interface = "enX0";
+              address = "10.0.50.130";
+              defaultGateway = "10.0.50.254";
+              nameservers = [ "10.0.50.254" ];
+            };
           };
         };
       };
