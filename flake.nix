@@ -34,16 +34,30 @@
             ./hosts/rke2-image.nix
           ];
         };
+
+        usb-image = nixos-generators.nixosGenerate {
+          system = "x86_64-linux";
+          format = "raw-efi";
+          modules = [
+            ./hosts/usb-image.nix
+          ];
+        };
       };
 
       # NixOS Configurations
       nixosConfigurations = {
-        # LLaMA C++ Server
-        lin-va-llama1 = mkSystem {
-          systemConfig = ./hosts/llama-server.nix;
+        # Office Server (LLaMA / ADS-B)
+        lin-va-office = mkSystem {
+          systemConfig = ./hosts/office-server.nix;
           moduleConfig = {
-            hostName = "lin-va-llama1";
+            hostName = "lin-va-office";
             mainDiskID = "/dev/disk/by-id/ata-MTFDDAK512MBF-1AN1ZABHA_161212233628";
+            network = {
+              interface = "enp5s0";
+              address = "10.0.50.120";
+              defaultGateway = "10.0.50.254";
+              nameservers = [ "10.0.50.254" ];
+            };
           };
         };
 

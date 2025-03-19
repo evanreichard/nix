@@ -54,41 +54,66 @@ in
     nvidiaSettings = true;
   };
 
-  # Network Configuration
-  networking.networkmanager.enable = true;
-
-  # Download Model
-  systemd.services.download-model = {
-    description = "Download Model";
-    wantedBy = [ "multi-user.target" ];
-    before = [ "llama-cpp.service" ];
-    path = [ pkgs.curl pkgs.coreutils ];
-    serviceConfig = {
-      Type = "oneshot";
-      RemainAfterExit = true;
-      User = "root";
-      Group = "root";
-    };
-    script = ''
-      set -euo pipefail
-
-      if [ ! -f "${modelPath}" ]; then
-        mkdir -p "${modelDir}"
-        # Add -f flag to follow redirects and -L for location
-        # Add --fail flag to exit with error on HTTP errors
-        # Add -C - to resume interrupted downloads
-        curl -f -L -C - \
-          -H "Accept: application/octet-stream" \
-          --retry 3 \
-          --retry-delay 5 \
-          --max-time 1800 \
-          "${modelUrl}" \
-          -o "${modelPath}.tmp" && \
-        mv "${modelPath}.tmp" "${modelPath}"
-      fi
-    '';
+  # Networking Configuration
+  networking.firewall = {
+    enable = true;
+    allowedTCPPorts = [
+      1234 # RTL-TCP
+      8080 # LLama API
+    ];
   };
 
+  # RTL-SDR
+  hardware.rtl-sdr.enable = true;
+
+  systemd.services = {
+    # LLama Download Model
+    download-model = {
+      description = "Download Model";
+      wantedBy = [ "multi-user.target" ];
+      before = [ "llama-cpp.service" ];
+      path = [ pkgs.curl pkgs.coreutils ];
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+        User = "root";
+        Group = "root";
+      };
+      script = ''
+        set -euo pipefail
+
+        if [ ! -f "${modelPath}" ]; then
+          mkdir -p "${modelDir}"
+          # Add -f flag to follow redirects and -L for location
+          # Add --fail flag to exit with error on HTTP errors
+          # Add -C - to resume interrupted downloads
+          curl -f -L -C - \
+            -H "Accept: application/octet-stream" \
+            --retry 3 \
+            --retry-delay 5 \
+            --max-time 1800 \
+            "${modelUrl}" \
+            -o "${modelPath}.tmp" && \
+          mv "${modelPath}.tmp" "${modelPath}"
+        fi
+      '';
+    };
+
+    # RTL-SDR TCP Server Service
+    rtl-tcp = {
+      description = "RTL-SDR TCP Server";
+      after = [ "network.target" ];
+      wantedBy = [ "multi-user.target" ];
+
+      serviceConfig = {
+        ExecStart = "${pkgs.rtl-sdr}/bin/rtl_tcp -a 0.0.0.0 -f 1090000000 -s 2400000";
+        Restart = "on-failure";
+        RestartSec = "10s";
+        User = "root";
+        Group = "root";
+      };
+    };
+  };
 
   # Setup LLama API Service
   systemd.services.llama-cpp = {
@@ -141,7 +166,8 @@ in
   # System Packages
   environment.systemPackages = with pkgs; [
     htop
-    nvtop
+    nvtopPackages.full
+    rtl-sdr
     tmux
     vim
     wget

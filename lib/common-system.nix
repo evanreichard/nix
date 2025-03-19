@@ -87,7 +87,7 @@
       };
     })
 
-    # Xen Guest
+    # Xen Guest Configuration
     (lib.mkIf config.enableXenGuest {
       services.xe-guest-utilities.enable = true;
 
