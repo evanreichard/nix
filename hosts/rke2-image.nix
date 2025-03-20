@@ -36,6 +36,20 @@
       ];
     };
 
+    # Add Intel Arc A310 GPU Drivers
+    nixpkgs.config.allowUnfree = true;
+    hardware.enableRedistributableFirmware = true;
+    hardware.graphics = {
+      enable = true;
+      extraPackages = with pkgs; [
+        libvdpau-va-gl
+        intel-vaapi-driver
+        intel-media-driver
+        intel-compute-runtime
+        intel-ocl
+      ];
+    };
+
     # Network Configuration
     networking = {
       hostName = lib.mkForce "";
@@ -158,6 +172,7 @@
     environment = {
       systemPackages = with pkgs; [
         htop
+        intel-gpu-tools
         k9s
         kubectl
         kubernetes-helm
