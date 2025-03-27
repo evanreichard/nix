@@ -1,26 +1,28 @@
 { pkgs, ... }:
 let
-  inherit (pkgs.lib) optionals;
+  inherit (pkgs.lib) optionals mkForce;
   inherit (pkgs.stdenv) isLinux isDarwin;
 in
 {
 
   imports = [
     ./bash
+    ./btop
     ./direnv
+    ./fastfetch
     ./ghostty
     ./git
-    ./htop
-    ./fastfetch
     ./nvim
     ./powerline
     ./readline
+    ./hyprland
+    ./waybar
   ];
 
   # Home Manager Config
-  home.username = "evanreichard";
-  home.homeDirectory = "/Users/evanreichard";
   home.stateVersion = "24.11";
+  home.username = "evanreichard";
+  home.homeDirectory = mkForce (if isLinux then "/home/evanreichard" else "/Users/evanreichard");
   programs.home-manager.enable = true;
 
   # Global Packages
@@ -37,16 +39,6 @@ in
     imagemagick
     kubectl
     kubernetes-helm
-    (llama-cpp.overrideAttrs {
-      version = "b4539";
-      src = pkgs.fetchFromGitHub {
-        owner = "ggerganov";
-        repo = "llama.cpp";
-        tag = "b4539";
-        hash = "sha256-zPWx8gdai8OfoBCr2X2oJYg45ipLselYZMrL+MbQ1AY=";
-        leaveDotGit = true;
-      };
-    })
     mosh
     pre-commit
     python311
@@ -55,8 +47,12 @@ in
     thefuck
     tldr
   ]
-  ++ optionals isDarwin [ ]
-  ++ optionals isLinux [ ];
+  ++ optionals isLinux [
+    ghostty
+    hyprpaper
+    firefox
+  ]
+  ++ optionals isDarwin [ ];
 
   # GitHub CLI
   programs.gh = {
@@ -67,14 +63,13 @@ in
   };
 
   # Misc Programs
-  programs.htop.enable = true;
   programs.jq.enable = true;
   programs.k9s.enable = true;
   programs.pandoc.enable = true;
 
   # Enable Flakes & Commands
   nix = {
-    package = pkgs.nix;
+    package = mkForce pkgs.nix;
     settings = {
       experimental-features = "nix-command flakes";
     };

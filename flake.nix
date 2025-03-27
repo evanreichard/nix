@@ -61,6 +61,21 @@
           };
         };
 
+        # Utility Room Desktop
+        lin-va-utility = mkSystem {
+          systemConfig = ./hosts/utility-desktop.nix;
+          moduleConfig = {
+            hostName = "lin-va-utility";
+            mainDiskID = "/dev/disk/by-id/nvme-eui.0026b768429d3eb5";
+            network = {
+              interface = "eno1";
+              address = "10.0.20.50";
+              defaultGateway = "10.0.20.254";
+              nameservers = [ "10.0.20.254" ];
+            };
+          };
+        };
+
         # Nix Builder
         lin-va-nix-builder = mkSystem {
           systemConfig = ./hosts/builder.nix;

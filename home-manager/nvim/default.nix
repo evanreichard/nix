@@ -1,7 +1,4 @@
 { pkgs, ... }:
-let
-  unstable = import <nixpkgs-unstable> { };
-in
 {
   programs.neovim = {
     enable = true;
@@ -157,7 +154,7 @@ in
       nodePackages.typescript-language-server
       nodePackages.vscode-langservers-extracted
       pyright
-      unstable.eslint_d
+      eslint_d
 
       # Formatters
       luaformatter
