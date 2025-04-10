@@ -1,5 +1,0 @@
-[core]
-    sshCommand = "ssh -i ~/Keys/personal"
-
-[user]
-    email = evan@reichard.io

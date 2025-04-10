@@ -3,94 +3,63 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     disko.url = "github:nix-community/disko";
+    snowfall-lib = {
+      url = "github:snowfallorg/lib";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    home-manager = {
+      url = "github:nix-community/home-manager/release-24.11";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    apple-silicon = {
+      url = "github:tpwrules/nixos-apple-silicon/releasep2-2024-12-25";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     nixos-generators = {
       url = "github:nix-community/nixos-generators";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    firefox-addons = {
+      url = "gitlab:rycee/nur-expressions?dir=pkgs/firefox-addons";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, disko, nixos-generators }:
-    let
-      mkSystem = { systemConfig ? { }, moduleConfig }: nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
-        modules = [
-          disko.nixosModules.disko
-          ./lib/disk-config.nix
-          ./lib/common-system.nix
-          systemConfig
-          ({ ... }: moduleConfig)
+  outputs = inputs:
+    inputs.snowfall-lib.mkFlake {
+      inherit inputs;
+      src = ./.;
+
+      snowfall = {
+        namespace = "reichard";
+        meta = {
+          title = "Reichard";
+          name = "reichard";
+        };
+      };
+
+      channels-config = {
+        allowUnfree = true;
+        permittedInsecurePackages = [
+          "intel-ocl-5.0-63503"
         ];
       };
-    in
-    {
-      # NixOS Generators
-      packages.x86_64-linux = {
-        # RKE2
-        rke2-image = nixos-generators.nixosGenerate {
-          system = "x86_64-linux";
-          format = "vmware";
-          modules = [
-            ./hosts/rke2-image.nix
-          ];
-        };
 
-        usb-image = nixos-generators.nixosGenerate {
-          system = "x86_64-linux";
-          format = "raw-efi";
-          modules = [
-            ./hosts/usb-image.nix
-          ];
-        };
-      };
+      homes.modules = with inputs; [
+        sops-nix.homeManagerModules.sops
+      ];
 
-      # NixOS Configurations
-      nixosConfigurations = {
-        # Office Server (LLaMA / ADS-B)
-        lin-va-office = mkSystem {
-          systemConfig = ./hosts/office-server.nix;
-          moduleConfig = {
-            hostName = "lin-va-office";
-            mainDiskID = "/dev/disk/by-id/ata-MTFDDAK512MBF-1AN1ZABHA_161212233628";
-            network = {
-              interface = "enp5s0";
-              address = "10.0.50.120";
-              defaultGateway = "10.0.50.254";
-              nameservers = [ "10.0.50.254" ];
-            };
-          };
-        };
-
-        # Utility Room Desktop
-        lin-va-utility = mkSystem {
-          systemConfig = ./hosts/utility-desktop.nix;
-          moduleConfig = {
-            hostName = "lin-va-utility";
-            mainDiskID = "/dev/disk/by-id/nvme-eui.0026b768429d3eb5";
-            network = {
-              interface = "eno1";
-              address = "10.0.20.50";
-              defaultGateway = "10.0.20.254";
-              nameservers = [ "10.0.20.254" ];
-            };
-          };
-        };
-
-        # Nix Builder
-        lin-va-nix-builder = mkSystem {
-          systemConfig = ./hosts/builder.nix;
-          moduleConfig = {
-            hostName = "lin-va-nix-builder";
-            mainDiskID = "/dev/xvda";
-            enableXenGuest = true;
-            network = {
-              interface = "enX0";
-              address = "10.0.50.130";
-              defaultGateway = "10.0.50.254";
-              nameservers = [ "10.0.50.254" ];
-            };
-          };
-        };
+      systems.modules = {
+        nixos = with inputs; [
+          disko.nixosModules.disko
+          sops-nix.nixosModules.sops
+        ];
       };
     };
 }

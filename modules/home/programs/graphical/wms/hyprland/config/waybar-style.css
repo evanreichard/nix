@@ -1,0 +1,146 @@
+@define-color rosewater #f5e0dc;
+@define-color flamingo #f2cdcd;
+@define-color pink #f5c2e7;
+@define-color mauve #cba6f7;
+@define-color red #f38ba8;
+@define-color maroon #eba0ac;
+@define-color peach #fab387;
+@define-color yellow #f9e2af;
+@define-color green #a6e3a1;
+@define-color teal #94e2d5;
+@define-color sky #89dceb;
+@define-color sapphire #74c7ec;
+@define-color blue #89b4fa;
+@define-color lavender #b4befe;
+@define-color text #cdd6f4;
+@define-color subtext1 #bac2de;
+@define-color subtext0 #a6adc8;
+@define-color overlay2 #9399b2;
+@define-color overlay1 #7f849c;
+@define-color overlay0 #6c7086;
+@define-color surface2 #585b70;
+@define-color surface1 #45475a;
+@define-color surface0 #313244;
+@define-color base #1e1e2e;
+@define-color mantle #181825;
+@define-color crust #11111b;
+
+/* Common Styles */
+* {
+  font-family: FantasqueSansMono Nerd Font;
+  font-size: 14px;
+  min-height: 0;
+}
+
+/* Primary Waybar */
+#waybar {
+  background: transparent;
+  color: @text;
+}
+
+/* Icon Only Sizes */
+#network,
+#backlight,
+#battery {
+  font-size: 18px;
+}
+
+/* Node Styles */
+#workspaces,
+#window,
+#tray,
+#cpu,
+#memory,
+#pulseaudio,
+#network,
+#backlight,
+#battery,
+#clock {
+  margin-top: 1rem;
+  padding: 0.2px 1rem;
+  background-color: @surface0;
+}
+
+#workspaces button {
+  color: @lavender;
+  border-radius: 1rem;
+}
+
+#workspaces button.active {
+  color: @sky;
+  background-color: @surface2;
+}
+
+#workspaces button:hover {
+  color: @sapphire;
+}
+
+#window {
+  background: transparent;
+  margin-left: 0.5rem;
+  margin-right: 8rem; /* Notch */
+}
+
+#memory {
+  color: @blue;
+}
+
+#pulseaudio {
+  color: @maroon;
+}
+
+#network {
+  color: @mauve;
+}
+
+#cpu {
+  color: @peach;
+}
+
+#backlight {
+  color: @yellow;
+}
+
+#battery {
+  color: @green;
+}
+
+#battery.charging {
+  color: @green;
+}
+
+#battery.warning:not(.charging) {
+  color: @red;
+}
+
+/* Left Border Radius */
+#clock,
+#network,
+#cpu,
+#tray,
+#workspaces {
+  margin-left: 0.5rem;
+  border-top-left-radius: 1rem;
+  border-bottom-left-radius: 1rem;
+}
+
+/* Right Border Radius */
+#pulseaudio,
+#clock,
+#tray,
+#battery,
+#workspaces {
+  margin-right: 0.5rem;
+  border-top-right-radius: 1rem;
+  border-bottom-right-radius: 1rem;
+}
+
+#workspaces {
+  padding: 0px;
+  margin-left: 1rem;
+}
+
+#clock {
+  color: @blue;
+  margin-right: 1rem;
+}

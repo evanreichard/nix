@@ -1,7 +1,9 @@
 #!/bin/sh
 
+export NIX_CONFIG="experimental-features = nix-command flakes"
+
 function cmd_image() {
-    local usage="Usage: $0 image --name <image-name>"
+    local usage="Usage: $0 image --name <image-name> [--remote]"
     local name=""
     local remote=false
 
@@ -29,14 +31,13 @@ function cmd_image() {
 
     # Validate Config Exists
     if ! nix eval --json --impure \
-        --experimental-features "nix-command flakes" \
-        ".#packages.x86_64-linux" \
+        ".#qcowConfigurations" \
         --apply "s: builtins.hasAttr \"$name\" s" 2>/dev/null | grep -q "true"; then
         echo "Error: NixOS Generator Config '$name' not found"
         exit 1
     fi
 
-    build_args=(".#packages.x86_64-linux.$name")
+    build_args=(".#qcowConfigurations.$name")
     if [ "$remote" = true ]; then
         build_args+=("-j0")
     fi
@@ -73,16 +74,16 @@ function cmd_install() {
 
     # Validate Config Exists
     if ! nix eval --json --impure \
-        --experimental-features "nix-command flakes" \
         ".#nixosConfigurations" \
         --apply "s: builtins.hasAttr \"$name\" s" 2>/dev/null | grep -q "true"; then
         echo "Error: NixOS configuration '$name' not found"
         exit 1
     fi
 
+    #$ TODO
+    #
     # Validate mainDiskID Exists
     if ! disk_id=$(nix eval --raw --impure \
-	--experimental-features "nix-command flakes" \
 	".#nixosConfigurations.$name.config.mainDiskID" 2>/dev/null); then
         echo "Error: mainDiskID not defined for configuration '$name'"
         exit 1
