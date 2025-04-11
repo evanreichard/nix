@@ -1,57 +1,43 @@
-{ pkgs, ... }:
-
+{ namespace, lib, ... }:
 let
-  home-manager = builtins.fetchTarball {
-    url = "https://github.com/nix-community/home-manager/archive/release-24.11.tar.gz";
-    sha256 = "156hc11bb6xiypj65q6gzkhw1gw31dwv6dfh6rnv20hgig1sbfld";
-  };
+  inherit (lib.${namespace}) enabled;
 in
 {
-  imports = [
-    "${home-manager}/nixos"
-  ];
+  system.stateVersion = "24.11";
+  time.timeZone = "America/New_York";
 
-  # Enable Graphics
-  hardware.graphics = {
-    enable = true;
-    enable32Bit = true;
-    extraPackages = with pkgs; [ vaapiIntel intel-media-driver ];
+  reichard = {
+    nix = enabled;
+
+    system = {
+      boot = {
+        enable = true;
+        silentBoot = true;
+      };
+      networking = enabled;
+    };
+
+    hardware = {
+      opengl = {
+        enable = true;
+        enable32Bit = true; # Necessary?
+        enableIntel = true;
+      };
+    };
+
+    services = {
+      avahi = enabled;
+      ydotool = enabled;
+    };
+
+    virtualisation = {
+      podman = enabled;
+    };
+
+    programs = {
+      graphical = {
+        wms.hyprland = enabled;
+      };
+    };
   };
-
-  # User Configuration
-  users.users.evanreichard = {
-    isNormalUser = true;
-    home = "/home/evanreichard";
-    group = "evanreichard";
-    extraGroups = [ "wheel" "networkmanager" "video" ];
-    shell = pkgs.bash;
-  };
-  users.groups.evanreichard = { };
-
-  # Home Manager
-  home-manager = {
-    useGlobalPkgs = true;
-    useUserPackages = true;
-    users.evanreichard = import ../home-manager/home.nix;
-  };
-
-  # Enable HyprLand
-  programs.hyprland = {
-    enable = true;
-    withUWSM = true;
-  };
-
-  # Networking Configuration
-  networking.firewall = {
-    enable = true;
-  };
-
-  # System Packages
-  environment.systemPackages = with pkgs; [
-    ghostty
-    htop
-    tmux
-    vim
-    wget
-  ];
 }
