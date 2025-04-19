@@ -1,6 +1,6 @@
 { config, lib, pkgs, namespace, ... }:
 let
-  inherit (lib) mkIf;
+  inherit (lib) mkIf mkForce;
   inherit (lib.${namespace}) mkBoolOpt;
 
   cfg = config.${namespace}.hardware.opengl;
@@ -24,7 +24,7 @@ in
     ];
 
     # Add Intel Arc / Nvidia Drivers
-    hardware.enableRedistributableFirmware = cfg.enableIntel;
+    hardware.enableRedistributableFirmware = mkIf cfg.enableIntel (mkForce true);
     hardware.graphics = {
       enable = true;
       enable32Bit = cfg.enable32Bit;

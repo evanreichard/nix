@@ -1,7 +1,5 @@
-{ namespace, lib, config, pkgs, ... }:
+{ namespace, config, pkgs, ... }:
 let
-  inherit (lib.${namespace}) enabled;
-
   cfg = config.${namespace}.user;
 in
 {
@@ -35,6 +33,8 @@ in
         authorizedKeys = [
           # evanreichard@lin-va-mbp-personal
           "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILJJoyXQOv9cAjGUHrUcvsW7vY9W0PmuPMQSI9AMZvNY"
+          # evanreichard@lin-va-thinkpad
+          "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAq5JQr/6WJMIHhR434nK95FrDmf2ApW2Ahd2+cBKwDz"
           # NixOS Builder
           "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDF8QjeN8lpT+Mc70zwEJQqN9W/GKvTOTd32VgfNhVdN"
         ];
@@ -47,6 +47,8 @@ in
       authorizedKeys.keys = [
         # evanreichard@lin-va-mbp-personal
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILJJoyXQOv9cAjGUHrUcvsW7vY9W0PmuPMQSI9AMZvNY"
+        # evanreichard@lin-va-thinkpad
+        "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAq5JQr/6WJMIHhR434nK95FrDmf2ApW2Ahd2+cBKwDz"
         # NixOS Builder
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDF8QjeN8lpT+Mc70zwEJQqN9W/GKvTOTd32VgfNhVdN"
       ];

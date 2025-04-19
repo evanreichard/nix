@@ -10,6 +10,7 @@ in
 
     networking.networkmanager = {
       enable = true;
+      wifi.backend = mkIf cfg.enableIWD "iwd";
 
       connectionConfig = {
         "connection.mdns" = "2";

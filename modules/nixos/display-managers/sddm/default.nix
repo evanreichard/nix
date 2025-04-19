@@ -1,19 +1,17 @@
 { config, lib, pkgs, namespace, ... }:
 let
-  inherit (lib) mkIf;
+  inherit (lib) mkIf types;
+  inherit (lib.${namespace}) mkOpt;
 
   cfg = config.${namespace}.display-managers.sddm;
 in
 {
   options.${namespace}.display-managers.sddm = {
     enable = lib.mkEnableOption "sddm";
+    scale = mkOpt types.str "1.5" "Scale";
   };
 
   config = mkIf cfg.enable {
-    environment.systemPackages = with pkgs; [
-      catppuccin-sddm
-    ];
-
     services = {
       displayManager = {
         sddm = {
@@ -25,9 +23,13 @@ in
       };
     };
 
+    environment.systemPackages = with pkgs; [
+      catppuccin-sddm
+    ];
+
     environment.sessionVariables = {
-      QT_SCREEN_SCALE_FACTORS = "2";
-      QT_FONT_DPI = "192";
+      QT_SCREEN_SCALE_FACTORS = cfg.scale;
+      #   QT_FONT_DPI = "192";
     };
   };
 }

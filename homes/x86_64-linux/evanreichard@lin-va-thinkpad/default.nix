@@ -1,4 +1,4 @@
-{ pkgs, lib, config, namespace, osConfig, ... }:
+{ pkgs, lib, config, namespace, ... }:
 let
   inherit (lib.${namespace}) enabled;
 in
@@ -15,20 +15,18 @@ in
       ssh-agent = enabled;
       fusuma = enabled;
       swww = enabled;
-      sops = {
-        enable = true;
-        defaultSopsFile = lib.snowfall.fs.get-file "secrets/default.yaml";
-        sshKeyPaths = [ "${config.home.homeDirectory}/.ssh/id_ed25519" ];
-      };
+      # sops = {
+      #   enable = true;
+      #   defaultSopsFile = lib.snowfall.fs.get-file "secrets/default.yaml";
+      #   sshKeyPaths = [ "${config.home.homeDirectory}/.ssh/id_ed25519" ];
+      # };
     };
 
     programs = {
       graphical = {
         wms.hyprland = {
           enable = true;
-          monitors = [
-            ",highres,auto,2" # Optional - 1.68
-          ];
+          mainMod = "SUPER";
         };
         ghostty = enabled;
         ghidra = enabled;
@@ -77,11 +75,11 @@ in
   };
 
   # Kubernetes Secrets
-  sops.secrets = lib.mkIf osConfig.${namespace}.security.sops.enable {
-    rke2_kubeconfig = {
-      path = "${config.home.homeDirectory}/.kube/rke2";
-    };
-  };
+  # sops.secrets = lib.mkIf osConfig.${namespace}.security.sops.enable {
+  #   rke2_kubeconfig = {
+  #     path = "${config.home.homeDirectory}/.kube/rke2";
+  #   };
+  # };
 
   # Global Packages
   # programs.jq = enabled;

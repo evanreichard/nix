@@ -80,11 +80,9 @@ function cmd_install() {
         exit 1
     fi
 
-    #$ TODO
-    #
     # Validate mainDiskID Exists
     if ! disk_id=$(nix eval --raw --impure \
-	".#nixosConfigurations.$name.config.mainDiskID" 2>/dev/null); then
+	".#nixosConfigurations.$name.config.disko.devices.disk.main.device" 2>/dev/null); then
         echo "Error: mainDiskID not defined for configuration '$name'"
         exit 1
     fi
