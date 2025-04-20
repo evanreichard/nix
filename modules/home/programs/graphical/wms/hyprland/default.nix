@@ -29,14 +29,14 @@ in
 
         bind = [
           # Super Bindings (macOS Transition)
-          "SUPER_SHIFT, 1, exec, hyprshot -m output"
-          "SUPER_SHIFT, 2, exec, hyprshot -m window"
-          "SUPER_SHIFT, 3, exec, hyprshot -m region"
-          "SUPER, Q, killactive"
-          "SUPER, SPACE, exec, $menu"
+          "ALT_SHIFT, 1, exec, hyprshot -m output"
+          "ALT_SHIFT, 2, exec, hyprshot -m window"
+          "ALT_SHIFT, 3, exec, hyprshot -m region"
 
           # Primary Bindings
+          "$mainMod, SPACE, exec, $menu"
           "$mainMod, RETURN, exec, $terminal"
+          "$mainMod, Q, killactive"
           "$mainMod, M, exit"
           "$mainMod, V, togglefloating"
           "$mainMod, P, pseudo" # dwindle
