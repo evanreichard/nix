@@ -45,12 +45,11 @@ in
       };
     };
 
-    # security = {
-    #   sops = {
-    #     enable = true;
-    #     # sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
-    #     defaultSopsFile = lib.snowfall.fs.get-file "secrets/lin-mbp-personal/default.yaml";
-    #   };
-    # };
+    security = {
+      sops = {
+        enable = true;
+        defaultSopsFile = lib.snowfall.fs.get-file "secrets/lin-va-thinkpad/default.yaml";
+      };
+    };
   };
 }

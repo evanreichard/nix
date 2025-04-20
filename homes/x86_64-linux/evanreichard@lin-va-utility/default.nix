@@ -64,7 +64,6 @@ in
 
 
   home.pointerCursor = {
-    # x11.enable = true;
     gtk.enable = true;
     name = "catppuccin-macchiato-mauve-cursors";
     package = pkgs.catppuccin-cursors.macchiatoMauve;

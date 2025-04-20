@@ -1,4 +1,4 @@
-{ pkgs, lib, config, namespace, ... }:
+{ pkgs, lib, config, namespace, osConfig, ... }:
 let
   inherit (lib.${namespace}) enabled;
 in
@@ -15,11 +15,11 @@ in
       ssh-agent = enabled;
       fusuma = enabled;
       swww = enabled;
-      # sops = {
-      #   enable = true;
-      #   defaultSopsFile = lib.snowfall.fs.get-file "secrets/default.yaml";
-      #   sshKeyPaths = [ "${config.home.homeDirectory}/.ssh/id_ed25519" ];
-      # };
+      sops = {
+        enable = true;
+        defaultSopsFile = lib.snowfall.fs.get-file "secrets/default.yaml";
+        sshKeyPaths = [ "${config.home.homeDirectory}/.ssh/id_ed25519" ];
+      };
     };
 
     programs = {
@@ -64,7 +64,6 @@ in
 
 
   home.pointerCursor = {
-    # x11.enable = true;
     gtk.enable = true;
     name = "catppuccin-macchiato-mauve-cursors";
     package = pkgs.catppuccin-cursors.macchiatoMauve;
@@ -72,24 +71,11 @@ in
   };
 
   # Kubernetes Secrets
-  # sops.secrets = lib.mkIf osConfig.${namespace}.security.sops.enable {
-  #   rke2_kubeconfig = {
-  #     path = "${config.home.homeDirectory}/.kube/rke2";
-  #   };
-  # };
-
-  # Global Packages
-  # programs.jq = enabled;
-  # programs.pandoc = enabled;
-  # home.packages = with pkgs; [
-  #   android-tools
-  #   imagemagick
-  #   mosh
-  #   python311
-  #   texliveSmall # Pandoc PDF Dep
-  #   google-cloud-sdk
-  #   tldr
-  # ];
+  sops.secrets = lib.mkIf osConfig.${namespace}.security.sops.enable {
+    rke2_kubeconfig = {
+      path = "${config.home.homeDirectory}/.kube/rke2";
+    };
+  };
 
   # SQLite Configuration
   home.file.".sqliterc".text = ''

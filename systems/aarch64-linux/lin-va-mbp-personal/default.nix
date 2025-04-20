@@ -43,8 +43,7 @@ in
     security = {
       sops = {
         enable = true;
-        # sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
-        defaultSopsFile = lib.snowfall.fs.get-file "secrets/lin-mbp-personal/default.yaml";
+        defaultSopsFile = lib.snowfall.fs.get-file "secrets/lin-va-mbp-personal/default.yaml";
       };
     };
 
