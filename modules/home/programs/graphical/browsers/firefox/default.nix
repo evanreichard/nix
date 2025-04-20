@@ -85,6 +85,7 @@ in
               "browser.aboutConfig.showWarning" = false;
               "browser.aboutwelcome.enabled" = false;
               "browser.sessionstore.warnOnQuit" = true;
+              "browser.newtabpage.activity-stream.showSponsoredTopSites" = false;
               "browser.shell.checkDefaultBrowser" = false;
               "general.smoothScroll.msdPhysics.enabled" = true;
               "intl.accept_languages" = "en-US,en";
