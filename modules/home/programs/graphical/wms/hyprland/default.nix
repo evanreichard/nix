@@ -38,7 +38,6 @@ in
           # Primary Bindings
           "$mainMod, RETURN, exec, $terminal"
           "$mainMod, M, exit"
-          # "$mainMod, E, exec, $fileManager"
           "$mainMod, V, togglefloating"
           "$mainMod, P, pseudo" # dwindle
           "$mainMod, J, togglesplit" # dwindle
