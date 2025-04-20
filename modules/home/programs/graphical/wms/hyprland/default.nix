@@ -8,7 +8,7 @@ in
 {
   options.${namespace}.programs.graphical.wms.hyprland = {
     enable = lib.mkEnableOption "Hyprland";
-    mainMod = mkOpt types.str "ALT" "Hyprland main modifier key";
+    mainMod = mkOpt types.str "SUPER" "Hyprland main modifier key";
     monitors = mkOpt (with types; listOf str) [
       ", preferred, auto, 1"
     ] "Hyprland monitor configuration";
@@ -74,6 +74,8 @@ in
           "$mainMod SHIFT, 8, movetoworkspace, 8"
           "$mainMod SHIFT, 9, movetoworkspace, 9"
           "$mainMod SHIFT, 0, movetoworkspace, 10"
+          "$mainMod SHIFT, right, workspace, +1"
+          "$mainMod SHIFT, left, workspace, -1"
         ];
         bindm = [
           # Window Resizing

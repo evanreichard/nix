@@ -24,10 +24,7 @@ in
 
     programs = {
       graphical = {
-        wms.hyprland = {
-          enable = true;
-          mainMod = "SUPER";
-        };
+        wms.hyprland = enabled;
         ghostty = enabled;
         ghidra = enabled;
         browsers.firefox = {

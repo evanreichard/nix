@@ -8,7 +8,7 @@ in
 {
   options.${namespace}.display-managers.sddm = {
     enable = lib.mkEnableOption "sddm";
-    scale = mkOpt types.str "1.5" "Scale";
+    scale = mkOpt types.str "1.75" "Scale";
   };
 
   config = mkIf cfg.enable {
@@ -29,7 +29,6 @@ in
 
     environment.sessionVariables = {
       QT_SCREEN_SCALE_FACTORS = cfg.scale;
-      #   QT_FONT_DPI = "192";
     };
   };
 }
