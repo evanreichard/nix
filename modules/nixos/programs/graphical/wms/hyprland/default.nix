@@ -1,4 +1,4 @@
-{ config, lib, namespace, ... }:
+{ config, pkgs, lib, namespace, ... }:
 let
   inherit (lib) mkIf;
 
@@ -16,6 +16,10 @@ in
         withUWSM = true;
       };
     };
+
+    environment.systemPackages = with pkgs; [
+      wl-clipboard
+    ];
 
     reichard = {
       display-managers = {

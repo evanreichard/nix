@@ -20,7 +20,7 @@ vim.g.loaded_netrwPlugin = 1
 vim.opt.termguicolors = true
 
 -- Synchronize with system clipboard
-vim.opt.clipboard = "unnamed"
+vim.opt.clipboard:append("unnamedplus")
 
 -- Always show the signcolumn
 vim.opt.signcolumn = "yes"
