@@ -2,16 +2,22 @@
 
 This repository contains the configuration for multiple machines, as well as my home / IDE config (home-manager).
 
-## Home Manager
+### NixOS
 
-Utilizing [Home Manager](https://nix-community.github.io/home-manager/). Check out the [README.md](./home-manager/README.md).
-
-## NixOS
+```bash
+sudo nixos-rebuild switch --flake .#lin-va-mbp-personal
+```
 
 ### NixOS Generators
 
 ```bash
-nix build .#packages.x86_64-linux.rke2-image
+nix build .#vmwareConfigurations.rke2-node
+```
+
+### Home Manager
+
+```bash
+home-manager switch --flake .#evanreichard@MBP-Personal
 ```
 
 ### NixOS Hosts
