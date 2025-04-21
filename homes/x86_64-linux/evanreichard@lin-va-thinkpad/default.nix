@@ -26,6 +26,7 @@ in
       graphical = {
         wms.hyprland = enabled;
         ghostty = enabled;
+        gimp = enabled;
         ghidra = enabled;
         browsers.firefox = {
           enable = true;
