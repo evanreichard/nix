@@ -47,6 +47,7 @@ in
         telescope-fzf-native-nvim # Faster Telescope
         telescope-nvim # Fuzzy Finder
         telescope-ui-select-nvim # UI
+        telescope-undo-nvim # Undo Tree
         toggleterm-nvim # Terminal Helper
         vim-nix # Nix Helpers
         which-key-nvim # Shortcut Helper
