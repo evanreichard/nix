@@ -45,9 +45,9 @@ in
     };
   };
 
-  # home.packages = with pkgs; [
-  #   catppuccin-gtk
-  # ];
+  home.packages = with pkgs; [
+    jellyfin-media-player
+  ];
 
   dconf = {
     settings = {

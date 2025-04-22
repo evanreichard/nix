@@ -39,8 +39,8 @@ in
           "$mainMod, Q, killactive"
           "$mainMod, M, exit"
           "$mainMod, V, togglefloating"
-          "$mainMod, P, pseudo" # dwindle
-          "$mainMod, J, togglesplit" # dwindle
+          "$mainMod, P, pin"
+          "$mainMod, J, togglesplit"
           "$mainMod, S, togglespecialworkspace, magic"
           "$mainMod SHIFT, S, movetoworkspace, special:magic"
 
