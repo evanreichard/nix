@@ -184,9 +184,9 @@ nvim_lsp.golangci_lint_ls.setup({
 })
 
 ------------------------------------------------------
---------------------- Null-LS LSP --------------------
+--------------------- None-LS LSP --------------------
 ------------------------------------------------------
-local null_ls = require("null-ls")
+local none_ls = require("null-ls")
 
 local eslintFiles = {
 	".eslintrc",
@@ -203,26 +203,27 @@ local eslintFiles = {
 	"eslint.config.cts",
 }
 
-has_eslint_in_parents = function(fname)
-	root_file = nvim_lsp.util.insert_package_json(eslintFiles, "eslintConfig", fname)
+local has_eslint_in_parents = function(fname)
+	local root_file = nvim_lsp.util.insert_package_json(eslintFiles, "eslintConfig", fname)
 	return nvim_lsp.util.root_pattern(unpack(root_file))(fname)
 end
 
-null_ls.setup({
+none_ls.setup({
 	sources = {
 		-- Prettier Formatting
-		null_ls.builtins.formatting.prettier,
-		null_ls.builtins.formatting.prettier.with({ filetypes = { "template" } }),
+		none_ls.builtins.formatting.prettier,
+		none_ls.builtins.formatting.prettier.with({ filetypes = { "template" } }),
 		require("none-ls.diagnostics.eslint_d").with({
 			condition = function(utils)
 				return has_eslint_in_parents(vim.fn.getcwd())
 			end,
 		}),
-		null_ls.builtins.completion.spell,
-		null_ls.builtins.formatting.nixpkgs_fmt,
-		null_ls.builtins.formatting.stylua,
-		null_ls.builtins.diagnostics.sqlfluff,
-		null_ls.builtins.formatting.sqlfluff,
+		none_ls.builtins.completion.spell,
+		none_ls.builtins.formatting.nixpkgs_fmt,
+		none_ls.builtins.formatting.stylua,
+		none_ls.builtins.diagnostics.sqlfluff,
+		none_ls.builtins.formatting.sqlfluff,
+		require("none-ls.formatting.autopep8").with({ filetypes = { "starlark", "python" } }),
 	},
 	on_attach = function(client, bufnr)
 		if client.supports_method("textDocument/formatting") then

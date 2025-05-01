@@ -43,7 +43,7 @@ in
     android-tools
     imagemagick
     mosh
-    python311
+    python312
     texliveSmall # Pandoc PDF Dep
     google-cloud-sdk
     tldr

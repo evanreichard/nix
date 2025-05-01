@@ -82,12 +82,12 @@ in
         (
           pkgs.vimUtils.buildVimPlugin {
             pname = "none-ls-extras.nvim";
-            version = "2024-06-11";
+            version = "2025-05-01";
             src = pkgs.fetchFromGitHub {
               owner = "nvimtools";
               repo = "none-ls-extras.nvim";
-              rev = "336e84b9e43c0effb735b08798ffac382920053b";
-              sha256 = "sha256-UtU4oWSRTKdEoMz3w8Pk95sROuo3LEwxSDAm169wxwk=";
+              rev = "80dfc30b674c45ad892726f656440cc9e69b82e3";
+              sha256 = "sha256-VwI3jIqSYkhMS1S1sVZbyGb9mXliBoFytkFXkks4PD0=";
             };
             meta.homepage = "https://github.com/nvimtools/none-ls-extras.nvim/";
           }
@@ -166,6 +166,7 @@ in
         nodePackages.vscode-langservers-extracted
         pyright
         eslint_d
+        python312Packages.autopep8
 
         # Formatters
         luaformatter
