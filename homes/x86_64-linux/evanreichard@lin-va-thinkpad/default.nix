@@ -27,6 +27,7 @@ in
         wms.hyprland = enabled;
         ghostty = enabled;
         gimp = enabled;
+        wireshark = enabled;
         ghidra = enabled;
         browsers.firefox = {
           enable = true;
