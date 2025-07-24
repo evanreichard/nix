@@ -223,7 +223,10 @@ none_ls.setup({
 		none_ls.builtins.formatting.stylua,
 		none_ls.builtins.diagnostics.sqlfluff,
 		none_ls.builtins.formatting.sqlfluff,
-		require("none-ls.formatting.autopep8").with({ filetypes = { "starlark", "python" } }),
+		require("none-ls.formatting.autopep8").with({
+			filetypes = { "starlark", "python" },
+			extra_args = { "--max-line-length", "100" },
+		}),
 	},
 	on_attach = function(client, bufnr)
 		if client.supports_method("textDocument/formatting") then
