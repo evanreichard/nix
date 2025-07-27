@@ -1,6 +1,7 @@
 require("base")
 require("aerial-config")
 require("autopairs-config")
+require("avante-config")
 require("cmp-config")
 require("comment-config")
 require("dap-config")

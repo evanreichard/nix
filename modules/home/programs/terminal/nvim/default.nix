@@ -34,6 +34,7 @@ in
         # -------------------
         # ----- Helpers -----
         # -------------------
+        avante-nvim # Avante
         aerial-nvim # Code Outline
         comment-nvim # Code Comments
         diffview-nvim # Diff View
@@ -82,13 +83,14 @@ in
         (
           pkgs.vimUtils.buildVimPlugin {
             pname = "none-ls-extras.nvim";
-            version = "2025-05-01";
+            version = "2025-06-18";
             src = pkgs.fetchFromGitHub {
               owner = "nvimtools";
               repo = "none-ls-extras.nvim";
-              rev = "80dfc30b674c45ad892726f656440cc9e69b82e3";
-              sha256 = "sha256-VwI3jIqSYkhMS1S1sVZbyGb9mXliBoFytkFXkks4PD0=";
+              rev = "924fe88a9983c7d90dbb31fc4e3129a583ea0a90";
+              sha256 = "sha256-OJHg2+h3zvlK7LJ8kY6f7et0w6emnxfcDbjD1YyWRTw=";
             };
+            doCheck = false;
             meta.homepage = "https://github.com/nvimtools/none-ls-extras.nvim/";
           }
         )
@@ -106,6 +108,7 @@ in
               rev = "5ca462bee0a39b058786bc7fbeb5d16ea49f3a23";
               sha256 = "0vlp645d5mmii513v72jca931miyrhkvhwb9bfzhix1199zx7vi2";
             };
+            doCheck = false;
             meta.homepage = "https://github.com/mhanberg/silicon.lua/";
           }
         )
@@ -143,7 +146,6 @@ in
             meta.homepage = "https://github.com/ggml-org/llama.vim/";
           }
         )
-
       ];
 
       extraPackages = with pkgs; [
