@@ -53,7 +53,7 @@ in
 
     settings = mkOpt attrs { } "Settings to apply to the profile.";
 
-    extensions = mkOpt (with lib.types; listOf package)
+    extensions.packages = mkOpt (with lib.types; listOf package)
       (with pkgs.firefox-addons; [
         bitwarden
         darkreader

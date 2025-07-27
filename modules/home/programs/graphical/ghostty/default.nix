@@ -59,7 +59,7 @@ in
       thefuck
       fastfetch
       bashInteractive
-      (nerdfonts.override { fonts = [ "Meslo" ]; })
+      nerd-fonts.meslo-lg
     ] ++ optionals isLinux [
       # Pending Darwin @ https://github.com/NixOS/nixpkgs/pull/369788
       ghostty
