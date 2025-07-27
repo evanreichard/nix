@@ -6,6 +6,7 @@ in
   system.stateVersion = "24.11";
   time.timeZone = "America/New_York";
   hardware.enableRedistributableFirmware = true;
+  hardware.bluetooth.enable = true;
 
   # System Config
   reichard = {
