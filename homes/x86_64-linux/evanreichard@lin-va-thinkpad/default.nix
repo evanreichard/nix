@@ -29,6 +29,7 @@ in
         gimp = enabled;
         wireshark = enabled;
         ghidra = enabled;
+        remmina = enabled;
         browsers.firefox = {
           enable = true;
           gpuAcceleration = true;

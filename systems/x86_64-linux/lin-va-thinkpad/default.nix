@@ -7,6 +7,8 @@ in
   time.timeZone = "America/New_York";
   hardware.enableRedistributableFirmware = true;
   hardware.bluetooth.enable = true;
+  hardware.amdgpu.initrd.enable = lib.mkDefault true;
+  services.xserver.videoDrivers = [ "modesetting" ];
 
   # System Config
   reichard = {
