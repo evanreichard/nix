@@ -17,7 +17,7 @@ nix build .#vmwareConfigurations.rke2-node
 ### Home Manager
 
 ```bash
-home-manager switch --flake .#evanreichard@MBP-Personal
+home-manager switch --flake .#evanreichard@mac-va-mbp-personal
 ```
 
 ### NixOS Hosts

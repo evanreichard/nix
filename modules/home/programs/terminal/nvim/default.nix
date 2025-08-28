@@ -52,6 +52,7 @@ in
         toggleterm-nvim # Terminal Helper
         vim-nix # Nix Helpers
         which-key-nvim # Shortcut Helper
+        octo-nvim # Git Octo
 
         # ------------------
         # --- Theme / UI ---

@@ -1,4 +1,4 @@
-function get_git_info()
+local function get_git_info()
 	local abs_path = vim.fn.expand("%:p")
 	local git_root = vim.fn.systemlist(
 		"git -C " .. vim.fn.escape(vim.fn.fnamemodify(abs_path, ":h"), " ") .. " rev-parse --show-toplevel"

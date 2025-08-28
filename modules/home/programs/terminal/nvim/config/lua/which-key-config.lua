@@ -16,6 +16,7 @@ wk.add({
 	{ "<leader>fg", "<cmd>Telescope live_grep<cr>", desc = "Live Grep" },
 	{ "<leader>fh", "<cmd>Telescope help_tags<cr>", desc = "Help Tags" },
 	{ "<leader>fj", "<cmd>Telescope jumplist<cr>", desc = "Jump List" },
+	{ "<leader>fp", "<cmd>Octo pr list<cr>", desc = "PR List" },
 	{ "<leader>g", group = "DiffView" },
 	{ "<leader>gB", desc = "Git Blame Full" },
 	{ "<leader>gH", "<cmd>DiffviewFileHistory --range=origin..HEAD<cr>", desc = "Diff History - Main" },
