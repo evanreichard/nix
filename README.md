@@ -11,7 +11,7 @@ sudo nixos-rebuild switch --flake .#lin-va-mbp-personal
 ### NixOS Generators
 
 ```bash
-nix build .#vmwareConfigurations.rke2-node
+nix build .#qcowConfigurations.lin-va-rke2
 ```
 
 ### Home Manager
@@ -71,11 +71,11 @@ sudo nixos-rebuild switch
 
 ```bash
 # Update System Channels
-sudo nix-channel --add https://nixos.org/channels/nixpkgs-24.11-darwin nixpkgs
+sudo nix-channel --add https://nixos.org/channels/nixpkgs-25.05-darwin nixpkgs
 sudo nix-channel --update
 
 # Update Home Manager
-nix-channel --add https://github.com/nix-community/home-manager/archive/release-24.11.tar.gz home-manager
+nix-channel --add https://github.com/nix-community/home-manager/archive/release-25.05.tar.gz home-manager
 nix-channel --update
 
 # Link Repo
@@ -104,4 +104,15 @@ if [ -e '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh' ]; then
   . '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh'
 fi
 # End Nix
+```
+
+# Nix Darwin
+
+```bash
+# Install Nix Without Determinate
+curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install
+
+# Switch Nix Darwin
+sudo nix run nix-darwin#darwin-rebuild -- switch --flake .#mac-va-mbp-personal
+sudo darwin-rebuild switch --flake .#mac-va-mbp-personal
 ```

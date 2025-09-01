@@ -3,7 +3,7 @@ let
   inherit (lib.${namespace}) enabled;
 in
 {
-  system.stateVersion = "24.11";
+  system.stateVersion = "25.05";
   time.timeZone = "America/New_York";
   hardware.enableRedistributableFirmware = true;
   hardware.bluetooth.enable = true;

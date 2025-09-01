@@ -18,6 +18,11 @@ in
         flush_dns = "sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder";
       };
       profileExtra = ''
+        # Source Nix daemon
+        # if [ -e '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh' ]; then
+        #   . '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh'
+        # fi
+
         SHELL="$BASH"
         PATH=~/.bin:$PATH
         bind "set show-mode-in-prompt on"

@@ -9,7 +9,7 @@ in
 
   config = {
     # Basic System
-    system.stateVersion = "24.11";
+    system.stateVersion = "25.05";
     time.timeZone = "UTC";
 
     reichard = {

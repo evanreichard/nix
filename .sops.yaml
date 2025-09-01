@@ -3,6 +3,8 @@ keys:
   - &admin_reichard age1sac93wpnjcv62s7583jv6a4yspndh6k0r25g3qx3k7gq748uvafst6nz4w
   # lin-va-mbp-personal@evanreichard - SSH Derived
   - &user_lin-va-mbp-personal age17ayje4uv2mhwehhp9jr3u9l0ds07396kt7ef40sufx89vm7cgfjq6d5d4y
+  # mac-va-mbp-personal@evanreichard - SSH Derived
+  - &user_mac-va-mbp-personal age1dccte7xtwswgef089nd80dutp96xnezx5lrqnneh9cusegsnda8sj3dj6c
 creation_rules:
   - path_regex: secrets/[^/]+\.(yaml|json|env|ini)$
     key_groups:
@@ -13,3 +15,8 @@ creation_rules:
       - age:
           - *admin_reichard
           - *user_lin-va-mbp-personal
+  - path_regex: secrets/mac-va-mbp-personal/evanreichard/[^/]+\.(yaml|json|env|ini)$
+    key_groups:
+      - age:
+          - *admin_reichard
+          - *user_mac-va-mbp-personal

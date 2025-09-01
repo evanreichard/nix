@@ -1,9 +1,9 @@
-{ lib, config, namespace, ... }:
+{ lib, pkgs, config, namespace, ... }:
 let
   inherit (lib.${namespace}) enabled;
 in
 {
-  home.stateVersion = "24.11";
+  home.stateVersion = "25.05";
 
   reichard = {
     user = {
@@ -48,6 +48,8 @@ in
   #   google-cloud-sdk
   #   tldr
   # ];
+
+  home.packages = with pkgs; [ fastfetch ];
 
   # SQLite Configuration
   home.file.".sqliterc".text = ''

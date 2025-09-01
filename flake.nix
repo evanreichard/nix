@@ -29,6 +29,10 @@
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    darwin = {
+      url = "github:nix-darwin/nix-darwin/nix-darwin-25.05";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = inputs:
@@ -59,6 +63,10 @@
         nixos = with inputs; [
           disko.nixosModules.disko
           sops-nix.nixosModules.sops
+        ];
+        darwin = with inputs; [
+          home-manager.darwinModules.home-manager
+          sops-nix.darwinModules.sops
         ];
       };
     };

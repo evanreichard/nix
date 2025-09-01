@@ -28,14 +28,6 @@ in
         keyFile = "${config.home.homeDirectory}/.config/sops/age/keys.txt";
         sshKeyPaths = [ "${config.home.homeDirectory}/.ssh/id_ed25519" ] ++ cfg.sshKeyPaths;
       };
-
-      # TODO
-      # secrets = {
-      #   nix = {
-      #     sopsFile = lib.snowfall.fs.get-file "secrets/default.yaml";
-      #     path = "${config.home.homeDirectory}/.config/nix/nix.conf";
-      #   };
-      # };
     };
   };
 }
