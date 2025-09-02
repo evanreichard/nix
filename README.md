@@ -11,7 +11,7 @@ sudo nixos-rebuild switch --flake .#lin-va-mbp-personal
 ### NixOS Generators
 
 ```bash
-nix build .#qcowConfigurations.lin-va-rke2
+nix build .#vmwareConfigurations.lin-va-rke2
 ```
 
 ### NixOS Anywhere

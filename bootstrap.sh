@@ -31,13 +31,13 @@ function cmd_image() {
 
     # Validate Config Exists
     if ! nix eval --json --impure \
-        ".#qcowConfigurations" \
+        ".#vmwareConfigurations" \
         --apply "s: builtins.hasAttr \"$name\" s" 2>/dev/null | grep -q "true"; then
         echo "Error: NixOS Generator Config '$name' not found"
         exit 1
     fi
 
-    build_args=(".#qcowConfigurations.$name")
+    build_args=(".#vmwareConfigurations.$name")
     if [ "$remote" = true ]; then
         build_args+=("-j0")
     fi
