@@ -14,6 +14,12 @@ sudo nixos-rebuild switch --flake .#lin-va-mbp-personal
 nix build .#qcowConfigurations.lin-va-rke2
 ```
 
+### NixOS Anywhere
+
+```bash
+nix run github:nix-community/nixos-anywhere -- --flake .#lin-cloud-kube1 --target-host <USER>@<IP>
+```
+
 ### Home Manager
 
 ```bash
