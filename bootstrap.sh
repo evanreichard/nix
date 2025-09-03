@@ -51,13 +51,18 @@ function cmd_image() {
 }
 
 function cmd_install() {
-    local usage="Usage: $0 install --name <system-name>"
+    local usage="Usage: $0 install --name <system-name> [--remote <user@remote-host>]"
     local name=""
+    local remote=""
 
     while [[ $# -gt 0 ]]; do
         case "$1" in
             --name)
                 name="$2"
+                shift 2
+                ;;
+            --remote)
+                remote="$2"
                 shift 2
                 ;;
             *)
@@ -86,6 +91,18 @@ function cmd_install() {
         echo "Error: mainDiskID not defined for configuration '$name'"
         exit 1
     fi
+
+    # Remote or Local
+    if [ -n "$remote" ]; then
+	cmd_install_remote "$name" "$remote"
+    else
+	cmd_install_local "$name" "$disk_id"
+    fi
+}
+
+function cmd_install_local(){
+    local name="$1"
+    local disk_id="$2"
 
     # Validate Disk Exists
     if [ ! -e "$disk_id" ]; then
@@ -131,6 +148,27 @@ function cmd_install() {
     # Reboot
     echo "Operation Complete - Rebooting"
     sudo reboot
+}
+
+function cmd_install_remote(){
+    local name="$1"
+    local remote="$2"
+
+    # Prompt Install
+    read -p "This will completely wipe and install NixOS on $remote with configuration $name. Continue? (y/n) " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo "Operation Cancelled"
+        exit 1
+    fi
+
+    # Install NixOS
+    echo "Installing $name to remote host: $remote"
+    if ! nix run github:nix-community/nixos-anywhere -- --flake ".#$name" --target-host "$remote"; then
+        echo "Error: Remote NixOS installation failed"
+        exit 1
+    fi
+    echo "Successfully installed $name to remote host: $remote"
 }
 
 case "$1" in
