@@ -1,4 +1,4 @@
-{ namespace, config, lib, modulesPath, ... }:
+{ namespace, config, pkgs, lib, modulesPath, ... }:
 let
   inherit (lib.${namespace}) enabled;
 
@@ -58,4 +58,10 @@ in
       ];
     };
   };
+
+  environment.systemPackages = with pkgs; [
+    btop
+    tmux
+    vim
+  ];
 }

@@ -33,6 +33,7 @@ in
         cloud-init = enabled;
         rke2 = {
           enable = true;
+          openFirewall = true;
           disable = [ "rke2-ingress-nginx" ];
         };
         openiscsi = {

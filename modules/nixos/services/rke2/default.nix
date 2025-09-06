@@ -9,7 +9,7 @@ in
   options.${namespace}.services.rke2 = with types; {
     enable = lib.mkEnableOption "Enable RKE2";
     disable = mkOpt (listOf str) [ ] "Disable services";
-    openFirewall = mkBoolOpt true "Open firewall";
+    openFirewall = mkBoolOpt false "Open firewall";
   };
 
   config = mkIf cfg.enable {
@@ -32,8 +32,6 @@ in
       7946 # memberlist
     ];
 
-    environment.systemPackages = with pkgs; [ nfs-utils ];
-
     networking.firewall.allowedUDPPorts = mkIf cfg.openFirewall [
       # RKE2 Ports - https://docs.rke2.io/install/requirements#networking
       8472 # Canal CNI with VXLAN
@@ -49,5 +47,7 @@ in
       after = [ "cloud-final.service" ];
       requires = [ "cloud-final.service" ];
     };
+
+    environment.systemPackages = with pkgs; [ nfs-utils k9s ];
   };
 }

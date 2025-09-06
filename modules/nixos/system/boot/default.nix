@@ -1,18 +1,29 @@
 { config, lib, namespace, ... }:
 let
   inherit (lib) mkIf mkDefault;
+  inherit (lib.${namespace}) mkBoolOpt;
 
   cfg = config.${namespace}.system.boot;
 in
 {
   options.${namespace}.system.boot = {
     enable = lib.mkEnableOption "Enable Boot";
-    xenGuest = lib.mkEnableOption "Enable Xen Guest";
+    enableGrub = mkBoolOpt true "Enable GRUB";
+    enableSystemd = mkBoolOpt false "Enable systemd";
+
+    xenGuest = lib.mkEnableOption "Xen guest support";
     showNotch = lib.mkEnableOption "Show macOS Notch";
     silentBoot = lib.mkEnableOption "Silent Boot";
   };
 
   config = mkIf cfg.enable {
+    assertions = [
+      {
+        assertion = !(cfg.enableGrub && cfg.enableSystemd);
+        message = "Cannot enable both GRUB and systemd-boot";
+      }
+    ];
+
     services.xe-guest-utilities.enable = mkIf cfg.xenGuest true;
 
     boot = {
@@ -33,13 +44,13 @@ in
           canTouchEfiVariables = false;
         };
 
-        # systemd-boot = {
-        #   enable = true;
-        #   configurationLimit = 20;
-        #   editor = false;
-        # };
+        systemd-boot = mkIf cfg.enableSystemd {
+          enable = true;
+          configurationLimit = 20;
+          editor = false;
+        };
 
-        grub = {
+        grub = mkIf cfg.enableGrub {
           enable = true;
           efiSupport = true;
           efiInstallAsRemovable = true;
