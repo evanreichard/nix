@@ -33,10 +33,16 @@ in
           canTouchEfiVariables = false;
         };
 
-        systemd-boot = {
+        # systemd-boot = {
+        #   enable = true;
+        #   configurationLimit = 20;
+        #   editor = false;
+        # };
+
+        grub = {
           enable = true;
-          configurationLimit = 20;
-          editor = false;
+          efiSupport = true;
+          efiInstallAsRemovable = true;
         };
 
         timeout = mkDefault 1;

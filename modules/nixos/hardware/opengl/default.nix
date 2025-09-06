@@ -14,6 +14,8 @@ in
   };
 
   config = mkIf cfg.enable {
+    services.xserver.videoDrivers = mkIf cfg.enableNvidia [ "nvidia" ];
+
     environment.systemPackages = with pkgs; [
       libva-utils
       vdpauinfo
@@ -22,6 +24,15 @@ in
     ] ++ lib.optionals cfg.enableIntel [
       intel-gpu-tools
     ];
+
+    # Enable Nvidia Hardware
+    hardware.nvidia = mkIf cfg.enableNvidia {
+      package = config.boot.kernelPackages.nvidiaPackages.stable;
+      modesetting.enable = true;
+      powerManagement.enable = true;
+      open = false;
+      nvidiaSettings = true;
+    };
 
     # Add Intel Arc / Nvidia Drivers
     hardware.enableRedistributableFirmware = mkIf cfg.enableIntel (mkForce true);

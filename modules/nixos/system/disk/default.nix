@@ -35,20 +35,20 @@ in
                   mountpoint = "/boot";
                 };
               };
-              root = {
-                name = "root";
-                size = "100%";
-                content = {
-                  type = "lvm_pv";
-                  vg = "pool";
-                };
-              };
               swap = {
                 size = "32G";
                 content = {
                   type = "swap";
                   discardPolicy = "both";
                   resumeDevice = true;
+                };
+              };
+              root = {
+                name = "root";
+                size = "100%";
+                content = {
+                  type = "lvm_pv";
+                  vg = "pool";
                 };
               };
             };
