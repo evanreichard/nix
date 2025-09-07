@@ -48,6 +48,10 @@ in
       requires = [ "cloud-final.service" ];
     };
 
-    environment.systemPackages = with pkgs; [ nfs-utils k9s ];
+    environment.systemPackages = with pkgs; [
+      k9s
+      kubectl
+      nfs-utils
+    ];
   };
 }
