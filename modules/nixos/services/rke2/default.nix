@@ -18,6 +18,10 @@ in
       disable = cfg.disable;
     };
 
+    # NOTE: Tailscale & K8s Calico conflict due to FWMask. You need to update the DaemonSet Env with:
+    #   - name: FELIX_IPTABLESMARKMASK
+    #     value: "0xff00ff00"
+
     networking.firewall.allowedTCPPorts = mkIf cfg.openFirewall [
       # RKE2 Ports - https://docs.rke2.io/install/requirements#networking
       6443 # Kubernetes API

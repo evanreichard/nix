@@ -12,6 +12,8 @@ in
   system.stateVersion = "25.05";
   time.timeZone = "UTC";
 
+  networking.firewall.allowedTCPPorts = [ 443 ];
+
   boot.loader.grub = {
     efiSupport = true;
     efiInstallAsRemovable = true;
@@ -38,6 +40,10 @@ in
 
     services = {
       openssh = enabled;
+      tailscale = {
+        enable = true;
+        enableRouting = true;
+      };
       rke2 = {
         enable = true;
         openFirewall = false;
