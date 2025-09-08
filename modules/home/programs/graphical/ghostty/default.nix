@@ -16,6 +16,7 @@ in
         grep = "grep --color";
         ssh = "TERM=xterm-256color ssh";
         flush_dns = "sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder";
+        hs = "kubectl exec -n headscale $(kubectl get pod -n headscale -o name) -- headscale";
       };
       profileExtra = ''
         # Source Nix daemon
