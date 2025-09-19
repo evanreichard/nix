@@ -55,6 +55,12 @@
         ];
       };
 
+      outputs-builder = channels: {
+        devShells = {
+          default = import ./shells/default/default.nix { pkgs = channels.nixpkgs; };
+        };
+      };
+
       homes.modules = with inputs; [
         sops-nix.homeManagerModules.sops
       ];

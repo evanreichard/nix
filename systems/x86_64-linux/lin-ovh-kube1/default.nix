@@ -27,15 +27,7 @@ in
         enable = true;
         diskPath = "/dev/sda";
       };
-      networking = {
-        enable = true;
-        useStatic = {
-          interface = "enp3s0";
-          address = "23.29.118.42";
-          defaultGateway = "23.29.118.1";
-          nameservers = [ "1.1.1.1" ];
-        };
-      };
+      networking = enabled;
     };
 
     services = {

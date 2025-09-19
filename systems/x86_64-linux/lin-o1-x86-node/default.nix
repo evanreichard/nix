@@ -25,15 +25,13 @@ in
         enable = true;
         diskPath = "/dev/sda";
       };
-      networking = enabled;
+      networking = {
+        enable = true;
+      };
     };
 
     services = {
       openssh = enabled;
-      headscale = {
-        enable = true;
-        openFirewall = true;
-      };
       tailscale = {
         enable = true;
         enableRouting = true;

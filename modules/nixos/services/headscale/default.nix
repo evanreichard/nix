@@ -32,8 +32,13 @@ in
         server_url = "https://headscale.reichard.io";
         dns = {
           base_domain = "reichard.dev";
-          nameservers.split = {
-            "va.reichard.io" = [ "10.0.20.20" ];
+          nameservers = {
+            global = [
+              "9.9.9.9"
+            ];
+            split = {
+              "va.reichard.io" = [ "10.0.20.20" ];
+            };
           };
         };
       };
