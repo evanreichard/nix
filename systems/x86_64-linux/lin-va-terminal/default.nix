@@ -1,4 +1,4 @@
-{ namespace, lib, ... }:
+{ namespace, pkgs, lib, ... }:
 let
   inherit (lib.${namespace}) enabled;
 in
@@ -24,34 +24,20 @@ in
         enable = true;
         useStatic = {
           interface = "enX0";
-          address = "10.0.50.240";
+          address = "10.0.50.30";
           defaultGateway = "10.0.50.254";
           nameservers = [ "10.0.50.254" ];
         };
       };
     };
 
-    hardware = {
-      opengl = {
-        enable = true;
-        enable32Bit = true;
-        enableIntel = true;
-      };
-    };
-
     services = {
+      openssh = enabled;
       avahi = enabled;
-      ydotool = enabled;
     };
 
     virtualisation = {
       podman = enabled;
-    };
-
-    programs = {
-      graphical = {
-        wms.hyprland = enabled;
-      };
     };
   };
 }
