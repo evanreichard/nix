@@ -32,8 +32,9 @@ in
     };
 
     services = {
-      openssh = enabled;
       avahi = enabled;
+      mosh = enabled;
+      openssh = enabled;
     };
 
     virtualisation = {
