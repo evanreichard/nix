@@ -1,4 +1,4 @@
-{ namespace, pkgs, lib, ... }:
+{ namespace, lib, ... }:
 let
   inherit (lib.${namespace}) enabled;
 in
@@ -26,7 +26,7 @@ in
           interface = "enX0";
           address = "10.0.50.30";
           defaultGateway = "10.0.50.254";
-          nameservers = [ "10.0.50.254" ];
+          nameservers = [ "10.0.20.20" ];
         };
       };
     };
