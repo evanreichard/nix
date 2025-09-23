@@ -18,6 +18,7 @@ in
     programs = {
       terminal = {
         bash = enabled;
+        tmux = enabled;
         btop = enabled;
         direnv = enabled;
         git = enabled;
