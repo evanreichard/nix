@@ -18,6 +18,8 @@ let
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAq5JQr/6WJMIHhR434nK95FrDmf2ApW2Ahd2+cBKwDz"
     # evanreichard@mobile
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIARTNbl4lgQsp7SJEng7vprL0+ChC9e6iR7o/PiC4Jme"
+    # evanreichard@lin-va-terminal
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM5e6Cty+7rX5BjIEHBTU6GnzfOxPJiHpSqin/BnsypO"
   ];
 in
 {
