@@ -35,6 +35,7 @@ in
       avahi = enabled;
       mosh = enabled;
       openssh = enabled;
+      tailscale = enabled;
     };
 
     virtualisation = {
