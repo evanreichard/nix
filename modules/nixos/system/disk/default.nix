@@ -20,13 +20,13 @@ in
           content = {
             type = "gpt";
             partitions = {
-              boot = {
-                name = "boot";
+              bios-boot = {
+                name = "bios-boot";
                 size = "1M";
                 type = "EF02";
               };
-              esp = {
-                name = "ESP";
+              boot = {
+                name = "boot";
                 size = "500M";
                 type = "EF00";
                 content = {

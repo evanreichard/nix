@@ -1,4 +1,4 @@
-{ namespace, lib, ... }:
+{ namespace, pkgs, lib, ... }:
 let
   inherit (lib.${namespace}) enabled;
 in
@@ -17,6 +17,8 @@ in
     system = {
       boot = {
         enable = true;
+        enableGrub = false;
+        enableSystemd = true;
         silentBoot = true;
       };
       disk = {
@@ -34,6 +36,7 @@ in
     };
 
     services = {
+      tailscale = enabled;
       avahi = enabled;
       ydotool = enabled;
     };
@@ -55,4 +58,9 @@ in
       };
     };
   };
+
+  # Additional System Packages
+  environment.systemPackages = with pkgs; [
+    mosh
+  ];
 }
