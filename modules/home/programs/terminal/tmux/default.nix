@@ -40,8 +40,12 @@ in
         set -g status-position top
         set -g mouse on
         setw -g mode-keys vi
-        set -g renumber-windows on
         set -ga terminal-overrides ",xterm-256color:Tc"
+
+        # Start Index 1
+        set -g base-index 1
+        setw -g pane-base-index 1
+        set -g renumber-windows on
 
         # Maintain Directory
         bind '"' split-window -c "#{pane_current_path}"

@@ -16,6 +16,7 @@ in
         ssh = "TERM=xterm-256color ssh";
       };
       profileExtra = ''
+        export COLORTERM=truecolor
         SHELL="$BASH"
         PATH=~/.bin:$PATH
         bind "set show-mode-in-prompt on"
