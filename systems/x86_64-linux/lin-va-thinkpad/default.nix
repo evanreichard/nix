@@ -33,6 +33,9 @@ in
 
     hardware = {
       opengl = enabled;
+      battery = {
+        upower = enabled;
+      };
     };
 
     services = {
@@ -43,6 +46,11 @@ in
 
     virtualisation = {
       podman = enabled;
+      libvirtd = {
+        enable = true;
+        withVirtManager = true;
+        enableAMDIOMMU = true;
+      };
     };
 
     programs = {

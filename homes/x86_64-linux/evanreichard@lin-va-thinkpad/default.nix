@@ -15,6 +15,7 @@ in
       ssh-agent = enabled;
       fusuma = enabled;
       swww = enabled;
+      poweralertd = enabled;
       sops = {
         enable = true;
         defaultSopsFile = lib.snowfall.fs.get-file "secrets/default.yaml";
