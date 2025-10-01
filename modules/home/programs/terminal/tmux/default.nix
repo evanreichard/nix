@@ -40,7 +40,7 @@ in
         set -g status-position top
         set -g mouse on
         setw -g mode-keys vi
-        set -ga terminal-overrides ",xterm-256color:Tc"
+        set -ag terminal-overrides ",xterm-256color:Tc:Ms=\\E]52;c%p1%.0s;%p2%s\\7"
 
         # Start Index 1
         set -g base-index 1

@@ -12,6 +12,8 @@ in
     system = {
       boot = {
         enable = true;
+        enableGrub = false;
+        enableSystemd = true;
         xenGuest = true;
       };
 
