@@ -16,6 +16,7 @@ in
   config = mkIf cfg.enable {
     environment.systemPackages = with pkgs; [
       win-virtio
+      virtiofsd
       libvirt
       qemu_kvm
     ] ++ lib.optionals cfg.withVirtManager [

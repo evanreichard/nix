@@ -201,6 +201,7 @@ in
           tsls = "${pkgs.nodePackages.typescript-language-server}/bin/typescript-language-server",
           golintls = "${pkgs.golangci-lint-langserver}/bin/golangci-lint-langserver",
           vscls = "${pkgs.nodePackages.vscode-langservers-extracted}",
+          clangd = "${pkgs.clang-tools}/bin/clangd",
         }
         return nix_vars
       '';

@@ -123,6 +123,14 @@ nvim_lsp.svelte.setup({
 	cmd = { nix_vars.sveltels, "--stdio" },
 })
 
+-- C LSP Configuration
+nvim_lsp.clangd.setup({
+	on_attach = on_attach,
+	flags = lsp_flags,
+	capabilities = capabilities,
+	cmd = { nix_vars.clangd },
+})
+
 -- Lua LSP Configuration
 nvim_lsp.lua_ls.setup({
 	on_attach = on_attach_no_formatting,
