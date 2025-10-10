@@ -5,6 +5,12 @@
 -- vim.cmd('colorscheme melange')
 vim.cmd("colorscheme catppuccin-mocha")
 
+-- Set User Shell
+local nix_bash = vim.fn.expand("~/.nix-profile/bin/bash")
+if vim.fn.executable(nix_bash) == 1 then
+	vim.o.shell = nix_bash
+end
+
 -- Set Leader
 vim.keymap.set("n", "<Space>", "<Nop>", { silent = true })
 vim.g.mapleader = " "
