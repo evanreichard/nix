@@ -10,8 +10,9 @@ in
 
   config = mkIf cfg.enable {
     home.packages = with pkgs; [
-      cw
+      aws-sso-util
       awscli2
+      cw
       ssm-session-manager-plugin
     ];
   };
