@@ -125,6 +125,8 @@ nvim_lsp.svelte.setup({
 
 -- C LSP Configuration
 nvim_lsp.clangd.setup({
+	-- Explicitly exclude proto files
+	filetypes = { "c", "cpp", "objc", "objcpp", "cuda" },
 	on_attach = on_attach,
 	flags = lsp_flags,
 	capabilities = capabilities,
