@@ -14,7 +14,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     apple-silicon = {
-      url = "github:tpwrules/nixos-apple-silicon/releasep2-2024-12-25";
+      url = "github:tpwrules/nixos-apple-silicon/release-25.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nixos-generators = {

@@ -6,19 +6,19 @@
         "nixpkgs": [
           "nixpkgs"
         ],
-        "rust-overlay": "rust-overlay"
+        "treefmt-nix": "treefmt-nix"
       },
       "locked": {
-        "lastModified": 1738646032,
-        "narHash": "sha256-57BdBE9anNpIpf48EiTVLGxg4mOQ04XjHCEP0gLTsFA=",
+        "lastModified": 1755115705,
+        "narHash": "sha256-CjWlI6c1pWu+X5Qz8B6K1httNpA4eDNxf/Ozfm6Mvlw=",
         "owner": "tpwrules",
         "repo": "nixos-apple-silicon",
-        "rev": "e77031211944723a38bebc043e48847c36e43668",
+        "rev": "78b5825968dc784dae2fe71b1c76f364efe107ae",
         "type": "github"
       },
       "original": {
         "owner": "tpwrules",
-        "ref": "releasep2-2024-12-25",
+        "ref": "release-25.05",
         "repo": "nixos-apple-silicon",
         "type": "github"
       }
@@ -271,22 +271,6 @@
         "sops-nix": "sops-nix"
       }
     },
-    "rust-overlay": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1686795910,
-        "narHash": "sha256-jDa40qRZ0GRQtP9EMZdf+uCbvzuLnJglTUI2JoHfWDc=",
-        "owner": "oxalica",
-        "repo": "rust-overlay",
-        "rev": "5c2b97c0a9bc5217fc3dfb1555aae0fb756d99f9",
-        "type": "github"
-      },
-      "original": {
-        "owner": "oxalica",
-        "repo": "rust-overlay",
-        "type": "github"
-      }
-    },
     "snowfall-lib": {
       "inputs": {
         "flake-compat": "flake-compat_2",
@@ -341,6 +325,27 @@
       "original": {
         "owner": "nix-systems",
         "repo": "default",
+        "type": "github"
+      }
+    },
+    "treefmt-nix": {
+      "inputs": {
+        "nixpkgs": [
+          "apple-silicon",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1760945191,
+        "narHash": "sha256-ZRVs8UqikBa4Ki3X4KCnMBtBW0ux1DaT35tgsnB1jM4=",
+        "owner": "numtide",
+        "repo": "treefmt-nix",
+        "rev": "f56b1934f5f8fcab8deb5d38d42fd692632b47c2",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "treefmt-nix",
         "type": "github"
       }
     }
