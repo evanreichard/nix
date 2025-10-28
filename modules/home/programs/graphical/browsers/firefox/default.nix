@@ -38,6 +38,12 @@ in
           ExtensionRecommendations = false;
           SkipOnboarding = true;
         };
+        GenerativeAI = {
+          Chatbot = false;
+          LinkPreviews = false;
+          TabGroups = false;
+          Locked = false;
+        };
         ExtensionSettings = {
           # Block All
           # "*".installation_mode = "blocked";
