@@ -1,6 +1,7 @@
 { pkgs, lib, config, namespace, ... }:
 let
-  inherit (lib) mkIf;
+  inherit (lib) mkIf optionalAttrs;
+  inherit (pkgs.stdenv) isLinux;
   cfg = config.${namespace}.programs.terminal.bash;
 in
 {
@@ -14,6 +15,8 @@ in
       shellAliases = {
         grep = "grep --color";
         ssh = "TERM=xterm-256color ssh";
+      } // optionalAttrs isLinux {
+        sync-watch = "watch -d grep -e Dirty: -e Writeback: /proc/meminfo";
       };
       profileExtra = ''
         export COLORTERM=truecolor

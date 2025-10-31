@@ -5,14 +5,26 @@ in
 {
   system.stateVersion = "25.05";
   time.timeZone = "America/New_York";
-  hardware.enableRedistributableFirmware = true;
-  hardware.bluetooth.enable = true;
-  hardware.amdgpu.initrd.enable = lib.mkDefault true;
-  services.xserver.videoDrivers = [ "modesetting" ];
-  boot.kernelParams = [
-    # Mask GPE03 (EC wakeup events) to allow hibernation without spurious CPU wakeups
-    "acpi_mask_gpe=0x03"
-  ];
+
+
+  boot = {
+    supportedFilesystems = [ "nfs" ];
+    kernelParams = [
+      # Mask GPE03 (EC wakeup events) to allow hibernation without spurious CPU wakeups
+      "acpi_mask_gpe=0x03"
+    ];
+  };
+
+  hardware = {
+    enableRedistributableFirmware = true;
+    bluetooth.enable = true;
+    amdgpu.initrd.enable = lib.mkDefault true;
+  };
+
+  services = {
+    xserver.videoDrivers = [ "modesetting" ];
+    fwupd.enable = true;
+  };
 
   # System Config
   reichard = {
@@ -74,5 +86,7 @@ in
   # Additional System Packages
   environment.systemPackages = with pkgs; [
     mosh
+    rclone
+    unzip
   ];
 }
