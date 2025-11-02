@@ -155,6 +155,14 @@ nvim_lsp.nil_ls.setup({
 	capabilities = capabilities,
 })
 
+-- CSharp LSP Configuration
+nvim_lsp.csharp_ls.setup({
+	on_attach = on_attach,
+	flags = lsp_flags,
+	capabilities = capabilities,
+	cmd = { nix_vars.csharp },
+})
+
 -- Go LSP Configuration
 nvim_lsp.gopls.setup({
 	on_attach = function(client, bufnr)

@@ -5,6 +5,7 @@ in
 {
   system.stateVersion = "25.05";
   time.timeZone = "America/New_York";
+  boot.supportedFilesystems = [ "nfs" ];
 
   reichard = {
     nix = enabled;
