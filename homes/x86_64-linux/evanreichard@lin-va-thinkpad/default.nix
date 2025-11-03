@@ -27,6 +27,7 @@ in
       graphical = {
         wms.hyprland = enabled;
         ghostty = enabled;
+        strawberry = enabled;
         gimp = enabled;
         wireshark = enabled;
         ghidra = enabled;

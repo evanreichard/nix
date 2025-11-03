@@ -85,6 +85,7 @@ in
 
   # Additional System Packages
   environment.systemPackages = with pkgs; [
+    dool
     mosh
     rclone
     unzip
