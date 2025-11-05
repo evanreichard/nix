@@ -86,8 +86,10 @@ in
   # Additional System Packages
   environment.systemPackages = with pkgs; [
     dool
+    jq
     mosh
     rclone
+    sqlite-interactive
     unzip
   ];
 }
