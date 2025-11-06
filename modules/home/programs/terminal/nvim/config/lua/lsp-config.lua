@@ -155,13 +155,26 @@ nvim_lsp.nil_ls.setup({
 	capabilities = capabilities,
 })
 
--- CSharp LSP Configuration
-nvim_lsp.csharp_ls.setup({
+-- Omnisharp LSP Configuration
+nvim_lsp.omnisharp.setup({
 	on_attach = on_attach,
 	flags = lsp_flags,
 	capabilities = capabilities,
-	cmd = { nix_vars.csharp },
+	enable_roslyn_analyzers = true,
+	enable_import_completion = true,
+	organize_imports_on_format = true,
+	enable_decompilation_support = true,
+	filetypes = { "cs", "vb", "csproj", "sln", "slnx", "props", "csx", "targets", "tproj", "slngen", "fproj" },
+	cmd = { nix_vars.omnisharp, "--languageserver", "--hostPID", tostring(vim.fn.getpid()) },
 })
+
+-- CSharp LSP Configuration
+-- nvim_lsp.csharp_ls.setup({
+-- 	on_attach = on_attach,
+-- 	flags = lsp_flags,
+-- 	capabilities = capabilities,
+-- 	cmd = { nix_vars.csharp },
+-- })
 
 -- Go LSP Configuration
 nvim_lsp.gopls.setup({

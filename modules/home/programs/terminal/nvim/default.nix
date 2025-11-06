@@ -203,6 +203,7 @@ in
           vscls = "${pkgs.nodePackages.vscode-langservers-extracted}",
           clangd = "${pkgs.clang-tools}/bin/clangd",
           csharp = "${pkgs.csharp-ls}/bin/csharp-ls",
+          omnisharp = "${pkgs.omnisharp-roslyn}/bin/OmniSharp",
         }
         return nix_vars
       '';
