@@ -1,13 +1,14 @@
-{ namespace, lib, ... }:
-let
-  inherit (lib.${namespace}) enabled;
-in
+{ lib, ... }:
 {
   system.stateVersion = 6;
+  nix.enable = false;
 
   # System Config
   reichard = {
-    nix = enabled;
+    nix = {
+      enable = true;
+      usingDeterminate = true;
+    };
 
     security = {
       sops = {

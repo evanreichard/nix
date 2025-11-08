@@ -8,6 +8,7 @@ in
 {
   options.${namespace}.nix = {
     enable = mkBoolOpt true "Whether or not to manage nix configuration.";
+    usingDeterminate = mkBoolOpt false "Whether we're using determinate nix";
     package = mkOpt types.package pkgs.nixVersions.latest "Which nix package to use.";
   };
 
@@ -48,11 +49,11 @@ in
 
         checkConfig = true;
         distributedBuilds = true;
-        optimise.automatic = true;
+        optimise.automatic = !cfg.usingDeterminate;
         registry = lib.mkForce mappedRegistry;
 
         gc = {
-          automatic = true;
+          automatic = !cfg.usingDeterminate;
           options = "--delete-older-than 7d";
         };
 
