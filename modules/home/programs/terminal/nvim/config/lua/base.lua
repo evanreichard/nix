@@ -6,10 +6,7 @@
 vim.cmd("colorscheme catppuccin-mocha")
 
 -- Set User Shell
-local nix_bash = vim.fn.expand("~/.nix-profile/bin/bash")
-if vim.fn.executable(nix_bash) == 1 then
-	vim.o.shell = nix_bash
-end
+vim.o.shell = "/usr/bin/env bash"
 
 -- Set Leader
 vim.keymap.set("n", "<Space>", "<Nop>", { silent = true })
