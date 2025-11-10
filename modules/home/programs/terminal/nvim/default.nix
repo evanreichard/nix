@@ -84,12 +84,12 @@ in
         (
           pkgs.vimUtils.buildVimPlugin {
             pname = "none-ls-extras.nvim";
-            version = "2025-06-18";
+            version = "2025-10-28";
             src = pkgs.fetchFromGitHub {
               owner = "nvimtools";
               repo = "none-ls-extras.nvim";
-              rev = "924fe88a9983c7d90dbb31fc4e3129a583ea0a90";
-              sha256 = "sha256-OJHg2+h3zvlK7LJ8kY6f7et0w6emnxfcDbjD1YyWRTw=";
+              rev = "402c6b5c29f0ab57fac924b863709f37f55dc298";
+              sha256 = "sha256-4s/xQNWNA4dgb5gZR4Xqn6zDDWrSJNtmHOmmjmYnN/8=";
             };
             doCheck = false;
             meta.homepage = "https://github.com/nvimtools/none-ls-extras.nvim/";
@@ -102,32 +102,15 @@ in
         (
           pkgs.vimUtils.buildVimPlugin {
             pname = "silicon.lua";
-            version = "2022-12-03";
+            version = "2025-10-28";
             src = pkgs.fetchFromGitHub {
-              owner = "mhanberg";
+              owner = "0oAstro";
               repo = "silicon.lua";
-              rev = "5ca462bee0a39b058786bc7fbeb5d16ea49f3a23";
-              sha256 = "0vlp645d5mmii513v72jca931miyrhkvhwb9bfzhix1199zx7vi2";
+              rev = "54682647a7c1c773dc4c9ab2bc309114a3b9e96f";
+              sha256 = "sha256-lM7ALmYHGN5SKftfD7YBPh1gGKORbS6EMXS/ZQXDMSI=";
             };
             doCheck = false;
-            meta.homepage = "https://github.com/mhanberg/silicon.lua/";
-          }
-        )
-
-        # -------------------
-        # ------- LLM -------
-        # -------------------
-        (
-          pkgs.vimUtils.buildVimPlugin {
-            pname = "llm.nvim";
-            version = "2024-05-25";
-            src = pkgs.fetchFromGitHub {
-              owner = "David-Kunz";
-              repo = "gen.nvim";
-              rev = "bd19cf584b5b82123de977b44105e855e61e5f39";
-              sha256 = "sha256-0AEB6im8Jz5foYzmL6KEGSAYo48g1bkFpjlCSWT6JeE=";
-            };
-            meta.homepage = "https://github.com/David-Kunz/gen.nvim/";
+            meta.homepage = "https://github.com/0oAstro/silicon.lua";
           }
         )
 
@@ -137,12 +120,12 @@ in
         (
           pkgs.vimUtils.buildVimPlugin {
             pname = "llama.vim";
-            version = "2025-01-23";
+            version = "2025-10-28";
             src = pkgs.fetchFromGitHub {
               owner = "ggml-org";
               repo = "llama.vim";
-              rev = "143fe910b8d47a054ed464c38d8b7c17d5354468";
-              sha256 = "sha256-PW0HKzhSxcZiWzpDOuy98rl/X0o2nE7tMjZjwwh0qLE=";
+              rev = "ade8966eff57dcbe4a359dd26fb1ea97378ea03c";
+              sha256 = "sha256-uPqOZLWKVMimhc9eG7yM5OmhJy3mTRgKsiqKhstWs4Y=";
             };
             meta.homepage = "https://github.com/ggml-org/llama.vim/";
           }
