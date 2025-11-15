@@ -8,18 +8,12 @@ vim.api.nvim_create_autocmd("FileType", {
 	end,
 })
 
-vim.filetype.add({
-	extension = {
-		templ = "templ",
-	},
-})
-
 ------------------------------------------------------
 -------------------- Built-in LSP --------------------
 ------------------------------------------------------
 local nix_vars = require("nix-vars")
-local nvim_lsp = require("lspconfig")
 
+local augroup = vim.api.nvim_create_augroup("LspFormatting", { clear = false })
 local on_attach = function(client, bufnr)
 	local bufopts = { noremap = true, silent = true, buffer = bufnr }
 
@@ -71,95 +65,70 @@ local organize_go_imports = function()
 	end
 end
 
--- Define LSP Flags & Capabilities
-local lsp_flags = { debounce_text_changes = 150 }
-local capabilities = require("cmp_nvim_lsp").default_capabilities()
+local default_config = {
+	flags = { debounce_text_changes = 150 },
+	capabilities = require("cmp_nvim_lsp").default_capabilities(),
+	on_attach = on_attach,
+}
+local setup_lsp = function(name, config)
+	local final_config = vim.tbl_deep_extend("force", default_config, config or {})
+
+	vim.lsp.config(name, final_config)
+	vim.lsp.enable(name)
+end
 
 -- Python LSP Configuration
-nvim_lsp.pyright.setup({
-	on_attach = on_attach,
-	flags = lsp_flags,
-	capabilities = capabilities,
+setup_lsp("pyright", {
 	filetypes = { "starlark", "python" },
 })
 
 -- HTML LSP Configuration
-nvim_lsp.html.setup({
+setup_lsp("html", {
 	on_attach = on_attach_no_formatting,
-	flags = lsp_flags,
-	capabilities = capabilities,
 	cmd = { nix_vars.vscls .. "/bin/vscode-html-language-server", "--stdio" },
+	filetypes = { "htm", "html" },
 })
 
 -- JSON LSP Configuration
-nvim_lsp.jsonls.setup({
+setup_lsp("jsonls", {
 	on_attach = on_attach_no_formatting,
-	flags = lsp_flags,
-	capabilities = capabilities,
 	cmd = { nix_vars.vscls .. "/bin/vscode-html-language-server", "--stdio" },
+	filetypes = { "json", "jsonc", "jsonl" },
 })
 
 -- CSS LSP Configuration
-nvim_lsp.cssls.setup({
+setup_lsp("cssls", {
 	on_attach = on_attach_no_formatting,
-	flags = lsp_flags,
-	capabilities = capabilities,
 	cmd = { nix_vars.vscls .. "/bin/vscode-html-language-server", "--stdio" },
+	filetypes = { "css" },
 })
 
 -- Typescript / Javascript LSP Configuration
-nvim_lsp.ts_ls.setup({
+setup_lsp("ts_ls", {
 	on_attach = on_attach_no_formatting,
-	flags = lsp_flags,
-	capabilities = capabilities,
 	cmd = { nix_vars.tsls, "--stdio" },
-})
-
--- Svelte LSP Configuration
-nvim_lsp.svelte.setup({
-	on_attach = on_attach_no_formatting,
-	flags = lsp_flags,
-	capabilities = capabilities,
-	cmd = { nix_vars.sveltels, "--stdio" },
+	filetypes = { "typescript", "typescriptreact" },
 })
 
 -- C LSP Configuration
-nvim_lsp.clangd.setup({
-	-- Explicitly exclude proto files
-	filetypes = { "c", "cpp", "objc", "objcpp", "cuda" },
-	on_attach = on_attach,
-	flags = lsp_flags,
-	capabilities = capabilities,
+setup_lsp("clangd", {
 	cmd = { nix_vars.clangd },
+	filetypes = { "c", "cpp", "objc", "objcpp", "cuda" },
 })
 
 -- Lua LSP Configuration
-nvim_lsp.lua_ls.setup({
-	on_attach = on_attach_no_formatting,
-	flags = lsp_flags,
-	capabilities = capabilities,
+setup_lsp("lua_ls", {
 	cmd = { nix_vars.luals },
-})
-
--- Templ LSP Configuration
-nvim_lsp.templ.setup({
-	on_attach = on_attach,
-	flags = lsp_flags,
-	capabilities = capabilities,
+	filetypes = { "lua" },
 })
 
 -- Nix LSP Configuration
-nvim_lsp.nil_ls.setup({
-	on_attach = on_attach,
-	flags = lsp_flags,
-	capabilities = capabilities,
+setup_lsp("nil_ls", {
+	filetypes = { "nix" },
 })
 
 -- Omnisharp LSP Configuration
-nvim_lsp.omnisharp.setup({
-	on_attach = on_attach,
-	flags = lsp_flags,
-	capabilities = capabilities,
+setup_lsp("omnisharp", {
 	enable_roslyn_analyzers = true,
 	enable_import_completion = true,
 	organize_imports_on_format = true,
@@ -169,7 +138,7 @@ nvim_lsp.omnisharp.setup({
 })
 
 -- Go LSP Configuration
-nvim_lsp.gopls.setup({
+setup_lsp("gopls", {
 	on_attach = function(client, bufnr)
 		on_attach(client, bufnr)
 		vim.api.nvim_create_autocmd("BufWritePre", {
@@ -178,9 +147,8 @@ nvim_lsp.gopls.setup({
 			callback = organize_go_imports,
 		})
 	end,
-	flags = lsp_flags,
-	capabilities = capabilities,
 	cmd = { nix_vars.gopls },
+	filetypes = { "go" },
 	settings = {
 		gopls = {
 			buildFlags = { "-tags=e2e" },
@@ -189,11 +157,10 @@ nvim_lsp.gopls.setup({
 })
 
 -- Go LSP Linting
-nvim_lsp.golangci_lint_ls.setup({
+setup_lsp("golangci_lint_ls", {
 	on_attach = on_attach_no_formatting,
-	flags = lsp_flags,
-	capabilities = capabilities,
 	cmd = { nix_vars.golintls },
+	filetypes = { "go" },
 	init_options = {
 		command = {
 			"golangci-lint",
@@ -227,8 +194,8 @@ local eslintFiles = {
 }
 
 local has_eslint_in_parents = function(fname)
-	local root_file = nvim_lsp.util.insert_package_json(eslintFiles, "eslintConfig", fname)
-	return nvim_lsp.util.root_pattern(unpack(root_file))(fname)
+	local root_file = require("lspconfig").util.insert_package_json(eslintFiles, "eslintConfig", fname)
+	return require("lspconfig").util.root_pattern(unpack(root_file))(fname)
 end
 
 none_ls.setup({
@@ -242,8 +209,7 @@ none_ls.setup({
 			end,
 		}),
 		none_ls.builtins.completion.spell,
-		none_ls.builtins.formatting.nixpkgs_fmt,
-		none_ls.builtins.formatting.stylua,
+		none_ls.builtins.formatting.nixpkgs_fmt, -- TODO: nixd native LSP?
 		none_ls.builtins.diagnostics.sqlfluff,
 		none_ls.builtins.formatting.sqlfluff,
 		require("none-ls.formatting.autopep8").with({
