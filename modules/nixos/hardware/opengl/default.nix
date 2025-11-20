@@ -19,10 +19,8 @@ in
     environment.systemPackages = with pkgs; [
       libva-utils
       vdpauinfo
-    ] ++ lib.optionals cfg.enableNvidia [
+    ] ++ lib.optionals (cfg.enableNvidia || cfg.enableIntel) [
       nvtopPackages.full
-    ] ++ lib.optionals cfg.enableIntel [
-      intel-gpu-tools
     ];
 
     # Enable Nvidia Hardware
