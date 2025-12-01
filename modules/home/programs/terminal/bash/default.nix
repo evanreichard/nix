@@ -29,7 +29,6 @@ in
         EDITOR="$VISUAL"
 
         fastfetch
-        eval "$(thefuck --alias)"
       '';
     };
 
@@ -58,7 +57,6 @@ in
     };
 
     home.packages = with pkgs; [
-      thefuck
       fastfetch
       bashInteractive
       nerd-fonts.meslo-lg

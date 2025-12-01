@@ -49,10 +49,6 @@ in
     };
   };
 
-  home.packages = with pkgs; [
-    jellyfin-media-player
-  ];
-
   dconf = {
     settings = {
       "org/gnome/desktop/interface" = {

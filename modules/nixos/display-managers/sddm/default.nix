@@ -17,7 +17,8 @@ in
         sddm = {
           inherit (cfg) enable;
           package = pkgs.kdePackages.sddm;
-          theme = "catppuccin-mocha";
+          #theme = "catppuccin-mocha"; # https://github.com/nixos/nixpkgs/issues/434963
+          theme = "breeze";
           wayland.enable = true;
         };
       };

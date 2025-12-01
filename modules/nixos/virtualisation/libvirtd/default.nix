@@ -15,7 +15,7 @@ in
 
   config = mkIf cfg.enable {
     environment.systemPackages = with pkgs; [
-      win-virtio
+      virtio-win
       virtiofsd
       libvirt
       qemu_kvm
@@ -40,10 +40,6 @@ in
           package = pkgs.qemu_kvm;
           runAsRoot = false;
           swtpm.enable = true;
-          ovmf = {
-            enable = true;
-            packages = [ pkgs.OVMFFull.fd ];
-          };
         };
       };
 
