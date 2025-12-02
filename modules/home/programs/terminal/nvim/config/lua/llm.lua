@@ -1,6 +1,7 @@
 -- Configure LLama LLM
 vim.g.llama_config = {
-	endpoint = "http://10.0.50.120:8012/infill",
+	endpoint = "http://10.0.20.100:8080/infill",
+	model = "qwen2.5-coder-7b-fim",
 	api_key = "",
 	n_prefix = 256,
 	n_suffix = 64,
