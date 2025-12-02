@@ -1,4 +1,9 @@
-{ config, pkgs, lib, namespace, ... }:
+{ config
+, pkgs
+, lib
+, namespace
+, ...
+}:
 let
   inherit (lib) types mkIf mkEnableOption;
   inherit (lib.${namespace}) mkOpt;
@@ -40,7 +45,10 @@ in
           description = "Download Model";
           wantedBy = [ "multi-user.target" ];
           before = [ "llama-cpp.service" ];
-          path = [ pkgs.curl pkgs.coreutils ];
+          path = [
+            pkgs.curl
+            pkgs.coreutils
+          ];
           serviceConfig = {
             Type = "oneshot";
             RemainAfterExit = true;
@@ -85,22 +93,28 @@ in
         openFirewall = true;
         model = "${modelPath}";
 
-        package = (pkgs.llama-cpp.override {
-          cudaSupport = true;
-        }).overrideAttrs (oldAttrs: {
-          cmakeFlags = oldAttrs.cmakeFlags ++ [
-            "-DGGML_CUDA_ENABLE_UNIFIED_MEMORY=1"
-            "-DCMAKE_CUDA_ARCHITECTURES=61" # GTX-1070
+        package =
+          (pkgs.llama-cpp.override {
+            cudaSupport = true;
+            blasSupport = true;
+            rocmSupport = false;
+            metalSupport = false;
+          }).overrideAttrs
+            (oldAttrs: {
+              cmakeFlags = oldAttrs.cmakeFlags ++ [
+                "-DGGML_CUDA_ENABLE_UNIFIED_MEMORY=1"
+                "-DCMAKE_CUDA_ARCHITECTURES=61" # GTX-1070 / GTX-1080ti
+                "-DGGML_NATIVE=ON"
 
-            # Disable CPU Instructions - Intel(R) Core(TM) i5-3570K CPU @ 3.40GHz
-            "-DLLAMA_FMA=OFF"
-            "-DLLAMA_AVX2=OFF"
-            "-DLLAMA_AVX512=OFF"
-            "-DGGML_FMA=OFF"
-            "-DGGML_AVX2=OFF"
-            "-DGGML_AVX512=OFF"
-          ];
-        });
+                # Disable CPU Instructions - Intel(R) Core(TM) i5-3570K CPU @ 3.40GHz
+                # "-DLLAMA_FMA=OFF"
+                # "-DLLAMA_AVX2=OFF"
+                # "-DLLAMA_AVX512=OFF"
+                # "-DGGML_FMA=OFF"
+                # "-DGGML_AVX2=OFF"
+                # "-DGGML_AVX512=OFF"
+              ];
+            });
 
         extraFlags = [ availableModels.${cfg.modelName}.flag ];
       };
