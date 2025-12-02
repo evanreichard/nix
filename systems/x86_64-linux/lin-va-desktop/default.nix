@@ -102,6 +102,7 @@ in
     };
 
     virtualisation = {
+      # podman run --device nvidia.com/gpu=all -e INVOKEAI_ROOT=/invokeai -v /mnt/ssd/InvokeAI:/invokeai --publish 8081:9090 ghcr.io/invoke-ai/invokeai
       podman = enabled;
     };
 
@@ -113,33 +114,41 @@ in
     settings = {
       models = {
         # https://huggingface.co/ggml-org/gpt-oss-20b-GGUF/tree/main
-        "gpt-oss-20b" = {
+        # https://huggingface.co/mradermacher/gpt-oss-20b-heretic-GGUF/tree/main
+        # reasoning_effort = low, medium, high
+        "gpt-oss-20b-thinking" = {
           name = "GPT OSS (20B) - Thinking";
-          cmd = "${pkgs.llama-cpp}/bin/llama-server --port \${PORT} -m /mnt/ssd/Models/gpt-oss-20b-MXFP4.gguf --ctx-size 128000";
+          cmd = "${pkgs.llama-cpp}/bin/llama-server --port \${PORT} -m /mnt/ssd/Models/gpt-oss-20b-heretic-MXFP4.gguf --ctx-size 128000 --chat-template-kwargs '{\"reasoning_effort\":\"low\"}'";
         };
 
         # https://huggingface.co/ggml-org/Qwen2.5-Coder-7B-Q8_0-GGUF/tree/main
-        "qwen2.5-coder-7b-fim" = {
-          name = "Qwen2.5 Coder (7B) - FIM";
+        "qwen2.5-coder-7b-instruct" = {
+          name = "Qwen2.5 Coder (7B) - Instruct";
           cmd = "${pkgs.llama-cpp}/bin/llama-server -m /mnt/ssd/Models/qwen2.5-coder-7b-q8_0.gguf --fim-qwen-7b-default --port \${PORT}";
         };
 
+        # https://huggingface.co/unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF/tree/main
+        "qwen3-coder-30b-instruct" = {
+          name = "Qwen3 Coder (30B) - Instruct";
+          cmd = "${pkgs.llama-cpp}/bin/llama-server --port \${PORT} -m /mnt/ssd/Models/Qwen3-Coder-30B-A3B-Instruct-Q4_K_M.gguf --ctx-size 16384 --temp 0.7 --min-p 0.0 --top-p 0.8 --top-k 20 --cache-type-k q4_0 --cache-type-v q4_0";
+        };
+
         # https://huggingface.co/unsloth/Qwen3-30B-A3B-Instruct-2507-GGUF/tree/main
-        "qwen3-30b-a3b-q4-k-m" = {
-          name = "Qwen3 A3B 2507 (30B) - Instruct";
-          cmd = "${pkgs.llama-cpp}/bin/llama-server --port \${PORT} -m /mnt/ssd/Models/Qwen3-30B-A3B-Instruct-2507-Q4_K_M.gguf --ctx-size 8192 --temp 0.7 --min-p 0.0 --top-p 0.8 --top-k 20";
+        "qwen3-30b-instruct" = {
+          name = "Qwen3 (30B) - Instruct";
+          cmd = "${pkgs.llama-cpp}/bin/llama-server --port \${PORT} -m /mnt/ssd/Models/Qwen3-30B-A3B-Instruct-2507-Q4_K_M.gguf --ctx-size 16384 --temp 0.7 --min-p 0.0 --top-p 0.8 --top-k 20 --cache-type-k q4_0 --cache-type-v q4_0";
         };
 
         # https://huggingface.co/unsloth/Qwen3-30B-A3B-Thinking-2507-GGUF/tree/main
-        "qwen3-30b-a3b-q4-thinking" = {
-          name = "Qwen3 A3B 2507 (30B) - Thinking";
-          cmd = "${pkgs.llama-cpp}/bin/llama-server --port \${PORT} -m /mnt/ssd/Models/Qwen3-30B-A3B-Thinking-2507-Q4_K_M.gguf --ctx-size 8192 --temp 0.7 --min-p 0.0 --top-p 0.8 --top-k 20";
+        "qwen3-30b-thinking" = {
+          name = "Qwen3 (30B) - Thinking";
+          cmd = "${pkgs.llama-cpp}/bin/llama-server --port \${PORT} -m /mnt/ssd/Models/Qwen3-30B-A3B-Thinking-2507-Q4_K_M.gguf --ctx-size 16384 --temp 0.7 --min-p 0.0 --top-p 0.8 --top-k 20 --cache-type-k q4_0 --cache-type-v q4_0";
         };
 
         # https://huggingface.co/unsloth/Qwen3-VL-8B-Instruct-GGUF/tree/main
         "qwen3-8b-vision" = {
           name = "Qwen3 Vision (8B) - Thinking";
-          cmd = "${pkgs.llama-cpp}/bin/llama-server --port \${PORT} -m /mnt/ssd/Models/Qwen3-VL-8B-Instruct-UD-Q4_K_XL.gguf --mmproj /mnt/ssd/Models/Qwen3-VL-8B-Instruct-UD-Q4_K_XL_mmproj-F16.gguf --ctx-size 65536 --temp 0.7 --min-p 0.0 --top-p 0.8 --top-k 20";
+          cmd = "${pkgs.llama-cpp}/bin/llama-server --port \${PORT} -m /mnt/ssd/Models/Qwen3-VL-8B-Instruct-UD-Q4_K_XL.gguf --mmproj /mnt/ssd/Models/Qwen3-VL-8B-Instruct-UD-Q4_K_XL_mmproj-F16.gguf --ctx-size 131072 --temp 0.7 --min-p 0.0 --top-p 0.8 --top-k 20  --cache-type-k q4_0 --cache-type-v q4_0";
         };
       };
     };
