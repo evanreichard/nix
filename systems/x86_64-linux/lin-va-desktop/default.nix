@@ -99,10 +99,10 @@ in
 
     services = {
       openssh = enabled;
+      mosh = enabled;
     };
 
     virtualisation = {
-      # podman run --device nvidia.com/gpu=all -e INVOKEAI_ROOT=/invokeai -v /mnt/ssd/InvokeAI:/invokeai --publish 8081:9090 ghcr.io/invoke-ai/invokeai
       podman = enabled;
     };
 
@@ -113,18 +113,34 @@ in
     openFirewall = true;
     settings = {
       models = {
-        # https://huggingface.co/ggml-org/gpt-oss-20b-GGUF/tree/main
+        # https://huggingface.co/unsloth/SmolLM3-3B-128K-GGUF/tree/main
+        "smollm3-3b-instruct" = {
+          name = "SmolLM3(3B) - Instruct";
+          cmd = "${pkgs.llama-cpp}/bin/llama-server --port \${PORT} -m /mnt/ssd/Models/SmolLM3-3B-128K-UD-Q4_K_XL.gguf --ctx-size 98304 --temp 0.6 --top-p 0.95 --reasoning-budget 0 -sm none";
+        };
+
+        # https://huggingface.co/unsloth/Qwen3-Next-80B-A3B-Instruct-GGUF/tree/main
+        "qwen3-next-80b-instruct" = {
+          name = "Qwen3 Next (80B) - Instruct";
+          cmd = "${pkgs.llama-cpp}/bin/llama-server --port \${PORT} -m /mnt/ssd/Models/Qwen3-Next-80B-A3B-Instruct-UD-Q4_K_XL.gguf --ctx-size 32768 --temp 0.7 --min-p 0.0 --top-p 0.8 --top-k 20 -sm none -ncmoe 39";
+        };
+
         # https://huggingface.co/mradermacher/gpt-oss-20b-heretic-GGUF/tree/main
-        # reasoning_effort = low, medium, high
         "gpt-oss-20b-thinking" = {
           name = "GPT OSS (20B) - Thinking";
           cmd = "${pkgs.llama-cpp}/bin/llama-server --port \${PORT} -m /mnt/ssd/Models/gpt-oss-20b-heretic-MXFP4.gguf --ctx-size 128000 --chat-template-kwargs '{\"reasoning_effort\":\"low\"}'";
         };
 
-        # https://huggingface.co/ggml-org/Qwen2.5-Coder-7B-Q8_0-GGUF/tree/main
+        # https://huggingface.co/unsloth/ERNIE-4.5-21B-A3B-PT-GGUF/tree/main
+        "ernie4.5-21b-instruct" = {
+          name = "ERNIE4.5 (21B) - Instruct";
+          cmd = "${pkgs.llama-cpp}/bin/llama-server --port \${PORT} -m /mnt/ssd/Models/ERNIE-4.5-21B-A3B-PT-UD-Q4_K_XL.gguf --ctx-size 98304 --temp 0.7 --min-p 0.0 --top-p 0.8 --top-k 20";
+        };
+
+        # https://huggingface.co/unsloth/Qwen2.5-Coder-7B-Instruct-128K-GGUF/tree/main
         "qwen2.5-coder-7b-instruct" = {
           name = "Qwen2.5 Coder (7B) - Instruct";
-          cmd = "${pkgs.llama-cpp}/bin/llama-server -m /mnt/ssd/Models/qwen2.5-coder-7b-q8_0.gguf --fim-qwen-7b-default --port \${PORT}";
+          cmd = "${pkgs.llama-cpp}/bin/llama-server -m /mnt/ssd/Models/Qwen2.5-Coder-7B-Instruct-Q8_0.gguf --fim-qwen-7b-default --ctx-size 131072 --port \${PORT}";
         };
 
         # https://huggingface.co/unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF/tree/main

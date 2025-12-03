@@ -1,4 +1,9 @@
-{ pkgs, lib, config, namespace, ... }:
+{ pkgs
+, lib
+, config
+, namespace
+, ...
+}:
 let
   inherit (lib) mkIf;
   cfg = config.${namespace}.programs.terminal.nvim;
@@ -22,9 +27,9 @@ in
         # ------------------
         cmp-buffer # Buffer Word Completion
         cmp-cmdline # Command Line Completion
+        cmp_luasnip # Snippets Completion
         cmp-nvim-lsp # Main LSP
         cmp-path # Path Completion
-        cmp_luasnip # Snippets Completion
         friendly-snippets # Snippets
         lsp_lines-nvim # Inline Diagnostics
         luasnip # Snippets
@@ -34,10 +39,11 @@ in
         # -------------------
         # ----- Helpers -----
         # -------------------
-        avante-nvim # Avante
         aerial-nvim # Code Outline
+        codecompanion-nvim # CodeCompanion
         comment-nvim # Code Comments
         diffview-nvim # Diff View
+        fidget-nvim # Notification Helper
         gitsigns-nvim # Git Blame
         leap-nvim # Quick Movement
         markdown-preview-nvim # Markdown Preview
@@ -45,6 +51,8 @@ in
         none-ls-nvim # Formatters
         numb-nvim # Peek / Jump to Lines
         nvim-autopairs # Automatically Close Pairs (),[],{}
+        octo-nvim # Git Octo
+        render-markdown-nvim # Markdown Renderer
         telescope-fzf-native-nvim # Faster Telescope
         telescope-nvim # Fuzzy Finder
         telescope-ui-select-nvim # UI
@@ -52,16 +60,13 @@ in
         toggleterm-nvim # Terminal Helper
         vim-nix # Nix Helpers
         which-key-nvim # Shortcut Helper
-        octo-nvim # Git Octo
 
         # ------------------
         # --- Theme / UI ---
         # ------------------
+        catppuccin-nvim # Theme
         lualine-nvim # Bottom Line
         noice-nvim # UI Tweaks
-        # nord-nvim # Theme
-        # melange-nvim # Theme
-        catppuccin-nvim # Theme
         nvim-notify # Noice Dependency
         nvim-web-devicons # Dev Icons
 
@@ -81,55 +86,49 @@ in
         # --------------------
         # -- NONE-LS EXTRAS --
         # --------------------
-        (
-          pkgs.vimUtils.buildVimPlugin {
-            pname = "none-ls-extras.nvim";
-            version = "2025-10-28";
-            src = pkgs.fetchFromGitHub {
-              owner = "nvimtools";
-              repo = "none-ls-extras.nvim";
-              rev = "402c6b5c29f0ab57fac924b863709f37f55dc298";
-              sha256 = "sha256-4s/xQNWNA4dgb5gZR4Xqn6zDDWrSJNtmHOmmjmYnN/8=";
-            };
-            doCheck = false;
-            meta.homepage = "https://github.com/nvimtools/none-ls-extras.nvim/";
-          }
-        )
+        (pkgs.vimUtils.buildVimPlugin {
+          pname = "none-ls-extras.nvim";
+          version = "2025-10-28";
+          src = pkgs.fetchFromGitHub {
+            owner = "nvimtools";
+            repo = "none-ls-extras.nvim";
+            rev = "402c6b5c29f0ab57fac924b863709f37f55dc298";
+            sha256 = "sha256-4s/xQNWNA4dgb5gZR4Xqn6zDDWrSJNtmHOmmjmYnN/8=";
+          };
+          doCheck = false;
+          meta.homepage = "https://github.com/nvimtools/none-ls-extras.nvim/";
+        })
 
         # -------------------
         # ----- Silicon -----
         # -------------------
-        (
-          pkgs.vimUtils.buildVimPlugin {
-            pname = "silicon.lua";
-            version = "2025-10-28";
-            src = pkgs.fetchFromGitHub {
-              owner = "0oAstro";
-              repo = "silicon.lua";
-              rev = "54682647a7c1c773dc4c9ab2bc309114a3b9e96f";
-              sha256 = "sha256-lM7ALmYHGN5SKftfD7YBPh1gGKORbS6EMXS/ZQXDMSI=";
-            };
-            doCheck = false;
-            meta.homepage = "https://github.com/0oAstro/silicon.lua";
-          }
-        )
+        (pkgs.vimUtils.buildVimPlugin {
+          pname = "silicon.lua";
+          version = "2025-10-28";
+          src = pkgs.fetchFromGitHub {
+            owner = "0oAstro";
+            repo = "silicon.lua";
+            rev = "54682647a7c1c773dc4c9ab2bc309114a3b9e96f";
+            sha256 = "sha256-lM7ALmYHGN5SKftfD7YBPh1gGKORbS6EMXS/ZQXDMSI=";
+          };
+          doCheck = false;
+          meta.homepage = "https://github.com/0oAstro/silicon.lua";
+        })
 
         # -------------------
         # ---- LLAMA.VIM ----
         # -------------------
-        (
-          pkgs.vimUtils.buildVimPlugin {
-            pname = "llama.vim";
-            version = "2025-10-28";
-            src = pkgs.fetchFromGitHub {
-              owner = "ggml-org";
-              repo = "llama.vim";
-              rev = "ade8966eff57dcbe4a359dd26fb1ea97378ea03c";
-              sha256 = "sha256-uPqOZLWKVMimhc9eG7yM5OmhJy3mTRgKsiqKhstWs4Y=";
-            };
-            meta.homepage = "https://github.com/ggml-org/llama.vim/";
-          }
-        )
+        (pkgs.vimUtils.buildVimPlugin {
+          pname = "llama.vim";
+          version = "2025-10-28";
+          src = pkgs.fetchFromGitHub {
+            owner = "ggml-org";
+            repo = "llama.vim";
+            rev = "ade8966eff57dcbe4a359dd26fb1ea97378ea03c";
+            sha256 = "sha256-uPqOZLWKVMimhc9eG7yM5OmhJy3mTRgKsiqKhstWs4Y=";
+          };
+          meta.homepage = "https://github.com/ggml-org/llama.vim/";
+        })
       ];
 
       extraPackages = with pkgs; [

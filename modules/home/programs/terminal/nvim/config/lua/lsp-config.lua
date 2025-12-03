@@ -8,6 +8,11 @@ vim.api.nvim_create_autocmd("FileType", {
 	end,
 })
 
+require('render-markdown').setup({
+	completions = { lsp = { enabled = true } },
+	file_types = { 'markdown', 'codecompanion' },
+})
+
 ------------------------------------------------------
 -------------------- Built-in LSP --------------------
 ------------------------------------------------------

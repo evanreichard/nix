@@ -32,7 +32,7 @@ execute_command()
 vim.fn.timer_start(300000, execute_command)
 
 -- Return status from cache
-function pr_status()
+local function pr_status()
 	--   
 	--    
 	--
@@ -40,19 +40,15 @@ function pr_status()
 	-- PASS COLOR - #3fb950
 	-- FAIL COLOR - #f85149
 	return cached_pr_status
-		:gsub("\n", "")
-		:gsub("fail", " ")
-		:gsub("pass", " ")
-		:gsub("pending", " ")
-		:gsub("skipping", " ")
-		:sub(1, -2)
+			:gsub("\n", "")
+			:gsub("fail", " ")
+			:gsub("pass", " ")
+			:gsub("pending", " ")
+			:gsub("skipping", " ")
+			:sub(1, -2)
 end
 
 require("lualine").setup({
-	options = {
-		theme = "catppuccin",
-		-- theme = "nord"
-		-- theme = "OceanicNext",
-	},
+	options = { theme = "catppuccin" },
 	sections = { lualine_c = { { pr_status } } },
 })
