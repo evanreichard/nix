@@ -1,21 +1,77 @@
--- Configure LLama LLM
-vim.g.llama_config = {
-	endpoint = "http://10.0.20.100:8080/infill",
-	-- model = "qwen2.5-coder-7b-instruct",
-	model = "qwen3-coder-30b-instruct",
-	n_predict = 1024,
+local llm_endpoint = "http://10.0.20.100:8080"
+local llm_model = "qwen3-coder-30b-instruct"
 
-	-- api_key = "",
-	-- n_prefix = 256,
-	-- n_suffix = 64,
-	-- t_max_prompt_ms = 500,
-	-- t_max_predict_ms = 500,
-	-- show_info = 2,
-	-- auto_fim = true,
-	-- max_line_suffix = 8,
-	-- max_cache_keys = 256,
-	-- ring_n_chunks = 8,
-	-- ring_chunk_size = 32,
-	-- ring_scope = 512,
-	-- ring_update_ms = 1000,
+-- Default Llama - Toggle Llama & Copilot
+vim.g.copilot_filetypes = { ["*"] = false }
+local current_mode = "llama"
+local function toggle_llm_fim_provider()
+	if current_mode == "llama" then
+		vim.g.copilot_filetypes = { ["*"] = true }
+		vim.cmd("Copilot enable")
+		vim.cmd("LlamaDisable")
+		current_mode = "copilot"
+		vim.notify("Copilot FIM enabled", vim.log.levels.INFO)
+	else
+		vim.g.copilot_filetypes = { ["*"] = true }
+		vim.cmd("Copilot disable")
+		vim.cmd("LlamaEnable")
+		current_mode = "llama"
+		vim.notify("Llama FIM enabled", vim.log.levels.INFO)
+	end
+end
+vim.keymap.set("n", "<leader>cf", toggle_llm_fim_provider, { desc = "Toggle FIM (Llama / Copilot)" })
+
+-- Configure LLama LLM FIM
+vim.g.llama_config = {
+	endpoint = llm_endpoint .. "/infill",
+	model = llm_model,
+	n_predict = 1024,
 }
+
+-- Configure Code Companion
+require("plugins.codecompanion.fidget-spinner"):init()
+require("codecompanion").setup({
+	display = { chat = { window = { layout = "float", width = 0.6 } } },
+	adapters = {
+		http = {
+			opts = { show_defaults = false, },
+			["llama-swap"] = function()
+				return require("codecompanion.adapters").extend("openai_compatible", {
+					name = "llama-swap",
+					formatted_name = "LlamaSwap",
+					schema = { model = { default = llm_model } },
+					env = { url = llm_endpoint },
+				})
+			end,
+			copilot = require("codecompanion.adapters.http.copilot"),
+		},
+		acp = { opts = { show_defaults = false } },
+	},
+	strategies = {
+		chat = { adapter = "llama-swap" },
+		inline = { adapter = "llama-swap" },
+		cmd = { adapter = "llama-swap" },
+	},
+	chat = { dispay = "telescope" },
+	memory = {
+		opts = { chat = { enabled = true } },
+		default = {
+			description = "Collection of common files for all projects",
+			files = {
+				".clinerules",
+				".cursorrules",
+				".goosehints",
+				".rules",
+				".windsurfrules",
+				".github/copilot-instructions.md",
+				"AGENT.md",
+				"AGENTS.md",
+				".cursor/rules/",
+				{ path = "CLAUDE.md",           parser = "claude" },
+				{ path = "CLAUDE.local.md",     parser = "claude" },
+				{ path = "~/.claude/CLAUDE.md", parser = "claude" },
+			},
+			is_default = true,
+		},
+	},
+})

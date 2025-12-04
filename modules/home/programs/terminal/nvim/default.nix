@@ -42,6 +42,7 @@ in
         aerial-nvim # Code Outline
         codecompanion-nvim # CodeCompanion
         comment-nvim # Code Comments
+        copilot-vim # GitHub Copilot
         diffview-nvim # Diff View
         fidget-nvim # Notification Helper
         gitsigns-nvim # Git Blame
