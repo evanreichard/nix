@@ -21,14 +21,15 @@ in
           blasSupport = true;
           rocmSupport = false;
           metalSupport = false;
+          vulkanSupport = true;
         }).overrideAttrs
           (oldAttrs: rec {
-            version = "7253";
+            version = "7278";
             src = pkgs.fetchFromGitHub {
               owner = "ggml-org";
               repo = "llama.cpp";
               tag = "b${version}";
-              hash = "sha256-Gx8c00mwh/ySHDbjqCPu7nKymb24gCB/NHMGjo4FS08=";
+              hash = "sha256-Gxi/sUIuVvX5+mcZj9vCvUgODsWPAFzESQz8TjTe/Mk=";
               leaveDotGit = true;
               postFetch = ''
                 git -C "$out" rev-parse --short HEAD > $out/COMMIT
@@ -146,7 +147,7 @@ in
         # https://huggingface.co/unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF/tree/main
         "qwen3-coder-30b-instruct" = {
           name = "Qwen3 Coder (30B) - Instruct";
-          cmd = "${pkgs.llama-cpp}/bin/llama-server --port \${PORT} -m /mnt/ssd/Models/Qwen3-Coder-30B-A3B-Instruct-UD-Q4_K_XL.gguf --ctx-size 16384 --temp 0.7 --min-p 0.0 --top-p 0.8 --top-k 20";
+          cmd = "${pkgs.llama-cpp}/bin/llama-server --port \${PORT} -m /mnt/ssd/Models/Qwen3-Coder-30B-A3B-Instruct-UD-Q4_K_XL.gguf --ctx-size 55000 --temp 0.7 --min-p 0.0 --top-p 0.8 --top-k 20 --cache-type-k q4_0 --cache-type-v q4_0";
         };
 
         # https://huggingface.co/unsloth/Qwen3-30B-A3B-Instruct-2507-GGUF/tree/main
@@ -165,6 +166,18 @@ in
         "qwen3-8b-vision" = {
           name = "Qwen3 Vision (8B) - Thinking";
           cmd = "${pkgs.llama-cpp}/bin/llama-server --port \${PORT} -m /mnt/ssd/Models/Qwen3-VL-8B-Instruct-UD-Q4_K_XL.gguf --mmproj /mnt/ssd/Models/Qwen3-VL-8B-Instruct-UD-Q4_K_XL_mmproj-F16.gguf --ctx-size 131072 --temp 0.7 --min-p 0.0 --top-p 0.8 --top-k 20  --cache-type-k q4_0 --cache-type-v q4_0";
+        };
+
+        # https://huggingface.co/mradermacher/OLMoE-1B-7B-0125-Instruct-GGUF/tree/main
+        "olmoe-7b-instruct" = {
+          name = "OLMoE (7B) - Instruct";
+          cmd = "${pkgs.llama-cpp}/bin/llama-server --port \${PORT} -m /mnt/ssd/Models/OLMoE-1B-7B-0125-Instruct.Q8_0.gguf -dev CUDA0";
+        };
+
+        # https://huggingface.co/gabriellarson/Phi-mini-MoE-instruct-GGUF/tree/main
+        "phi-mini-8b-instruct" = {
+          name = "Phi mini (8B) - Instruct";
+          cmd = "${pkgs.llama-cpp}/bin/llama-server --port \${PORT} -m /mnt/ssd/Models/Phi-mini-MoE-instruct-Q8_0.gguf --repeat-penalty 1.05 --temp 0.0 --top-p 1.0 --top-k 1 -dev CUDA0";
         };
       };
     };
