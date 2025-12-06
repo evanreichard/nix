@@ -1,4 +1,4 @@
-local llm_endpoint = "http://10.0.20.100:8080"
+local llm_endpoint = "https://llm-api.va.reichard.io"
 local llm_model = "qwen3-coder-30b-instruct"
 
 -- Default Llama - Toggle Llama & Copilot
