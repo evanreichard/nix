@@ -1,4 +1,9 @@
-{ pkgs, lib, config, namespace, ... }:
+{ pkgs
+, lib
+, config
+, namespace
+, ...
+}:
 let
   inherit (lib.${namespace}) enabled;
 in
@@ -9,15 +14,6 @@ in
     user = {
       enable = true;
       inherit (config.snowfallorg.user) name;
-    };
-
-    services = {
-      # TODO
-      # sops = {
-      #   enable = true;
-      #   defaultSopsFile = lib.snowfall.fs.get-file "secrets/mac-va-mbp-work/evanreichard/default.yaml";
-      #   sshKeyPaths = [ "${config.home.homeDirectory}/.ssh/id_ed25519" ];
-      # };
     };
 
     programs = {
@@ -47,6 +43,9 @@ in
     texliveSmall # Pandoc PDF Dep
     google-cloud-sdk
     tldr
+    opencode
+    claude-code
+    reichard.qwen-code
   ];
 
   # SQLite Configuration

@@ -1,0 +1,31 @@
+# This patch modifies the json-schema-to-grammar.cpp file to handle 'not: {}' constructs
+# specifically inside additionalProperties.
+#
+# Author: https://github.com/evanreichard
+
+diff --git a/common/json-schema-to-grammar.cpp b/common/json-schema-to-grammar.cpp
+index c3b4e5d..ea24bc3 100644
+--- a/common/json-schema-to-grammar.cpp
++++ b/common/json-schema-to-grammar.cpp
+@@ -858,10 +858,19 @@ public:
+                     properties.emplace_back(prop.key(), prop.value());
+                 }
+             }
++            json additionalProps = schema.contains("additionalProperties") ? schema["additionalProperties"] : json();
++            if (additionalProps.is_object() && additionalProps.contains("not")) {
++                const auto& not_val = additionalProps["not"];
++                if (not_val.is_object() && not_val.empty()) {
++                    additionalProps.erase("not");
++                    if (additionalProps.empty()) {
++                        additionalProps = false;
++                    }
++                }
++            }
+             return _add_rule(rule_name,
+                 _build_object_rule(
+-                    properties, required, name,
+-                    schema.contains("additionalProperties") ? schema["additionalProperties"] : json()));
++                    properties, required, name, additionalProps));
+         } else if ((schema_type.is_null() || schema_type == "object" || schema_type == "string") && schema.contains("allOf")) {
+             std::unordered_set<std::string> required;
+             std::vector<std::pair<std::string, json>> properties;

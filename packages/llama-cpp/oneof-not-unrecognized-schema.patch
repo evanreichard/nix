@@ -1,0 +1,28 @@
+# This patch modifies the json-schema-to-grammar.cpp file to handle 'not: {}' constructs.
+#
+# Author: https://github.com/simaotwx
+# Reference: https://github.com/ggml-org/llama.cpp/issues/14227#issuecomment-3547740835
+
+diff --git a/common/json-schema-to-grammar.cpp b/common/json-schema-to-grammar.cpp
+index 478aa1be7..ec0b3b73e 100644
+--- a/common/json-schema-to-grammar.cpp
++++ b/common/json-schema-to-grammar.cpp
+@@ -822,7 +822,17 @@ public:
+             return _add_rule(rule_name, _resolve_ref(schema["$ref"]));
+         } else if (schema.contains("oneOf") || schema.contains("anyOf")) {
+             std::vector<json> alt_schemas = schema.contains("oneOf") ? schema["oneOf"].get<std::vector<json>>() : schema["anyOf"].get<std::vector<json>>();
+-            return _add_rule(rule_name, _generate_union_rule(name, alt_schemas));
++            std::vector<json> filtered_schemas;
++            for (const auto& alt : alt_schemas) {
++                if (alt.is_object() && alt.contains("not")) {
++                    const auto& not_val = alt["not"];
++                    if (not_val.is_object() && not_val.empty()) {
++                        continue;
++                    }
++                }
++                filtered_schemas.push_back(alt);
++            }
++            return _add_rule(rule_name, _generate_union_rule(name, filtered_schemas));
+         } else if (schema_type.is_array()) {
+             std::vector<json> schema_types;
+             for (const auto & t : schema_type) {
