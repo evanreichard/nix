@@ -22,6 +22,7 @@ in
       };
 
       terminal = {
+        opencode = enabled;
         btop = enabled;
         direnv = enabled;
         git = enabled;
@@ -43,7 +44,6 @@ in
     texliveSmall # Pandoc PDF Dep
     google-cloud-sdk
     tldr
-    opencode
     claude-code
     reichard.qwen-code
   ];
