@@ -1,4 +1,8 @@
-{ config, lib, namespace, ... }:
+{ config
+, lib
+, namespace
+, ...
+}:
 let
   inherit (lib)
     types
@@ -9,23 +13,23 @@ let
 
   cfg = config.${namespace}.services.openssh;
 
-  authorizedKeys = [
+  globalKeys = [
     # evanreichard@lin-va-mbp-personal
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILJJoyXQOv9cAjGUHrUcvsW7vY9W0PmuPMQSI9AMZvNY"
     # evanreichard@mac-va-mbp-personal
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMWj6rd6uDtHj/gGozgIEgxho/vBKebgN5Kce/N6vQWV"
     # evanreichard@lin-va-thinkpad
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAq5JQr/6WJMIHhR434nK95FrDmf2ApW2Ahd2+cBKwDz"
-    # evanreichard@mobile
-    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIARTNbl4lgQsp7SJEng7vprL0+ChC9e6iR7o/PiC4Jme"
     # evanreichard@lin-va-terminal
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM5e6Cty+7rX5BjIEHBTU6GnzfOxPJiHpSqin/BnsypO"
+    # evanreichard@mobile
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIARTNbl4lgQsp7SJEng7vprL0+ChC9e6iR7o/PiC4Jme"
   ];
 in
 {
   options.${namespace}.services.openssh = with types; {
     enable = lib.mkEnableOption "OpenSSH support";
-    authorizedKeys = mkOpt (listOf str) authorizedKeys "The public keys to apply.";
+    authorizedKeys = mkOpt (listOf str) [ ] "The public keys to apply.";
     extraConfig = mkOpt str "" "Extra configuration to apply.";
   };
 
@@ -80,7 +84,7 @@ in
     };
 
     reichard = {
-      user.extraOptions.openssh.authorizedKeys.keys = cfg.authorizedKeys;
+      user.extraOptions.openssh.authorizedKeys.keys = cfg.authorizedKeys ++ globalKeys;
     };
   };
 }

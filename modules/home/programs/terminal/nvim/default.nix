@@ -133,12 +133,16 @@ in
       ];
 
       extraPackages = with pkgs; [
+        # Toggle Term
+        bashInteractive
+
         # Telescope Dependencies
         fd
         ripgrep
         tree-sitter
 
         # LSP Dependencies
+        eslint_d
         go
         golangci-lint
         golangci-lint-langserver
@@ -151,7 +155,6 @@ in
         nodePackages.typescript-language-server
         nodePackages.vscode-langservers-extracted
         pyright
-        eslint_d
         python312Packages.autopep8
 
         # Formatters
@@ -178,14 +181,14 @@ in
       # Generate Nix Vars
       "nvim/lua/nix-vars.lua".text = ''
         local nix_vars = {
+          clangd = "${pkgs.clang-tools}/bin/clangd",
+          golintls = "${pkgs.golangci-lint-langserver}/bin/golangci-lint-langserver",
           gopls = "${pkgs.gopls}/bin/gopls",
           luals = "${pkgs.lua-language-server}/bin/lua-language-server",
+          omnisharp = "${pkgs.omnisharp-roslyn}/bin/OmniSharp",
           sveltels = "${pkgs.nodePackages.svelte-language-server}/bin/svelteserver",
           tsls = "${pkgs.nodePackages.typescript-language-server}/bin/typescript-language-server",
-          golintls = "${pkgs.golangci-lint-langserver}/bin/golangci-lint-langserver",
           vscls = "${pkgs.nodePackages.vscode-langservers-extracted}",
-          clangd = "${pkgs.clang-tools}/bin/clangd",
-          omnisharp = "${pkgs.omnisharp-roslyn}/bin/OmniSharp",
         }
         return nix_vars
       '';

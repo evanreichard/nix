@@ -1,4 +1,10 @@
-{ pkgs, lib, config, namespace, osConfig, ... }:
+{ pkgs
+, lib
+, config
+, namespace
+, osConfig
+, ...
+}:
 let
   inherit (lib.${namespace}) enabled;
 in
@@ -62,7 +68,6 @@ in
     };
   };
 
-
   home.pointerCursor = {
     gtk.enable = true;
     name = "catppuccin-macchiato-mauve-cursors";
@@ -76,23 +81,4 @@ in
       path = "${config.home.homeDirectory}/.kube/rke2";
     };
   };
-
-  # Global Packages
-  # programs.jq = enabled;
-  # programs.pandoc = enabled;
-  # home.packages = with pkgs; [
-  #   android-tools
-  #   imagemagick
-  #   mosh
-  #   python311
-  #   texliveSmall # Pandoc PDF Dep
-  #   google-cloud-sdk
-  #   tldr
-  # ];
-
-  # SQLite Configuration
-  home.file.".sqliterc".text = ''
-    .headers on
-    .mode column
-  '';
 }

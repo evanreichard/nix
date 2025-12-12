@@ -8,7 +8,7 @@ let
   inherit (lib.${namespace}) enabled;
 in
 {
-  home.stateVersion = "25.05";
+  home.stateVersion = "25.11";
 
   reichard = {
     user = {
@@ -39,7 +39,6 @@ in
   home.packages = with pkgs; [
     android-tools
     imagemagick
-    mosh
     python312
     texliveSmall # Pandoc PDF Dep
     google-cloud-sdk
@@ -47,10 +46,4 @@ in
     claude-code
     reichard.qwen-code
   ];
-
-  # SQLite Configuration
-  home.file.".sqliterc".text = ''
-    .headers on
-    .mode column
-  '';
 }

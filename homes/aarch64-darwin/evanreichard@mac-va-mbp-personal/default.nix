@@ -1,23 +1,18 @@
-{ lib, pkgs, config, namespace, ... }:
+{ lib
+, config
+, namespace
+, ...
+}:
 let
   inherit (lib.${namespace}) enabled;
 in
 {
-  home.stateVersion = "25.05";
+  home.stateVersion = "25.11";
 
   reichard = {
     user = {
       enable = true;
       inherit (config.snowfallorg.user) name;
-    };
-
-    services = {
-      # TODO
-      # sops = {
-      #   enable = true;
-      #   defaultSopsFile = lib.snowfall.fs.get-file "secrets/mac-va-mbp-personal/evanreichard/default.yaml";
-      #   sshKeyPaths = [ "${config.home.homeDirectory}/.ssh/id_ed25519" ];
-      # };
     };
 
     programs = {
@@ -35,25 +30,4 @@ in
       };
     };
   };
-
-  # Global Packages
-  # programs.jq = enabled;
-  # programs.pandoc = enabled;
-  # home.packages = with pkgs; [
-  #   android-tools
-  #   imagemagick
-  #   mosh
-  #   python311
-  #   texliveSmall # Pandoc PDF Dep
-  #   google-cloud-sdk
-  #   tldr
-  # ];
-
-  home.packages = with pkgs; [ fastfetch ];
-
-  # SQLite Configuration
-  home.file.".sqliterc".text = ''
-    .headers on
-    .mode column
-  '';
 }

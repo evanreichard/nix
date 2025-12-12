@@ -1,7 +1,12 @@
-{ pkgs, lib, config, namespace, ... }:
+{ pkgs
+, lib
+, config
+, namespace
+, ...
+}:
 let
   inherit (lib) mkIf optionalAttrs;
-  inherit (pkgs.stdenv) isLinux;
+  inherit (pkgs.stdenv) isLinux isDarwin;
   cfg = config.${namespace}.programs.terminal.bash;
 in
 {
@@ -15,8 +20,12 @@ in
       shellAliases = {
         grep = "grep --color";
         ssh = "TERM=xterm-256color ssh";
-      } // optionalAttrs isLinux {
+      }
+      // optionalAttrs isLinux {
         sync-watch = "watch -d grep -e Dirty: -e Writeback: /proc/meminfo";
+      }
+      // optionalAttrs isDarwin {
+        mosh = "mosh --ssh=\"/usr/bin/ssh\"";
       };
       profileExtra = ''
         export COLORTERM=truecolor
@@ -28,7 +37,11 @@ in
         VISUAL=vim
         EDITOR="$VISUAL"
 
-        fastfetch
+        if [ -z "$CLAUDE_CODE_ENTRYPOINT" ]; then
+            fastfetch
+        fi
+
+        [[ -f ~/.bash_custom ]] && . ~/.bash_custom
       '';
     };
 
@@ -57,11 +70,13 @@ in
     };
 
     home.packages = with pkgs; [
-      fastfetch
       bashInteractive
+      fastfetch
+      mosh
       nerd-fonts.meslo-lg
     ];
 
     home.file.".config/fastfetch/config.jsonc".text = builtins.readFile ./config/fastfetch.jsonc;
+    home.file.".sqliterc".text = builtins.readFile ./config/.sqliterc;
   };
 }

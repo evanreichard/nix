@@ -7,7 +7,7 @@ in
     ./hardware-configuration.nix
   ];
 
-  system.stateVersion = "25.05";
+  system.stateVersion = "25.11";
   time.timeZone = "America/New_York";
 
   # System Config

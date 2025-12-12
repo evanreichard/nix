@@ -53,11 +53,11 @@ nix-collect-garbage --delete-old
 
 ```bash
 # Update System Channels
-sudo nix-channel --add https://nixos.org/channels/nixpkgs-25.05-darwin nixpkgs
+sudo nix-channel --add https://nixos.org/channels/nixpkgs-25.11-darwin nixpkgs
 sudo nix-channel --update
 
 # Update Home Manager
-nix-channel --add https://github.com/nix-community/home-manager/archive/release-25.05.tar.gz home-manager
+nix-channel --add https://github.com/nix-community/home-manager/archive/release-25.11.tar.gz home-manager
 nix-channel --update
 
 # Link Repo

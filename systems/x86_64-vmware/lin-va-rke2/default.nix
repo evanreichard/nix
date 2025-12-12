@@ -1,4 +1,8 @@
-{ namespace, lib, modulesPath, ... }:
+{ namespace
+, lib
+, modulesPath
+, ...
+}:
 let
   inherit (lib.${namespace}) enabled;
 in
@@ -9,7 +13,7 @@ in
 
   config = {
     # Basic System
-    system.stateVersion = "25.05";
+    system.stateVersion = "25.11";
     time.timeZone = "UTC";
 
     reichard = {

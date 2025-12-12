@@ -1,9 +1,15 @@
-{ pkgs, lib, config, namespace, osConfig, ... }:
+{ pkgs
+, lib
+, config
+, namespace
+, osConfig
+, ...
+}:
 let
   inherit (lib.${namespace}) enabled;
 in
 {
-  home.stateVersion = "25.05";
+  home.stateVersion = "25.11";
 
   reichard = {
     user = {
@@ -55,14 +61,9 @@ in
         color-scheme = "prefer-dark";
         cursor-theme = "catppuccin-macchiato-mauve-cursors";
         cursor-size = 24;
-        # enable-hot-corners = false;
-        # font-name = osConfig.${namespace}.system.fonts.default;
-        # gtk-theme = cfg.theme.name;
-        # icon-theme = cfg.icon.name;
       };
     };
   };
-
 
   home.pointerCursor = {
     gtk.enable = true;
@@ -77,10 +78,4 @@ in
       path = "${config.home.homeDirectory}/.kube/rke2";
     };
   };
-
-  # SQLite Configuration
-  home.file.".sqliterc".text = ''
-    .headers on
-    .mode column
-  '';
 }

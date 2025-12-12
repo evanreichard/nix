@@ -1,9 +1,13 @@
-{ lib, config, namespace, ... }:
+{ lib
+, config
+, namespace
+, ...
+}:
 let
   inherit (lib.${namespace}) enabled;
 in
 {
-  home.stateVersion = "25.05";
+  home.stateVersion = "25.11";
 
   reichard = {
     user = {
@@ -27,10 +31,4 @@ in
       };
     };
   };
-
-  # SQLite Configuration
-  home.file.".sqliterc".text = ''
-    .headers on
-    .mode column
-  '';
 }
