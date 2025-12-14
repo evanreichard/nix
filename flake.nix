@@ -70,6 +70,7 @@
         nixos = with inputs; [
           disko.nixosModules.disko
           sops-nix.nixosModules.sops
+          ./modules/nixos/common
         ];
         darwin = with inputs; [
           home-manager.darwinModules.home-manager

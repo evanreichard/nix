@@ -23,12 +23,6 @@ in
       terminal = {
         bash = enabled;
         btop = enabled;
-        claude-code = enabled;
-        direnv = enabled;
-        git = enabled;
-        k9s = enabled;
-        nvim = enabled;
-        opencode = enabled;
         tmux = enabled;
       };
     };

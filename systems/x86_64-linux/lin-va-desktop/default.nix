@@ -96,69 +96,67 @@ in
         #  --chat-template-kwargs '{\"reasoning_effort\":\"low\"}'
         "gpt-oss-20b-thinking" = {
           name = "GPT OSS (20B) - Thinking";
-          cmd = "${pkgs.reichard.llama-cpp}/bin/llama-server --port \${PORT} -m /mnt/ssd/Models/gpt-oss-20b-heretic-v2.i1-MXFP4_MOE.gguf --ctx-size 131072 -ts 57,43 --temp 1.0 --top-p 1.0 --top-k 40 --mlock";
-          aliases = [
-            "claude-sonnet-4-5"
-            "claude-sonnet-4-5-20250929"
-            "claude-haiku-4-5"
-            "claude-haiku-4-5-20251001"
-            "claude-opus-4-5"
-            "claude-opus-4-5-20251101"
-          ];
+          cmd = "${pkgs.reichard.llama-cpp}/bin/llama-server --port \${PORT} -m /mnt/ssd/Models/gpt-oss-20b-heretic-v2.i1-MXFP4_MOE.gguf -c 131072 --temp 1.0 --top-p 1.0 --top-k 40 -ts 57,43";
         };
 
         # https://huggingface.co/unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF/tree/main
         "qwen3-coder-30b-instruct" = {
           name = "Qwen3 Coder (30B) - Instruct";
-          cmd = "${pkgs.reichard.llama-cpp}/bin/llama-server --port \${PORT} -m /mnt/ssd/Models/Qwen3-Coder-30B-A3B-Instruct-IQ4_XS.gguf --ctx-size 65536 --temp 0.7 --min-p 0.0 --top-p 0.8 --top-k 20 --repeat-penalty 1.05 --cache-type-k q4_0 --cache-type-v q4_0 --mlock";
+          cmd = "${pkgs.reichard.llama-cpp}/bin/llama-server --port \${PORT} -m /mnt/ssd/Models/Qwen3-Coder-30B-A3B-Instruct-IQ4_XS.gguf -c 65536 --temp 0.7 --min-p 0.0 --top-p 0.8 --top-k 20 --repeat-penalty 1.05 -ctk q4_0 -ctv q4_0 -np 2 -kvu";
         };
 
         # https://huggingface.co/unsloth/Qwen3-30B-A3B-Instruct-2507-GGUF/tree/main
         "qwen3-30b-2507-instruct" = {
           name = "Qwen3 2507 (30B) - Instruct";
-          cmd = "${pkgs.reichard.llama-cpp}/bin/llama-server --port \${PORT} -m /mnt/ssd/Models/Qwen3-30B-A3B-Instruct-2507-IQ4_XS.gguf --ctx-size 65536 --temp 0.7 --min-p 0.0 --top-p 0.8 --top-k 20 --repeat-penalty 1.05 --cache-type-k q4_0 --cache-type-v q4_0 --mlock";
+          cmd = "${pkgs.reichard.llama-cpp}/bin/llama-server --port \${PORT} -m /mnt/ssd/Models/Qwen3-30B-A3B-Instruct-2507-IQ4_XS.gguf -c 65536 --temp 0.7 --min-p 0.0 --top-p 0.8 --top-k 20 --repeat-penalty 1.05 -ctk q4_0 -ctv q4_0 -np 2 -kvu";
         };
 
         # https://huggingface.co/unsloth/Qwen3-30B-A3B-Thinking-2507-GGUF/tree/main
         "qwen3-30b-2507-thinking" = {
           name = "Qwen3 2507 (30B) - Thinking";
-          cmd = "${pkgs.reichard.llama-cpp}/bin/llama-server --port \${PORT} -m /mnt/ssd/Models/Qwen3-30B-A3B-Thinking-2507-IQ4_XS.gguf --ctx-size 65536 --temp 0.7 --min-p 0.0 --top-p 0.8 --top-k 20 --repeat-penalty 1.05 --cache-type-k q4_0 --cache-type-v q4_0 --mlock";
+          cmd = "${pkgs.reichard.llama-cpp}/bin/llama-server --port \${PORT} -m /mnt/ssd/Models/Qwen3-30B-A3B-Thinking-2507-IQ4_XS.gguf -c 65536 --temp 0.7 --min-p 0.0 --top-p 0.8 --top-k 20 --repeat-penalty 1.05 -ctk q4_0 -ctv q4_0 -np 2 -kvu";
         };
 
         # https://huggingface.co/unsloth/Qwen3-Next-80B-A3B-Instruct-GGUF/tree/main
         "qwen3-next-80b-instruct" = {
           name = "Qwen3 Next (80B) - Instruct";
-          cmd = "${pkgs.reichard.llama-cpp}/bin/llama-server --port \${PORT} -m /mnt/ssd/Models/Qwen3-Next-80B-A3B-Instruct-UD-Q4_K_XL.gguf --ctx-size 32768 --temp 0.7 --min-p 0.0 --top-p 0.8 --top-k 20 -sm none -ncmoe 39";
+          cmd = "${pkgs.reichard.llama-cpp}/bin/llama-server --port \${PORT} -m /mnt/ssd/Models/Qwen3-Next-80B-A3B-Instruct-UD-Q4_K_XL.gguf -c 32768 --temp 0.7 --min-p 0.0 --top-p 0.8 --top-k 20 -dev CUDA0 -ncmoe 39 --mlock";
+        };
+
+        # https://huggingface.co/unsloth/Devstral-Small-2-24B-Instruct-2512-GGUF/tree/main
+        "devstral-small-2-instruct" = {
+          name = "Devstral Small 2 (24B) - Instruct";
+          cmd = "${pkgs.reichard.llama-cpp}/bin/llama-server --port \${PORT} -m /mnt/ssd/Models/Devstral-Small-2-24B-Instruct-2512-IQ4_NL.gguf -fa 1 -c 65536 -ctk q4_0 -ctv q4_0";
         };
 
         # https://huggingface.co/unsloth/SmolLM3-3B-128K-GGUF/tree/main
         "smollm3-3b-instruct" = {
           name = "SmolLM3(3B) - Instruct";
-          cmd = "${pkgs.reichard.llama-cpp}/bin/llama-server --port \${PORT} -m /mnt/ssd/Models/SmolLM3-3B-128K-UD-Q4_K_XL.gguf --ctx-size 98304 --temp 0.6 --top-p 0.95 --reasoning-budget 0 -sm none";
+          cmd = "${pkgs.reichard.llama-cpp}/bin/llama-server --port \${PORT} -m /mnt/ssd/Models/SmolLM3-3B-128K-UD-Q4_K_XL.gguf -c 98304 --temp 0.6 --top-p 0.95 --reasoning-budget 0 -dev CUDA0";
         };
 
         # https://huggingface.co/unsloth/ERNIE-4.5-21B-A3B-PT-GGUF/tree/main
         "ernie4.5-21b-instruct" = {
           name = "ERNIE4.5 (21B) - Instruct";
-          cmd = "${pkgs.reichard.llama-cpp}/bin/llama-server --port \${PORT} -m /mnt/ssd/Models/ERNIE-4.5-21B-A3B-PT-UD-Q4_K_XL.gguf --ctx-size 98304 --temp 0.7 --min-p 0.0 --top-p 0.8 --top-k 20";
+          cmd = "${pkgs.reichard.llama-cpp}/bin/llama-server --port \${PORT} -m /mnt/ssd/Models/ERNIE-4.5-21B-A3B-PT-UD-Q4_K_XL.gguf -c 98304 --temp 0.7 --min-p 0.0 --top-p 0.8 --top-k 20";
         };
 
         # https://huggingface.co/unsloth/Qwen2.5-Coder-7B-Instruct-128K-GGUF/tree/main
         "qwen2.5-coder-7b-instruct" = {
           name = "Qwen2.5 Coder (7B) - Instruct";
-          cmd = "${pkgs.reichard.llama-cpp}/bin/llama-server -m /mnt/ssd/Models/Qwen2.5-Coder-7B-Instruct-Q8_0.gguf --fim-qwen-7b-default --ctx-size 131072 --port \${PORT}";
+          cmd = "${pkgs.reichard.llama-cpp}/bin/llama-server -m /mnt/ssd/Models/Qwen2.5-Coder-7B-Instruct-Q8_0.gguf --fim-qwen-7b-default -c 131072 --port \${PORT}";
         };
 
         # https://huggingface.co/unsloth/Qwen2.5-Coder-3B-Instruct-128K-GGUF/tree/main
         "qwen2.5-coder-3b-instruct" = {
           name = "Qwen2.5 Coder (3B) - Instruct";
-          cmd = "${pkgs.reichard.llama-cpp}/bin/llama-server -m /mnt/ssd/Models/Qwen2.5-Coder-3B-Instruct-Q4_K_M.gguf --fim-qwen-3b-default --ctx-size 20000 -ts 60,40 --port \${PORT}";
+          cmd = "${pkgs.reichard.llama-cpp}/bin/llama-server -m /mnt/ssd/Models/Qwen2.5-Coder-3B-Instruct-Q4_K_M.gguf --fim-qwen-3b-default -c 20000 -ts 60,40 --port \${PORT}";
         };
 
         # https://huggingface.co/unsloth/Qwen3-VL-8B-Instruct-GGUF/tree/main
         "qwen3-8b-vision" = {
           name = "Qwen3 Vision (8B) - Thinking";
-          cmd = "${pkgs.reichard.llama-cpp}/bin/llama-server --port \${PORT} -m /mnt/ssd/Models/Qwen3-VL-8B-Instruct-UD-Q4_K_XL.gguf --mmproj /mnt/ssd/Models/Qwen3-VL-8B-Instruct-UD-Q4_K_XL_mmproj-F16.gguf --ctx-size 131072 --temp 0.7 --min-p 0.0 --top-p 0.8 --top-k 20  --cache-type-k q4_0 --cache-type-v q4_0";
+          cmd = "${pkgs.reichard.llama-cpp}/bin/llama-server --port \${PORT} -m /mnt/ssd/Models/Qwen3-VL-8B-Instruct-UD-Q4_K_XL.gguf --mmproj /mnt/ssd/Models/Qwen3-VL-8B-Instruct-UD-Q4_K_XL_mmproj-F16.gguf -c 131072 --temp 0.7 --min-p 0.0 --top-p 0.8 --top-k 20 -ctk q4_0 -ctk q4_0";
         };
 
         # https://huggingface.co/mradermacher/OLMoE-1B-7B-0125-Instruct-GGUF/tree/main

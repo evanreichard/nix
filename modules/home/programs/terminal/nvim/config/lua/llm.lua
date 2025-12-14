@@ -1,6 +1,9 @@
 local llm_endpoint = "https://llm-api.va.reichard.io"
-local llm_assistant_model = "gpt-oss-20b-thinking"
-local llm_infill_model = "qwen2.5-coder-3b-instruct"
+-- local llm_assistant_model = "gpt-oss-20b-thinking"
+-- local llm_infill_model = "qwen2.5-coder-3b-instruct"
+
+local llm_assistant_model = "qwen3-30b-2507-instruct"
+local llm_infill_model = llm_assistant_model
 
 -- Default Llama - Toggle Llama & Copilot
 -- vim.g.copilot_filetypes = { ["*"] = false }

@@ -1,4 +1,5 @@
 { lib
+, pkgs
 , config
 , namespace
 , ...
@@ -18,6 +19,22 @@ in
       enableMcpIntegration = true;
       settings = {
         theme = "catppuccin";
+        permission = {
+          edit = "allow";
+          bash = "ask";
+          webfetch = "ask";
+          doom_loop = "ask";
+          external_directory = "ask";
+        };
+        lsp = {
+          nil = {
+            command = [
+              "${pkgs.nil}/bin/nil"
+              "--stdio"
+            ];
+            extensions = [ ".nix" ];
+          };
+        };
         provider = {
           "llama-swap" = {
             npm = "@ai-sdk/openai-compatible";

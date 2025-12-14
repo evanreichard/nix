@@ -22,13 +22,14 @@ in
       };
 
       terminal = {
-        opencode = enabled;
+        aws = enabled;
         btop = enabled;
+        claude-code = enabled;
         direnv = enabled;
         git = enabled;
         k9s = enabled;
         nvim = enabled;
-        aws = enabled;
+        opencode = enabled;
       };
     };
   };
@@ -43,7 +44,9 @@ in
     texliveSmall # Pandoc PDF Dep
     google-cloud-sdk
     tldr
-    claude-code
+
+    # AI Assistants
     reichard.qwen-code
+    codex
   ];
 }
