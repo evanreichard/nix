@@ -25,6 +25,13 @@ local function toggle_llm_fim_provider()
 end
 vim.keymap.set("n", "<leader>cf", toggle_llm_fim_provider, { desc = "Toggle FIM (Llama / Copilot)" })
 
+-- Copilot Accept Shortcut
+vim.keymap.set('i', '<C-J>', 'copilot#Accept("\\<CR>")', {
+	expr = true,
+	replace_keycodes = false
+})
+vim.g.copilot_no_tab_map = true
+
 -- Configure LLama LLM FIM
 vim.g.llama_config = {
 	endpoint = llm_endpoint .. "/infill",

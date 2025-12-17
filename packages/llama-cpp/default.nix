@@ -7,12 +7,12 @@
   vulkanSupport = true;
 }).overrideAttrs
   (oldAttrs: rec {
-    version = "7360";
+    version = "7426";
     src = pkgs.fetchFromGitHub {
       owner = "ggml-org";
       repo = "llama.cpp";
       tag = "b${version}";
-      hash = "sha256-576UL3aZ4AFvxCUP2U4W1gJuAjStRZ6y0uUy/hsdRW0=";
+      hash = "sha256-la+hA+Fw3xFjAyR4XgNmehghGS6zAKh9gHqJnlw2tMQ=";
       leaveDotGit = true;
       postFetch = ''
         git -C "$out" rev-parse --short HEAD > $out/COMMIT
@@ -24,7 +24,7 @@
     cmakeFlags = (oldAttrs.cmakeFlags or [ ]) ++ [
       "-DGGML_NATIVE=ON"
       "-DGGML_CUDA_ENABLE_UNIFIED_MEMORY=1"
-      "-DCMAKE_CUDA_ARCHITECTURES=61" # GTX 1070 / GTX 1080ti
+      "-DCMAKE_CUDA_ARCHITECTURES=61;86" # GTX 1070 / GTX 1080ti / RTX 3090
     ];
 
     # Disable Nix's march=native Stripping
