@@ -1,8 +1,9 @@
-{ pkgs
-, lib
-, config
-, namespace
-, ...
+{
+  pkgs,
+  lib,
+  config,
+  namespace,
+  ...
 }:
 let
   inherit (lib) mkIf;
@@ -39,26 +40,20 @@ in
         # -------------------
         # ----- Helpers -----
         # -------------------
-        aerial-nvim # Code Outline
-        codecompanion-nvim # CodeCompanion
         comment-nvim # Code Comments
         copilot-vim # GitHub Copilot
         diffview-nvim # Diff View
-        fidget-nvim # Notification Helper
         gitsigns-nvim # Git Blame
         leap-nvim # Quick Movement
         markdown-preview-nvim # Markdown Preview
-        neo-tree-nvim # File Explorer
         none-ls-nvim # Formatters
         numb-nvim # Peek / Jump to Lines
         nvim-autopairs # Automatically Close Pairs (),[],{}
         octo-nvim # Git Octo
         render-markdown-nvim # Markdown Renderer
-        telescope-fzf-native-nvim # Faster Telescope
+        snacks-nvim # OpenCode
+        snacks-nvim # Snacks
         telescope-nvim # Fuzzy Finder
-        telescope-ui-select-nvim # UI
-        telescope-undo-nvim # Undo Tree
-        toggleterm-nvim # Terminal Helper
         vim-nix # Nix Helpers
         which-key-nvim # Shortcut Helper
 
@@ -85,6 +80,22 @@ in
         nvim-dap-ui
 
         # --------------------
+        # ----- OPENCODE -----
+        # --------------------
+        (pkgs.vimUtils.buildVimPlugin {
+          pname = "opencode.nvim";
+          version = "2025-12-17";
+          src = pkgs.fetchFromGitHub {
+            owner = "NickvanDyke";
+            repo = "opencode.nvim";
+            rev = "39a246b597d6050ca319142b5af5a8b81c74e7d9";
+            hash = "sha256-h/Zttho/grrpmcklld15NNGf+3epqLg8RmmRW8eApSo=";
+          };
+          meta.homepage = "https://github.com/NickvanDyke/opencode.nvim/";
+          meta.hydraPlatforms = [ ];
+        })
+
+        # --------------------
         # -- NONE-LS EXTRAS --
         # --------------------
         (pkgs.vimUtils.buildVimPlugin {
@@ -98,22 +109,6 @@ in
           };
           doCheck = false;
           meta.homepage = "https://github.com/nvimtools/none-ls-extras.nvim/";
-        })
-
-        # -------------------
-        # ----- Silicon -----
-        # -------------------
-        (pkgs.vimUtils.buildVimPlugin {
-          pname = "silicon.lua";
-          version = "2025-10-28";
-          src = pkgs.fetchFromGitHub {
-            owner = "0oAstro";
-            repo = "silicon.lua";
-            rev = "54682647a7c1c773dc4c9ab2bc309114a3b9e96f";
-            sha256 = "sha256-lM7ALmYHGN5SKftfD7YBPh1gGKORbS6EMXS/ZQXDMSI=";
-          };
-          doCheck = false;
-          meta.homepage = "https://github.com/0oAstro/silicon.lua";
         })
 
         # -------------------
@@ -133,15 +128,7 @@ in
       ];
 
       extraPackages = with pkgs; [
-        # Toggle Term
-        bashInteractive
-
-        # Telescope Dependencies
-        fd
-        ripgrep
-        tree-sitter
-
-        # LSP Dependencies
+        # LSP
         eslint_d
         go
         golangci-lint
@@ -164,8 +151,9 @@ in
         sqlfluff
         stylua
 
-        # Silicon
-        silicon
+        # Tools
+        ripgrep
+        lazygit
       ];
 
       extraConfig = ":luafile ~/.config/nvim/lua/init.lua";
@@ -181,6 +169,7 @@ in
       # Generate Nix Vars
       "nvim/lua/nix-vars.lua".text = ''
         local nix_vars = {
+          bash = "${pkgs.bashInteractive}/bin/bash",
           clangd = "${pkgs.clang-tools}/bin/clangd",
           golintls = "${pkgs.golangci-lint-langserver}/bin/golangci-lint-langserver",
           gopls = "${pkgs.gopls}/bin/gopls",

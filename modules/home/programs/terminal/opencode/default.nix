@@ -61,7 +61,7 @@ in
           gopls = {
             type = "local";
             command = [
-              "gopls"
+              "${pkgs.gopls}/bin/gopls"
               "mcp"
             ];
             enabled = true;

@@ -38,14 +38,8 @@ in
   programs.jq = enabled;
   programs.pandoc = enabled;
   home.packages = with pkgs; [
-    android-tools
-    imagemagick
-    python312
-    texliveSmall # Pandoc PDF Dep
-    google-cloud-sdk
-    tldr
-
-    # AI Assistants
+    colima
+    docker
     reichard.qwen-code
     codex
   ];

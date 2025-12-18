@@ -21,14 +21,21 @@ require('render-markdown').setup({
 })
 
 ------------------------------------------------------
+---------------------- LSP Lines ---------------------
+------------------------------------------------------
+require("lsp_lines").setup()
+vim.diagnostic.config({
+	virtual_text = false,
+	virtual_lines = true,
+})
+
+------------------------------------------------------
 -------------------- Built-in LSP --------------------
 ------------------------------------------------------
 local nix_vars = require("nix-vars")
 
 local augroup = vim.api.nvim_create_augroup("LspFormatting", { clear = false })
 local on_attach = function(client, bufnr)
-	local bufopts = { noremap = true, silent = true, buffer = bufnr }
-
 	if client:supports_method("textDocument/formatting") then
 		vim.api.nvim_clear_autocmds({ group = augroup, buffer = bufnr })
 		vim.api.nvim_create_autocmd("BufWritePre", {
@@ -40,17 +47,25 @@ local on_attach = function(client, bufnr)
 		})
 	end
 
-	vim.keymap.set("n", "K", vim.lsp.buf.hover, bufopts)
-	vim.keymap.set("n", "<C-k>", vim.lsp.buf.signature_help, bufopts)
-	vim.keymap.set("n", "<leader>lD", vim.lsp.buf.declaration, bufopts)
-	vim.keymap.set("n", "<leader>ld", vim.lsp.buf.definition, bufopts)
-	vim.keymap.set("n", "<leader>li", vim.lsp.buf.implementation, bufopts)
-	vim.keymap.set("n", "<leader>ln", vim.lsp.buf.rename, bufopts)
-	vim.keymap.set("n", "<leader>lr", vim.lsp.buf.references, bufopts)
-	vim.keymap.set("n", "<leader>lt", vim.lsp.buf.type_definition, bufopts)
+	-- Create KeyMaps
+	local bufopts = { noremap = true, silent = true, buffer = bufnr }
+	vim.keymap.set("n", "K", vim.lsp.buf.hover, vim.tbl_extend("force", { desc = 'Hover documentation' }, bufopts))
+	vim.keymap.set("n", "<C-k>", vim.lsp.buf.signature_help,
+		vim.tbl_extend("force", { desc = "Show signature help" }, bufopts))
+	vim.keymap.set("n", "<leader>lD", vim.lsp.buf.declaration,
+		vim.tbl_extend("force", { desc = "Go to declaration" }, bufopts))
+	vim.keymap.set("n", "<leader>ld", vim.lsp.buf.definition,
+		vim.tbl_extend("force", { desc = "Go to definition" }, bufopts))
+	vim.keymap.set("n", "<leader>li", vim.lsp.buf.implementation,
+		vim.tbl_extend("force", { desc = "Go to implementation" }, bufopts))
+	vim.keymap.set("n", "<leader>ln", vim.lsp.buf.rename, vim.tbl_extend("force", { desc = "Rename symbol" }, bufopts))
+	vim.keymap.set("n", "<leader>lr", vim.lsp.buf.references,
+		vim.tbl_extend("force", { desc = "Show references" }, bufopts))
+	vim.keymap.set("n", "<leader>lt", vim.lsp.buf.type_definition,
+		vim.tbl_extend("force", { desc = "Go to type definition" }, bufopts))
 	vim.keymap.set("n", "<leader>lf", function()
 		vim.lsp.buf.format({ async = true, timeout_ms = 2000 })
-	end, bufopts)
+	end, vim.tbl_extend("force", { desc = "Format file" }, bufopts))
 end
 
 local on_attach_no_formatting = function(client, bufnr)
