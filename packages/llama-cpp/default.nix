@@ -7,12 +7,12 @@
   vulkanSupport = true;
 }).overrideAttrs
   (oldAttrs: rec {
-    version = "7426";
+    version = "7486";
     src = pkgs.fetchFromGitHub {
       owner = "ggml-org";
       repo = "llama.cpp";
       tag = "b${version}";
-      hash = "sha256-la+hA+Fw3xFjAyR4XgNmehghGS6zAKh9gHqJnlw2tMQ=";
+      hash = "sha256-I9wPNI0yn4I0zHge1Y7q+RYqYvHSyJWKAxY3pHbCTuY=";
       leaveDotGit = true;
       postFetch = ''
         git -C "$out" rev-parse --short HEAD > $out/COMMIT

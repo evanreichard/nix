@@ -16,6 +16,7 @@ in
   config = mkIf cfg.enable {
     programs.opencode = {
       enable = true;
+      package = pkgs.reichard.opencode;
       enableMcpIntegration = true;
       settings = {
         theme = "catppuccin";
@@ -42,11 +43,17 @@ in
               baseURL = "https://llm-api.va.reichard.io/v1";
             };
             models = {
-              "gpt-oss-20b-thinking" = {
+              gpt-oss-20b-thinking = {
                 name = "GPT OSS (20B)";
+              };
+              devstral-small-2-instruct = {
+                name = "Devstral Small 2 (24B)";
               };
               qwen3-coder-30b-instruct = {
                 name = "Qwen3 Coder (30B)";
+              };
+              qwen3-next-80b-instruct = {
+                name = "Qwen3 Next (80B) - Instruct";
               };
               qwen3-30b-2507-thinking = {
                 name = "Qwen3 2507 (30B) Thinking";
