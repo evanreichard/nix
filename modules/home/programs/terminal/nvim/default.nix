@@ -1,9 +1,8 @@
-{
-  pkgs,
-  lib,
-  config,
-  namespace,
-  ...
+{ pkgs
+, lib
+, config
+, namespace
+, ...
 }:
 let
   inherit (lib) mkIf;
@@ -28,9 +27,9 @@ in
         # ------------------
         cmp-buffer # Buffer Word Completion
         cmp-cmdline # Command Line Completion
-        cmp_luasnip # Snippets Completion
         cmp-nvim-lsp # Main LSP
         cmp-path # Path Completion
+        cmp_luasnip # Snippets Completion
         friendly-snippets # Snippets
         lsp_lines-nvim # Inline Diagnostics
         luasnip # Snippets
@@ -43,6 +42,7 @@ in
         comment-nvim # Code Comments
         copilot-vim # GitHub Copilot
         diffview-nvim # Diff View
+        fidget-nvim # Notification Helper
         gitsigns-nvim # Git Blame
         leap-nvim # Quick Movement
         markdown-preview-nvim # Markdown Preview
@@ -51,7 +51,6 @@ in
         nvim-autopairs # Automatically Close Pairs (),[],{}
         octo-nvim # Git Octo
         render-markdown-nvim # Markdown Renderer
-        snacks-nvim # OpenCode
         snacks-nvim # Snacks
         telescope-nvim # Fuzzy Finder
         vim-nix # Nix Helpers
@@ -80,18 +79,19 @@ in
         nvim-dap-ui
 
         # --------------------
-        # ----- OPENCODE -----
+        # -- CODE COMPANION --
         # --------------------
         (pkgs.vimUtils.buildVimPlugin {
-          pname = "opencode.nvim";
-          version = "2025-12-17";
+          pname = "codecompanion.nvim";
+          version = "2025-12-20";
           src = pkgs.fetchFromGitHub {
-            owner = "NickvanDyke";
-            repo = "opencode.nvim";
-            rev = "39a246b597d6050ca319142b5af5a8b81c74e7d9";
-            hash = "sha256-h/Zttho/grrpmcklld15NNGf+3epqLg8RmmRW8eApSo=";
+            owner = "olimorris";
+            repo = "codecompanion.nvim";
+            rev = "a226ca071ebc1d8b5ae1f70800fa9cf4a06a2101";
+            sha256 = "sha256-F1nI7q98SPpDjlwPvGy/qFuHvlT1FrbQPcjWrBwLaHU=";
           };
-          meta.homepage = "https://github.com/NickvanDyke/opencode.nvim/";
+          doCheck = false;
+          meta.homepage = "https://github.com/olimorris/codecompanion.nvim/";
           meta.hydraPlatforms = [ ];
         })
 

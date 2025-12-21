@@ -1,10 +1,6 @@
 local llm_endpoint = "https://llm-api.va.reichard.io"
--- local llm_assistant_model = "gpt-oss-20b-thinking"
--- local llm_infill_model = "qwen2.5-coder-3b-instruct"
-
--- Available models: qwen3-30b-2507-instruct, qwen2.5-coder-3b-instruct
-local llm_assistant_model = "qwen3-30b-2507-instruct"
-local llm_infill_model = llm_assistant_model
+local llm_assistant_model = "devstral-small-2-instruct"
+local llm_infill_model = "qwen2.5-coder-3b-instruct"
 
 -- Default Llama - Toggle Llama & Copilot
 -- vim.g.copilot_filetypes = { ["*"] = false }
@@ -25,23 +21,6 @@ local function toggle_llm_fim_provider()
 	end
 end
 
--- OpenCode Configuration
-vim.g.opencode_opts = {
-	provider = {
-		enabled = "snacks",
-		snacks = {
-			win = {
-				-- position = "float",
-				enter = true,
-				width = 0.5,
-				-- height = 0.75,
-			},
-			start_insert = true,
-			auto_insert = true,
-		}
-	}
-}
-
 -- Copilot Configuration
 vim.g.copilot_no_tab_map = true
 
@@ -54,13 +33,54 @@ vim.g.llama_config = {
 	enable_at_startup = false,
 }
 
--- Create KeyMaps
+-- Configure Code Companion
+require("plugins.codecompanion.fidget-spinner"):init()
+local codecompanion = require("codecompanion")
+codecompanion.setup({
+	display = {
+		chat = {
+			show_token_count = true,
+			window = {
+				layout = "float",
+				width = 0.6,
+			}
+		}
+	},
+	adapters = {
+		http = {
+			opts = { show_defaults = false, },
+			copilot = "copilot",
+			llamaswap = function()
+				return require("codecompanion.adapters").extend("openai_compatible", {
+					formatted_name = "LlamaSwap",
+					name = "llamaswap",
+					schema = { model = { default = llm_assistant_model } },
+					env = { url = llm_endpoint },
+				})
+			end,
+		},
+		acp = {
+			opts = { show_defaults = false },
+			opencode = "opencode",
+		}
+	},
+	strategies = {
+		chat = { adapter = "opencode" },
+		inline = { adapter = "llamaswap" },
+		cmd = { adapter = "llamaswap" },
+	},
+	chat = { dispay = "telescope" },
+	memory = { opts = { chat = { enabled = true } } },
+})
+
+-- Create KeyMaps for Code Companion
+vim.keymap.set("n", "<leader>aa", codecompanion.actions, { desc = "Actions" })
 vim.keymap.set("n", "<leader>af", toggle_llm_fim_provider, { desc = "Toggle FIM (Llama / Copilot)" })
-vim.keymap.set({ "n", "x" }, "<leader>ai", function() require("opencode").ask("@this: ", { submit = true }) end,
-	{ desc = "Ask OpenCode" })
-vim.keymap.set({ "n", "x" }, "<leader>aa", function() require("opencode").select() end,
-	{ desc = "Execute OpenCode Action" })
-vim.keymap.set({ "n", "t" }, "<leader>at", function() require("opencode").toggle() end, { desc = "Toggle OpenCode" })
+vim.keymap.set("n", "<leader>ao", function() require("snacks.terminal").toggle("opencode") end,
+	{ desc = "Toggle OpenCode" })
+vim.keymap.set("v", "<leader>ai", ":CodeCompanion<cr>", { desc = "Inline Prompt" })
+vim.keymap.set({ "n", "v" }, "<leader>an", codecompanion.chat, { desc = "New Chat" })
+vim.keymap.set({ "n", "t" }, "<leader>at", codecompanion.toggle, { desc = "Toggle Chat" })
 vim.keymap.set('i', '<C-J>', 'copilot#Accept("\\<CR>")', {
 	expr = true,
 	replace_keycodes = false

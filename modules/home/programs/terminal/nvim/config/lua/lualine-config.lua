@@ -52,6 +52,6 @@ require("lualine").setup({
 	options = { theme = "catppuccin" },
 	sections = {
 		lualine_c = { { pr_status } },
-		lualine_z = { require("opencode").statusline }
+		-- lualine_z = { require("opencode").statusline }
 	},
 })

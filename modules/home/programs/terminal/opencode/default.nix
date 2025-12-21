@@ -20,6 +20,7 @@ in
       enableMcpIntegration = true;
       settings = {
         theme = "catppuccin";
+        model = "llama-swap/devstral-small-2-instruct";
         permission = {
           edit = "allow";
           bash = "ask";
