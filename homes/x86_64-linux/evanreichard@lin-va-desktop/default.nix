@@ -23,6 +23,7 @@ in
       terminal = {
         bash = enabled;
         btop = enabled;
+        direnv = enabled;
         tmux = enabled;
       };
     };
