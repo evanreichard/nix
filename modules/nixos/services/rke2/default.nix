@@ -1,4 +1,9 @@
-{ config, pkgs, lib, namespace, ... }:
+{ config
+, pkgs
+, lib
+, namespace
+, ...
+}:
 let
   inherit (lib) types mkIf;
   inherit (lib.${namespace}) mkOpt mkBoolOpt;
@@ -13,6 +18,12 @@ in
   };
 
   config = mkIf cfg.enable {
+    boot.kernel.sysctl = {
+      "fs.inotify.max_user_watches" = 1048576;
+      "fs.inotify.max_user_instances" = 8192;
+      "fs.file-max" = 2097152;
+    };
+
     services.rke2 = {
       enable = true;
       disable = cfg.disable;
