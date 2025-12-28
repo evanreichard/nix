@@ -115,7 +115,22 @@ in
           cmd = ''
             ${pkgs.reichard.llama-cpp}/bin/llama-server \
               --port ''${PORT} \
-              -m /mnt/ssd/Models/GPT-OSS/gpt-oss-20b-heretic-v2.i1-MXFP4_MOE.gguf \
+              -m /mnt/ssd/Models/GPT-OSS/gpt-oss-20b-F16.gguf \
+              -c 131072 \
+              --temp 1.0 \
+              --top-p 1.0 \
+              --top-k 40 \
+              -dev CUDA0
+          '';
+        };
+
+        # https://huggingface.co/mradermacher/GPT-OSS-Cybersecurity-20B-Merged-i1-GGUF/tree/main
+        "gpt-oss-csec-20b-thinking" = {
+          name = "GPT OSS CSEC (20B) - Thinking";
+          cmd = ''
+            ${pkgs.reichard.llama-cpp}/bin/llama-server \
+              --port ''${PORT} \
+              -m /mnt/ssd/Models/GPT-OSS/GPT-OSS-Cybersecurity-20B-Merged.i1-MXFP4_MOE.gguf \
               -c 131072 \
               --temp 1.0 \
               --top-p 1.0 \
@@ -141,23 +156,6 @@ in
               -ctv q8_0 \
               -fit off
           '';
-
-          # cmd = ''
-          #   ${pkgs.reichard.llama-cpp}/bin/llama-server \
-          #     --port ''${PORT} \
-          #     -m /mnt/ssd/Models/Qwen3/Qwen3-Next-80B-A3B-Instruct-UD-Q4_K_XL.gguf \
-          #     -c 131072 \
-          #     --temp 0.7 \
-          #     --min-p 0.0 \
-          #     --top-p 0.8 \
-          #     --top-k 20 \
-          #     --repeat-penalty 1.05 \
-          #     -ctk q8_0 \
-          #     -ctv q8_0 \
-          #     -fit off \
-          #     -ncmoe 15 \
-          #     -ts 77,23
-          # '';
         };
 
         # https://huggingface.co/unsloth/Qwen3-30B-A3B-Instruct-2507-GGUF/tree/main
@@ -237,7 +235,7 @@ in
           cmd = ''
             ${pkgs.reichard.llama-cpp}/bin/llama-server \
               --port ''${PORT} \
-              -m /mnt/ssd/Models/Qwen3-VL-8B-Instruct-UD-Q4_K_XL.gguf \
+              -m /mnt/ssd/Models/Qwen3/Qwen3-VL-8B-Instruct-UD-Q4_K_XL.gguf \
               --mmproj /mnt/ssd/Models/Qwen3/Qwen3-VL-8B-Instruct-UD-Q4_K_XL_mmproj-F16.gguf \
               -c 65536 \
               --temp 0.7 \
@@ -246,6 +244,7 @@ in
               --top-k 20 \
               -ctk q8_0 \
               -ctv q8_0 \
+              -fit off \
               -dev CUDA1
           '';
         };
@@ -291,15 +290,41 @@ in
           '';
         };
       };
+
       groups = {
-        coding = {
-          swap = false;
+        shared = {
+          swap = true;
           exclusive = true;
           members = [
-            "devstral-small-2-instruct" # Primary
-            "qwen2.5-coder-3b-instruct" # Infill
+            "nemotron-3-nano-30b-thinking"
+            "qwen3-30b-2507-instruct"
+            "qwen3-30b-2507-thinking"
+            "qwen3-coder-30b-instruct"
+            "qwen3-next-80b-instruct"
           ];
         };
+
+        cuda0 = {
+          swap = true;
+          exclusive = false;
+          members = [
+            "devstral-small-2-instruct"
+            "gpt-oss-20b-thinking"
+            "gpt-oss-csec-20b-thinking"
+          ];
+        };
+
+        cuda1 = {
+          swap = true;
+          exclusive = false;
+          members = [
+            "qwen2.5-coder-3b-instruct"
+            "qwen2.5-coder-7b-instruct"
+            "qwen3-4b-2507-instruct"
+            "qwen3-8b-vision"
+          ];
+        };
+
       };
     };
   };
