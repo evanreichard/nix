@@ -7,12 +7,12 @@
   vulkanSupport = true;
 }).overrideAttrs
   (oldAttrs: rec {
-    version = "7501";
+    version = "7562";
     src = pkgs.fetchFromGitHub {
       owner = "ggml-org";
       repo = "llama.cpp";
       tag = "b${version}";
-      hash = "sha256-+bHlQvRUKSoDcULOWqxXWHuYupDmJQuQPg8A7iwsmMY=";
+      hash = "sha256-yuTPj41B3YitRPrD6yV25ilrIxVKebPGSqdJMpVhUDg=";
       leaveDotGit = true;
       postFetch = ''
         git -C "$out" rev-parse --short HEAD > $out/COMMIT
@@ -22,7 +22,6 @@
 
     # Auto CPU Optimizations
     cmakeFlags = (oldAttrs.cmakeFlags or [ ]) ++ [
-      "-DGGML_NATIVE=ON"
       "-DGGML_CUDA_ENABLE_UNIFIED_MEMORY=1"
       "-DCMAKE_CUDA_ARCHITECTURES=61;86" # GTX 1070 / GTX 1080ti / RTX 3090
     ];
