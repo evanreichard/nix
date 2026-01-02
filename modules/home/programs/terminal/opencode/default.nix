@@ -28,15 +28,6 @@ in
           doom_loop = "ask";
           external_directory = "ask";
         };
-        lsp = {
-          nil = {
-            command = [
-              "${pkgs.nil}/bin/nil"
-              "--stdio"
-            ];
-            extensions = [ ".nix" ];
-          };
-        };
         provider = {
           "llama-swap" = {
             npm = "@ai-sdk/openai-compatible";
@@ -44,6 +35,9 @@ in
               baseURL = "https://llm-api.va.reichard.io/v1";
             };
             models = {
+              nemotron-3-nano-30b-thinking = {
+                name = "Nemotron 3 Nano (30B) - Thinking";
+              };
               gpt-oss-20b-thinking = {
                 name = "GPT OSS (20B)";
               };
@@ -61,6 +55,9 @@ in
               };
               qwen3-30b-2507-instruct = {
                 name = "Qwen3 2507 (30B) Instruct";
+              };
+              qwen3-4b-2507-instruct = {
+                name = "Qwen3 2507 (4B) - Instruct";
               };
             };
           };

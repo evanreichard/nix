@@ -5,6 +5,12 @@
 }:
 let
   inherit (lib.${namespace}) enabled;
+
+  llama-swap = pkgs.reichard.llama-swap;
+  llama-cpp = pkgs.reichard.llama-cpp;
+  stable-diffusion-cpp = pkgs.reichard.stable-diffusion-cpp.override {
+    cudaSupport = true;
+  };
 in
 {
   system.stateVersion = "25.11";
@@ -88,14 +94,14 @@ in
   services.llama-swap = {
     enable = true;
     openFirewall = true;
-    package = pkgs.reichard.llama-swap;
+    package = llama-swap;
     settings = {
       models = {
         # https://huggingface.co/unsloth/Devstral-Small-2-24B-Instruct-2512-GGUF/tree/main
         "devstral-small-2-instruct" = {
           name = "Devstral Small 2 (24B) - Instruct";
           cmd = ''
-            ${pkgs.reichard.llama-cpp}/bin/llama-server \
+            ${llama-cpp}/bin/llama-server \
               --port ''${PORT} \
               -m /mnt/ssd/Models/Devstral/Devstral-Small-2-24B-Instruct-2512-UD-Q4_K_XL.gguf \
               --chat-template-file /mnt/ssd/Models/Devstral/Devstral-Small-2-24B-Instruct-2512-UD-Q4_K_XL_template.jinja \
@@ -113,7 +119,7 @@ in
         "gpt-oss-20b-thinking" = {
           name = "GPT OSS (20B) - Thinking";
           cmd = ''
-            ${pkgs.reichard.llama-cpp}/bin/llama-server \
+            ${llama-cpp}/bin/llama-server \
               --port ''${PORT} \
               -m /mnt/ssd/Models/GPT-OSS/gpt-oss-20b-F16.gguf \
               -c 131072 \
@@ -128,7 +134,7 @@ in
         "gpt-oss-csec-20b-thinking" = {
           name = "GPT OSS CSEC (20B) - Thinking";
           cmd = ''
-            ${pkgs.reichard.llama-cpp}/bin/llama-server \
+            ${llama-cpp}/bin/llama-server \
               --port ''${PORT} \
               -m /mnt/ssd/Models/GPT-OSS/GPT-OSS-Cybersecurity-20B-Merged.i1-MXFP4_MOE.gguf \
               -c 131072 \
@@ -143,7 +149,7 @@ in
         "qwen3-next-80b-instruct" = {
           name = "Qwen3 Next (80B) - Instruct";
           cmd = ''
-            ${pkgs.reichard.llama-cpp}/bin/llama-server \
+            ${llama-cpp}/bin/llama-server \
               --port ''${PORT} \
               -m /mnt/ssd/Models/Qwen3/Qwen3-Next-80B-A3B-Instruct-UD-Q2_K_XL.gguf \
               -c 262144 \
@@ -162,7 +168,7 @@ in
         "qwen3-30b-2507-instruct" = {
           name = "Qwen3 2507 (30B) - Instruct";
           cmd = ''
-            ${pkgs.reichard.llama-cpp}/bin/llama-server \
+            ${llama-cpp}/bin/llama-server \
               --port ''${PORT} \
               -m /mnt/ssd/Models/Qwen3/Qwen3-30B-A3B-Instruct-2507-Q4_K_M.gguf \
               -c 262144 \
@@ -181,10 +187,10 @@ in
         "qwen3-coder-30b-instruct" = {
           name = "Qwen3 Coder (30B) - Instruct";
           cmd = ''
-            ${pkgs.reichard.llama-cpp}/bin/llama-server \
+            ${llama-cpp}/bin/llama-server \
               --port ''${PORT} \
-              -m /mnt/ssd/Models/Qwen3/Qwen3-Coder-30B-A3B-Instruct-Q4_K_M.gguf \
-              -c 262144 \
+              -m /mnt/ssd/Models/Qwen3/Qwen3-Coder-30B-A3B-Instruct-UD-Q6_K_XL.gguf \
+              -c 131072 \
               --temp 0.7 \
               --min-p 0.0 \
               --top-p 0.8 \
@@ -200,7 +206,7 @@ in
         "qwen3-30b-2507-thinking" = {
           name = "Qwen3 2507 (30B) - Thinking";
           cmd = ''
-            ${pkgs.reichard.llama-cpp}/bin/llama-server \
+            ${llama-cpp}/bin/llama-server \
               --port ''${PORT} \
               -m /mnt/ssd/Models/Qwen3/Qwen3-30B-A3B-Thinking-2507-UD-Q4_K_XL.gguf \
               -c 262144 \
@@ -219,7 +225,7 @@ in
         "nemotron-3-nano-30b-thinking" = {
           name = "Nemotron 3 Nano (30B) - Thinking";
           cmd = ''
-            ${pkgs.reichard.llama-cpp}/bin/llama-server \
+            ${llama-cpp}/bin/llama-server \
               --port ''${PORT} \
               -m /mnt/ssd/Models/Nemotron/Nemotron-3-Nano-30B-A3B-UD-Q4_K_XL.gguf \
               -c 1048576 \
@@ -233,7 +239,7 @@ in
         "qwen3-8b-vision" = {
           name = "Qwen3 Vision (8B) - Thinking";
           cmd = ''
-            ${pkgs.reichard.llama-cpp}/bin/llama-server \
+            ${llama-cpp}/bin/llama-server \
               --port ''${PORT} \
               -m /mnt/ssd/Models/Qwen3/Qwen3-VL-8B-Instruct-UD-Q4_K_XL.gguf \
               --mmproj /mnt/ssd/Models/Qwen3/Qwen3-VL-8B-Instruct-UD-Q4_K_XL_mmproj-F16.gguf \
@@ -253,11 +259,12 @@ in
         "qwen2.5-coder-7b-instruct" = {
           name = "Qwen2.5 Coder (7B) - Instruct";
           cmd = ''
-            ${pkgs.reichard.llama-cpp}/bin/llama-server \
+            ${llama-cpp}/bin/llama-server \
               -m /mnt/ssd/Models/Qwen2.5/Qwen2.5-Coder-7B-Instruct-Q8_0.gguf \
               --fim-qwen-7b-default \
               -c 131072 \
               --port ''${PORT} \
+              -fit off \
               -dev CUDA1
           '';
         };
@@ -266,7 +273,7 @@ in
         "qwen2.5-coder-3b-instruct" = {
           name = "Qwen2.5 Coder (3B) - Instruct";
           cmd = ''
-            ${pkgs.reichard.llama-cpp}/bin/llama-server \
+            ${llama-cpp}/bin/llama-server \
               -m /mnt/ssd/Models/Qwen2.5/Qwen2.5-Coder-3B-Instruct-Q8_0.gguf \
               --fim-qwen-3b-default \
               --port ''${PORT} \
@@ -279,7 +286,7 @@ in
         "qwen3-4b-2507-instruct" = {
           name = "Qwen3 2507 (4B) - Instruct";
           cmd = ''
-            ${pkgs.reichard.llama-cpp}/bin/llama-server \
+            ${llama-cpp}/bin/llama-server \
               --port ''${PORT} \
               -m /mnt/ssd/Models/Qwen3/Qwen3-4B-Instruct-2507-Q4_K_M.gguf \
               -c 98304 \
@@ -287,6 +294,40 @@ in
               -ctk q8_0 \
               -ctv q8_0 \
               -dev CUDA1
+          '';
+        };
+
+        "z-image-turbo" = {
+          name = "Z-Image-Turbo";
+          checkEndpoint = "/";
+          cmd = ''
+            ${stable-diffusion-cpp}/bin/sd-server \
+              --listen-port ''${PORT} \
+              --diffusion-fa \
+              --diffusion-model /mnt/ssd/StableDiffusion/ZImageTurbo/z-image-turbo-Q8_0.gguf \
+              --vae /mnt/ssd/StableDiffusion/ZImageTurbo/ae.safetensors \
+              --llm /mnt/ssd/Models/Qwen3/Qwen3-4B-Instruct-2507-Q4_K_M.gguf \
+              --cfg-scale 1.0 \
+              --steps 9 \
+              --rng cuda
+          '';
+        };
+
+        "qwen-image-edit" = {
+          name = "Qwen Image Edit";
+          checkEndpoint = "/";
+          cmd = ''
+            ${stable-diffusion-cpp}/bin/sd-server \
+              --listen-port ''${PORT} \
+              --diffusion-fa \
+              --diffusion-model /mnt/ssd/StableDiffusion/QwenImageEdit/Qwen-Rapid-v18_Q5_K.gguf \
+              --vae /mnt/ssd/StableDiffusion/QwenImageEdit/qwen_image_vae.safetensors \
+              --llm /mnt/ssd/Models/Qwen2.5/Qwen2.5-VL-7B-Instruct.Q4_K_M.gguf \
+              --cfg-scale 2.5 \
+              --sampling-method euler \
+              --flow-shift 3 \
+              --steps 9 \
+              --rng cuda
           '';
         };
       };
@@ -335,6 +376,9 @@ in
     git
     tmux
     vim
-    reichard.llama-cpp
+
+    # Local Packages
+    llama-cpp
+    stable-diffusion-cpp
   ];
 }
