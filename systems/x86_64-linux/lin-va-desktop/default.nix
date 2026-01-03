@@ -112,6 +112,7 @@ in
               -fit off \
               -dev CUDA0
           '';
+          env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
         };
 
         # https://huggingface.co/mradermacher/gpt-oss-20b-heretic-v2-i1-GGUF/tree/main
@@ -128,6 +129,7 @@ in
               --top-k 40 \
               -dev CUDA0
           '';
+          env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
         };
 
         # https://huggingface.co/mradermacher/GPT-OSS-Cybersecurity-20B-Merged-i1-GGUF/tree/main
@@ -143,7 +145,11 @@ in
               --top-k 40 \
               -dev CUDA0
           '';
+          env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
         };
+
+        # https://huggingface.co/shb777/Llama-3.3-8B-Instruct-GGUF/tree/main
+        # llama-server --host 0.0.0.0 --port 8081 -m /mnt/ssd/Models/Llama/llama-3.3-8b-instruct-q6_k.gguf -c 131072 -dev CUDA0 -fit off
 
         # https://huggingface.co/unsloth/Qwen3-Next-80B-A3B-Instruct-GGUF/tree/main
         "qwen3-next-80b-instruct" = {
@@ -162,6 +168,7 @@ in
               -ctv q8_0 \
               -fit off
           '';
+          env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
         };
 
         # https://huggingface.co/unsloth/Qwen3-30B-A3B-Instruct-2507-GGUF/tree/main
@@ -181,6 +188,7 @@ in
               -ctv q8_0 \
               -ts 70,30
           '';
+          env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
         };
 
         # https://huggingface.co/unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF/tree/main
@@ -200,6 +208,7 @@ in
               -ctv q8_0 \
               -ts 70,30
           '';
+          env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
         };
 
         # https://huggingface.co/unsloth/Qwen3-30B-A3B-Thinking-2507-GGUF/tree/main
@@ -219,6 +228,7 @@ in
               -ctv q8_0 \
               -ts 70,30
           '';
+          env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
         };
 
         # https://huggingface.co/unsloth/Nemotron-3-Nano-30B-A3B-GGUF/tree/main
@@ -233,6 +243,7 @@ in
               --top-p 0.95 \
               -fit off
           '';
+          env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
         };
 
         # https://huggingface.co/unsloth/Qwen3-VL-8B-Instruct-GGUF/tree/main
@@ -253,6 +264,7 @@ in
               -fit off \
               -dev CUDA1
           '';
+          env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
         };
 
         # https://huggingface.co/unsloth/Qwen2.5-Coder-7B-Instruct-128K-GGUF/tree/main
@@ -267,6 +279,7 @@ in
               -fit off \
               -dev CUDA1
           '';
+          env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
         };
 
         # https://huggingface.co/unsloth/Qwen2.5-Coder-3B-Instruct-128K-GGUF/tree/main
@@ -280,6 +293,7 @@ in
               -fit off \
               -dev CUDA1
           '';
+          env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
         };
 
         # https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF/tree/main
@@ -295,6 +309,7 @@ in
               -ctv q8_0 \
               -dev CUDA1
           '';
+          env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
         };
 
         "z-image-turbo" = {
@@ -311,6 +326,7 @@ in
               --steps 9 \
               --rng cuda
           '';
+          env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
         };
 
         "qwen-image-edit" = {
@@ -329,13 +345,14 @@ in
               --steps 9 \
               --rng cuda
           '';
+          env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
         };
       };
 
       groups = {
         shared = {
           swap = true;
-          exclusive = true;
+          exclusive = false;
           members = [
             "nemotron-3-nano-30b-thinking"
             "qwen3-30b-2507-instruct"

@@ -62,14 +62,15 @@ in
             };
           };
         };
-        mcp = {
-          gopls = {
-            type = "local";
+        lsp = {
+          starlark = {
             command = [
-              "${pkgs.gopls}/bin/gopls"
-              "mcp"
+              "${pkgs.pyright}/bin/pyright-langserver"
+              "--stdio"
             ];
-            enabled = true;
+            extensions = [
+              ".star"
+            ];
           };
         };
       };
