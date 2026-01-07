@@ -1,4 +1,9 @@
-{ config, lib, pkgs, namespace, ... }:
+{ config
+, lib
+, pkgs
+, namespace
+, ...
+}:
 let
   inherit (lib) mkIf types;
   inherit (lib.${namespace}) mkOpt;
@@ -17,8 +22,7 @@ in
         sddm = {
           inherit (cfg) enable;
           package = pkgs.kdePackages.sddm;
-          #theme = "catppuccin-mocha"; # https://github.com/nixos/nixpkgs/issues/434963
-          theme = "breeze";
+          theme = "catppuccin-mocha-mauve";
           wayland.enable = true;
         };
       };
