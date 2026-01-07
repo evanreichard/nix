@@ -1,0 +1,13 @@
+diff --git i/examples/server/main.cpp w/examples/server/main.cpp
+index 9fa8804..b15daca 100644
+--- i/examples/server/main.cpp
++++ w/examples/server/main.cpp
+@@ -537,7 +537,7 @@ int main(int argc, const char** argv) {
+             }
+ 
+             std::vector<uint8_t> mask_bytes;
+-            if (req.form.has_field("mask")) {
++            if (req.form.has_file("mask")) {
+                 auto file = req.form.get_file("mask");
+                 mask_bytes.assign(file.content.begin(), file.content.end());
+             }
