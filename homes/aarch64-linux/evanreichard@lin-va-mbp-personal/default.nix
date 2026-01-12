@@ -21,11 +21,7 @@ in
       ssh-agent = enabled;
       fusuma = enabled;
       swww = enabled;
-      sops = {
-        enable = true;
-        defaultSopsFile = lib.snowfall.fs.get-file "secrets/default.yaml";
-        sshKeyPaths = [ "${config.home.homeDirectory}/.ssh/id_ed25519" ];
-      };
+      sops = enabled;
     };
 
     programs = {

@@ -13,12 +13,12 @@
 }:
 let
   pname = "opencode";
-  version = "1.1.4";
+  version = "1.1.12";
   src = fetchFromGitHub {
     owner = "anomalyco";
     repo = "opencode";
     tag = "v${version}";
-    hash = "sha256-i9IO9FSZ2Mw0tPqFxfQfSbejx04J1eJ0IYy5fa77O2Y=";
+    hash = "sha256-k6wRBtWFwyLWJ6R0el3dY/nBlg2t+XkTpsuEseLXp+E=";
   };
 
   node_modules = stdenvNoCC.mkDerivation {
@@ -75,7 +75,7 @@ let
     # NOTE: Required else we get errors that our fixed-output derivation references store paths
     dontFixup = true;
 
-    outputHash = "sha256-tea/pSuUOELsSSMdwi0mmG5GsFZpqR5MlyQvVUno7dM=";
+    outputHash = "sha256-vRIWQt02VljcoYG3mwJy8uCihSTB/OLypyw+vt8LuL8=";
     outputHashAlgo = "sha256";
     outputHashMode = "recursive";
   };
@@ -95,8 +95,8 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   ];
 
   patches = [
-    # NOTE: Relax Bun version check to be a warning instead of an error
-    ./relax-bun-version-check.patch
+    ./relax-bun-version-check.patch # NOTE: Relax Bun version check to be a warning instead of an error
+    ./root_fix.patch # https://github.com/anomalyco/opencode/pull/7691
   ];
 
   configurePhase = ''

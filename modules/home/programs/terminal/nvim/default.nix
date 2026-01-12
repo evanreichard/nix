@@ -1,8 +1,9 @@
-{ pkgs
-, lib
-, config
-, namespace
-, ...
+{
+  pkgs,
+  lib,
+  config,
+  namespace,
+  ...
 }:
 let
   inherit (lib) mkIf;
@@ -178,6 +179,7 @@ in
           sveltels = "${pkgs.nodePackages.svelte-language-server}/bin/svelteserver",
           tsls = "${pkgs.nodePackages.typescript-language-server}/bin/typescript-language-server",
           vscls = "${pkgs.nodePackages.vscode-langservers-extracted}",
+          sqls = "${pkgs.sqls}/bin/sqls",
         }
         return nix_vars
       '';

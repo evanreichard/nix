@@ -6,7 +6,6 @@
 let
   inherit (lib.${namespace}) enabled;
 
-  llama-swap = pkgs.reichard.llama-swap;
   llama-cpp = pkgs.reichard.llama-cpp;
   stable-diffusion-cpp = pkgs.reichard.stable-diffusion-cpp.override {
     cudaSupport = true;
@@ -15,7 +14,10 @@ in
 {
   system.stateVersion = "25.11";
   time.timeZone = "America/New_York";
+  boot.supportedFilesystems = [ "nfs" ];
+  nixpkgs.config.allowUnfree = true;
   hardware.nvidia-container-toolkit.enable = true;
+
   security.pam.loginLimits = [
     {
       domain = "*";
@@ -30,8 +32,6 @@ in
       value = "unlimited";
     }
   ];
-
-  nixpkgs.config.allowUnfree = true;
 
   fileSystems."/mnt/ssd" = {
     device = "/dev/disk/by-id/ata-Samsung_SSD_870_EVO_1TB_S6PTNZ0R620739L-part1";
@@ -82,308 +82,16 @@ in
 
     services = {
       openssh = enabled;
+      llama-swap = enabled;
       mosh = enabled;
     };
 
     virtualisation = {
       podman = enabled;
     };
-  };
 
-  systemd.services.llama-swap.serviceConfig.LimitMEMLOCK = "infinity";
-  services.llama-swap = {
-    enable = true;
-    openFirewall = true;
-    package = llama-swap;
-    settings = {
-      models = {
-        # https://huggingface.co/unsloth/Devstral-Small-2-24B-Instruct-2512-GGUF/tree/main
-        "devstral-small-2-instruct" = {
-          name = "Devstral Small 2 (24B) - Instruct";
-          cmd = ''
-            ${llama-cpp}/bin/llama-server \
-              --port ''${PORT} \
-              -m /mnt/ssd/Models/Devstral/Devstral-Small-2-24B-Instruct-2512-UD-Q4_K_XL.gguf \
-              --chat-template-file /mnt/ssd/Models/Devstral/Devstral-Small-2-24B-Instruct-2512-UD-Q4_K_XL_template.jinja \
-              --temp 0.15 \
-              -c 98304 \
-              -ctk q8_0 \
-              -ctv q8_0 \
-              -fit off \
-              -dev CUDA0
-          '';
-          env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
-        };
-
-        # https://huggingface.co/mradermacher/gpt-oss-20b-heretic-v2-i1-GGUF/tree/main
-        #  --chat-template-kwargs '{\"reasoning_effort\":\"low\"}'
-        "gpt-oss-20b-thinking" = {
-          name = "GPT OSS (20B) - Thinking";
-          cmd = ''
-            ${llama-cpp}/bin/llama-server \
-              --port ''${PORT} \
-              -m /mnt/ssd/Models/GPT-OSS/gpt-oss-20b-F16.gguf \
-              -c 131072 \
-              --temp 1.0 \
-              --top-p 1.0 \
-              --top-k 40 \
-              -dev CUDA0
-          '';
-          env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
-        };
-
-        # https://huggingface.co/mradermacher/GPT-OSS-Cybersecurity-20B-Merged-i1-GGUF/tree/main
-        "gpt-oss-csec-20b-thinking" = {
-          name = "GPT OSS CSEC (20B) - Thinking";
-          cmd = ''
-            ${llama-cpp}/bin/llama-server \
-              --port ''${PORT} \
-              -m /mnt/ssd/Models/GPT-OSS/GPT-OSS-Cybersecurity-20B-Merged.i1-MXFP4_MOE.gguf \
-              -c 131072 \
-              --temp 1.0 \
-              --top-p 1.0 \
-              --top-k 40 \
-              -dev CUDA0
-          '';
-          env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
-        };
-
-        # https://huggingface.co/shb777/Llama-3.3-8B-Instruct-GGUF/tree/main
-        # llama-server --host 0.0.0.0 --port 8081 -m /mnt/ssd/Models/Llama/llama-3.3-8b-instruct-q6_k.gguf -c 131072 -dev CUDA0 -fit off
-
-        # https://huggingface.co/unsloth/Qwen3-Next-80B-A3B-Instruct-GGUF/tree/main
-        "qwen3-next-80b-instruct" = {
-          name = "Qwen3 Next (80B) - Instruct";
-          cmd = ''
-            ${llama-cpp}/bin/llama-server \
-              --port ''${PORT} \
-              -m /mnt/ssd/Models/Qwen3/Qwen3-Next-80B-A3B-Instruct-UD-Q2_K_XL.gguf \
-              -c 262144 \
-              --temp 0.7 \
-              --min-p 0.0 \
-              --top-p 0.8 \
-              --top-k 20 \
-              --repeat-penalty 1.05 \
-              -ctk q8_0 \
-              -ctv q8_0 \
-              -fit off
-          '';
-          env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
-        };
-
-        # https://huggingface.co/unsloth/Qwen3-30B-A3B-Instruct-2507-GGUF/tree/main
-        "qwen3-30b-2507-instruct" = {
-          name = "Qwen3 2507 (30B) - Instruct";
-          cmd = ''
-            ${llama-cpp}/bin/llama-server \
-              --port ''${PORT} \
-              -m /mnt/ssd/Models/Qwen3/Qwen3-30B-A3B-Instruct-2507-Q4_K_M.gguf \
-              -c 262144 \
-              --temp 0.7 \
-              --min-p 0.0 \
-              --top-p 0.8 \
-              --top-k 20 \
-              --repeat-penalty 1.05 \
-              -ctk q8_0 \
-              -ctv q8_0 \
-              -ts 70,30
-          '';
-          env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
-        };
-
-        # https://huggingface.co/unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF/tree/main
-        "qwen3-coder-30b-instruct" = {
-          name = "Qwen3 Coder (30B) - Instruct";
-          cmd = ''
-            ${llama-cpp}/bin/llama-server \
-              --port ''${PORT} \
-              -m /mnt/ssd/Models/Qwen3/Qwen3-Coder-30B-A3B-Instruct-UD-Q6_K_XL.gguf \
-              -c 131072 \
-              --temp 0.7 \
-              --min-p 0.0 \
-              --top-p 0.8 \
-              --top-k 20 \
-              --repeat-penalty 1.05 \
-              -ctk q8_0 \
-              -ctv q8_0 \
-              -ts 70,30
-          '';
-          env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
-        };
-
-        # https://huggingface.co/unsloth/Qwen3-30B-A3B-Thinking-2507-GGUF/tree/main
-        "qwen3-30b-2507-thinking" = {
-          name = "Qwen3 2507 (30B) - Thinking";
-          cmd = ''
-            ${llama-cpp}/bin/llama-server \
-              --port ''${PORT} \
-              -m /mnt/ssd/Models/Qwen3/Qwen3-30B-A3B-Thinking-2507-UD-Q4_K_XL.gguf \
-              -c 262144 \
-              --temp 0.7 \
-              --min-p 0.0 \
-              --top-p 0.8 \
-              --top-k 20 \
-              --repeat-penalty 1.05 \
-              -ctk q8_0 \
-              -ctv q8_0 \
-              -ts 70,30
-          '';
-          env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
-        };
-
-        # https://huggingface.co/unsloth/Nemotron-3-Nano-30B-A3B-GGUF/tree/main
-        "nemotron-3-nano-30b-thinking" = {
-          name = "Nemotron 3 Nano (30B) - Thinking";
-          cmd = ''
-            ${llama-cpp}/bin/llama-server \
-              --port ''${PORT} \
-              -m /mnt/ssd/Models/Nemotron/Nemotron-3-Nano-30B-A3B-UD-Q4_K_XL.gguf \
-              -c 1048576 \
-              --temp 1.1 \
-              --top-p 0.95 \
-              -fit off
-          '';
-          env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
-        };
-
-        # https://huggingface.co/unsloth/Qwen3-VL-8B-Instruct-GGUF/tree/main
-        "qwen3-8b-vision" = {
-          name = "Qwen3 Vision (8B) - Thinking";
-          cmd = ''
-            ${llama-cpp}/bin/llama-server \
-              --port ''${PORT} \
-              -m /mnt/ssd/Models/Qwen3/Qwen3-VL-8B-Instruct-UD-Q4_K_XL.gguf \
-              --mmproj /mnt/ssd/Models/Qwen3/Qwen3-VL-8B-Instruct-UD-Q4_K_XL_mmproj-F16.gguf \
-              -c 65536 \
-              --temp 0.7 \
-              --min-p 0.0 \
-              --top-p 0.8 \
-              --top-k 20 \
-              -ctk q8_0 \
-              -ctv q8_0 \
-              -fit off \
-              -dev CUDA1
-          '';
-          env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
-        };
-
-        # https://huggingface.co/unsloth/Qwen2.5-Coder-7B-Instruct-128K-GGUF/tree/main
-        "qwen2.5-coder-7b-instruct" = {
-          name = "Qwen2.5 Coder (7B) - Instruct";
-          cmd = ''
-            ${llama-cpp}/bin/llama-server \
-              -m /mnt/ssd/Models/Qwen2.5/Qwen2.5-Coder-7B-Instruct-Q8_0.gguf \
-              --fim-qwen-7b-default \
-              -c 131072 \
-              --port ''${PORT} \
-              -fit off \
-              -dev CUDA1
-          '';
-          env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
-        };
-
-        # https://huggingface.co/unsloth/Qwen2.5-Coder-3B-Instruct-128K-GGUF/tree/main
-        "qwen2.5-coder-3b-instruct" = {
-          name = "Qwen2.5 Coder (3B) - Instruct";
-          cmd = ''
-            ${llama-cpp}/bin/llama-server \
-              -m /mnt/ssd/Models/Qwen2.5/Qwen2.5-Coder-3B-Instruct-Q8_0.gguf \
-              --fim-qwen-3b-default \
-              --port ''${PORT} \
-              -fit off \
-              -dev CUDA1
-          '';
-          env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
-        };
-
-        # https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF/tree/main
-        "qwen3-4b-2507-instruct" = {
-          name = "Qwen3 2507 (4B) - Instruct";
-          cmd = ''
-            ${llama-cpp}/bin/llama-server \
-              --port ''${PORT} \
-              -m /mnt/ssd/Models/Qwen3/Qwen3-4B-Instruct-2507-Q4_K_M.gguf \
-              -c 98304 \
-              -fit off \
-              -ctk q8_0 \
-              -ctv q8_0 \
-              -dev CUDA1
-          '';
-          env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
-        };
-
-        "z-image-turbo" = {
-          name = "Z-Image-Turbo";
-          checkEndpoint = "/";
-          cmd = ''
-            ${stable-diffusion-cpp}/bin/sd-server \
-              --listen-port ''${PORT} \
-              --diffusion-fa \
-              --diffusion-model /mnt/ssd/StableDiffusion/ZImageTurbo/z-image-turbo-Q8_0.gguf \
-              --vae /mnt/ssd/StableDiffusion/ZImageTurbo/ae.safetensors \
-              --llm /mnt/ssd/Models/Qwen3/Qwen3-4B-Instruct-2507-Q4_K_M.gguf \
-              --cfg-scale 1.0 \
-              --steps 9 \
-              --rng cuda
-          '';
-          env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
-        };
-
-        "qwen-image-edit" = {
-          name = "Qwen Image Edit";
-          checkEndpoint = "/";
-          cmd = ''
-            ${stable-diffusion-cpp}/bin/sd-server \
-              --listen-port ''${PORT} \
-              --diffusion-fa \
-              --diffusion-model /mnt/ssd/StableDiffusion/QwenImageEdit/Qwen-Rapid-v18_Q5_K.gguf \
-              --vae /mnt/ssd/StableDiffusion/QwenImageEdit/qwen_image_vae.safetensors \
-              --llm /mnt/ssd/Models/Qwen2.5/Qwen2.5-VL-7B-Instruct.Q4_K_M.gguf \
-              --cfg-scale 2.5 \
-              --sampling-method euler \
-              --flow-shift 3 \
-              --steps 9 \
-              --rng cuda
-          '';
-          env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
-        };
-      };
-
-      groups = {
-        shared = {
-          swap = true;
-          exclusive = false;
-          members = [
-            "nemotron-3-nano-30b-thinking"
-            "qwen3-30b-2507-instruct"
-            "qwen3-30b-2507-thinking"
-            "qwen3-coder-30b-instruct"
-            "qwen3-next-80b-instruct"
-          ];
-        };
-
-        cuda0 = {
-          swap = true;
-          exclusive = false;
-          members = [
-            "devstral-small-2-instruct"
-            "gpt-oss-20b-thinking"
-            "gpt-oss-csec-20b-thinking"
-          ];
-        };
-
-        cuda1 = {
-          swap = true;
-          exclusive = false;
-          members = [
-            "qwen2.5-coder-3b-instruct"
-            "qwen2.5-coder-7b-instruct"
-            "qwen3-4b-2507-instruct"
-            "qwen3-8b-vision"
-          ];
-        };
-
-      };
+    security = {
+      sops = enabled;
     };
   };
 

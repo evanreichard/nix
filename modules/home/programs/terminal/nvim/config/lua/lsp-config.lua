@@ -134,7 +134,13 @@ setup_lsp("cssls", {
 setup_lsp("ts_ls", {
 	on_attach = on_attach_no_formatting,
 	cmd = { nix_vars.tsls, "--stdio" },
-	filetypes = { "typescript", "typescriptreact" },
+	filetypes = { "typescript", "typescriptreact", "javascript" },
+})
+
+-- ESLint LSP
+setup_lsp("eslint", {
+	on_attach = on_attach_no_formatting,
+	cmd = { nix_vars.vscls .. "/bin/vscode-eslint-language-server", "--stdio" },
 })
 
 -- C LSP Configuration
@@ -147,6 +153,11 @@ setup_lsp("clangd", {
 setup_lsp("lua_ls", {
 	cmd = { nix_vars.luals },
 	filetypes = { "lua" },
+})
+
+-- Lua LSP Configuration
+setup_lsp("sqls", {
+	cmd = { nix_vars.sqls },
 })
 
 -- Nix LSP Configuration
@@ -205,44 +216,19 @@ setup_lsp("golangci_lint_ls", {
 ------------------------------------------------------
 local none_ls = require("null-ls")
 
-local eslintFiles = {
-	".eslintrc",
-	".eslintrc.js",
-	".eslintrc.cjs",
-	".eslintrc.yaml",
-	".eslintrc.yml",
-	".eslintrc.json",
-	"eslint.config.js",
-	"eslint.config.mjs",
-	"eslint.config.cjs",
-	"eslint.config.ts",
-	"eslint.config.mts",
-	"eslint.config.cts",
-}
-
-local has_eslint_in_parents = function(fname)
-	local root_file = require("lspconfig").util.insert_package_json(eslintFiles, "eslintConfig", fname)
-	return require("lspconfig").util.root_pattern(unpack(root_file))(fname)
-end
-
 none_ls.setup({
 	sources = {
-		-- Prettier Formatting
+		-- Formatting
 		none_ls.builtins.formatting.prettier,
 		none_ls.builtins.formatting.prettier.with({ filetypes = { "template" } }),
-		require("none-ls.diagnostics.eslint_d").with({
-			condition = function(utils)
-				return has_eslint_in_parents(vim.fn.getcwd())
-			end,
-		}),
-		none_ls.builtins.completion.spell,
 		none_ls.builtins.formatting.nixpkgs_fmt, -- TODO: nixd native LSP?
-		none_ls.builtins.diagnostics.sqlfluff,
-		none_ls.builtins.formatting.sqlfluff,
 		require("none-ls.formatting.autopep8").with({
 			filetypes = { "starlark", "python" },
 			extra_args = { "--max-line-length", "100" },
 		}),
+
+		-- Completion
+		none_ls.builtins.completion.spell,
 	},
 	on_attach = function(client, bufnr)
 		if client:supports_method("textDocument/formatting") then

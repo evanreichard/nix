@@ -58,6 +58,7 @@ in
     };
 
     services = {
+      openssh = enabled;
       tailscale = enabled;
       avahi = enabled;
       ydotool = enabled;
@@ -79,10 +80,7 @@ in
     };
 
     security = {
-      sops = {
-        enable = true;
-        defaultSopsFile = lib.snowfall.fs.get-file "secrets/lin-va-thinkpad/default.yaml";
-      };
+      sops = enabled;
     };
   };
 

@@ -3,23 +3,28 @@ local llm_assistant_model = "devstral-small-2-instruct"
 local llm_infill_model = "qwen2.5-coder-3b-instruct"
 
 -- Default Llama - Toggle Llama & Copilot
--- vim.g.copilot_filetypes = { ["*"] = false }
-local current_mode = "copilot"
-local function toggle_llm_fim_provider()
-	if current_mode == "llama" then
-		vim.g.copilot_filetypes = { ["*"] = true }
-		vim.cmd("Copilot enable")
-		vim.cmd("LlamaDisable")
-		current_mode = "copilot"
-		vim.notify("Copilot FIM enabled", vim.log.levels.INFO)
-	else
+local current_fim = "llama"
+local function switch_llm_fim_provider(switch_to)
+	if switch_to == "llama" then
 		vim.g.copilot_filetypes = { ["*"] = true }
 		vim.cmd("Copilot disable")
 		vim.cmd("LlamaEnable")
-		current_mode = "llama"
+		current_fim = "llama"
 		vim.notify("Llama FIM enabled", vim.log.levels.INFO)
+	else
+		vim.g.copilot_filetypes = { ["*"] = true }
+		vim.cmd("Copilot enable")
+		vim.cmd("LlamaDisable")
+		current_fim = "copilot"
+		vim.notify("Copilot FIM enabled", vim.log.levels.INFO)
 	end
 end
+
+vim.api.nvim_create_autocmd("VimEnter", {
+	callback = function()
+		switch_llm_fim_provider(current_fim)
+	end,
+})
 
 -- Copilot Configuration
 vim.g.copilot_no_tab_map = true
@@ -75,7 +80,13 @@ codecompanion.setup({
 
 -- Create KeyMaps for Code Companion
 vim.keymap.set("n", "<leader>aa", codecompanion.actions, { desc = "Actions" })
-vim.keymap.set("n", "<leader>af", toggle_llm_fim_provider, { desc = "Toggle FIM (Llama / Copilot)" })
+vim.keymap.set("n", "<leader>af", function()
+	if current_fim == "llama" then
+		switch_llm_fim_provider("copilot")
+	else
+		switch_llm_fim_provider("llama")
+	end
+end, { desc = "Toggle FIM (Llama / Copilot)" })
 vim.keymap.set("n", "<leader>ao", function() require("snacks.terminal").toggle("opencode") end,
 	{ desc = "Toggle OpenCode" })
 vim.keymap.set("v", "<leader>ai", ":CodeCompanion<cr>", { desc = "Inline Prompt" })

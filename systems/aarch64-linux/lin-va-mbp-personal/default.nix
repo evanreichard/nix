@@ -41,10 +41,7 @@ in
     };
 
     security = {
-      sops = {
-        enable = true;
-        defaultSopsFile = lib.snowfall.fs.get-file "secrets/lin-va-mbp-personal/default.yaml";
-      };
+      sops = enabled;
     };
 
     virtualisation = {

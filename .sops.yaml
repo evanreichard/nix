@@ -1,22 +1,31 @@
 keys:
-  # Admin - Age Native
+  # Global Admin
   - &admin_reichard age1sac93wpnjcv62s7583jv6a4yspndh6k0r25g3qx3k7gq748uvafst6nz4w
-  # lin-va-mbp-personal@evanreichard - SSH Derived
+
+  # User SSH Derived
   - &user_lin-va-mbp-personal age17ayje4uv2mhwehhp9jr3u9l0ds07396kt7ef40sufx89vm7cgfjq6d5d4y
-  # mac-va-mbp-personal@evanreichard - SSH Derived
   - &user_mac-va-mbp-personal age1dccte7xtwswgef089nd80dutp96xnezx5lrqnneh9cusegsnda8sj3dj6c
+  - &user_lin-va-thinkpad age1avlhszrryt4gf4ya536jhzm7qwt9xfttm8x4sns6h9w2tahzqp8sspz9y5
+  - &user_lin-va-desktop age15hdlen5dgjvdfgg2j0uzvchs5vs3xuptkhsw9xeuatcuk6uwrvcsz7hcsg
+
+  # System SSH Derived
+  - &system_lin-va-desktop age1mxjrvjxkn69kfn2np3wpd73g44fuhsgykw7l5ss9rx30em5jfp2scnrq32
+  - &system_lin-va-thinkpad age13gymlygyac9z2slecl53jp8spq7e8n4zkan86n0gmnm3nrj4muxqa5ullm
 creation_rules:
   - path_regex: secrets/[^/]+\.(yaml|json|env|ini)$
     key_groups:
       - age:
           - *admin_reichard
-  - path_regex: secrets/lin-va-mbp-personal/evanreichard/[^/]+\.(yaml|json|env|ini)$
+  - path_regex: secrets/common/systems.yaml
+    key_groups:
+      - age:
+          - *admin_reichard
+          - *system_lin-va-desktop
+          - *system_lin-va-thinkpad
+  - path_regex: secrets/common/evanreichard.yaml
     key_groups:
       - age:
           - *admin_reichard
           - *user_lin-va-mbp-personal
-  - path_regex: secrets/mac-va-mbp-personal/evanreichard/[^/]+\.(yaml|json|env|ini)$
-    key_groups:
-      - age:
-          - *admin_reichard
+          - *user_lin-va-thinkpad
           - *user_mac-va-mbp-personal

@@ -78,3 +78,27 @@ if [ -e '/nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh' ]; then
 fi
 # End Nix
 ```
+
+#### SOPS
+
+1. Convert your SSH key to an age key
+2. Get age public key
+3. Update `.sops.yaml` with rules
+4. Edit file
+
+```bash
+# Ensure Config
+mkdir -p ~/.config/sops/age
+
+# Convert SSH to Age
+ssh-to-age -private-key -i $HOME/.ssh/id_ed25519 -o ~/.config/sops/age/keys.txt
+
+# Get Public Key
+age-keygen -y ~/.config/sops/age/keys.txt
+ssh-to-age -private-key -i ~/.ssh/id_ed25519 | age-keygen -y
+SOPS_AGE_KEY_FILE=<ADMIN_KEY> sops -d --extract '["lin-va-desktop"]["host"]' ./secrets/keys.yaml | ssh-to-age -private-key | age-keygen -y
+
+# Edit File
+# NOTE: You can specify key with - `SOPS_AGE_KEY_FILE=~/.config/sops/age/other.txt`
+sops secrets/lin-va-thinkpad/evanreichard/default.yaml
+```

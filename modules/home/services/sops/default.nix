@@ -1,15 +1,21 @@
-{ config, lib, namespace, pkgs, ... }:
+{ config
+, lib
+, namespace
+, pkgs
+, ...
+}:
 let
-  inherit (lib) mkIf types;
+  inherit (lib) mkIf mkEnableOption types;
   inherit (lib.${namespace}) mkOpt;
+  getFile = lib.snowfall.fs.get-file;
 
   cfg = config.${namespace}.services.sops;
 in
 {
   options.${namespace}.services.sops = with types; {
-    enable = lib.mkEnableOption "sops";
-    defaultSopsFile = mkOpt path null "Default sops file.";
-    sshKeyPaths = mkOpt (listOf path) [ ] "SSH Key paths to use.";
+    enable = mkEnableOption "Enable sops";
+    defaultSopsFile = mkOpt str "secrets/common/evanreichard.yaml" "Default sops file.";
+    sshKeyPaths = mkOpt (listOf path) [ ] "Additional SSH key paths to use.";
   };
 
   config = mkIf cfg.enable {
@@ -20,11 +26,9 @@ in
     ];
 
     sops = {
-      inherit (cfg) defaultSopsFile;
-      defaultSopsFormat = "yaml";
+      defaultSopsFile = getFile cfg.defaultSopsFile;
 
       age = {
-        generateKey = true;
         keyFile = "${config.home.homeDirectory}/.config/sops/age/keys.txt";
         sshKeyPaths = [ "${config.home.homeDirectory}/.ssh/id_ed25519" ] ++ cfg.sshKeyPaths;
       };
