@@ -1,4 +1,9 @@
-{ config, lib, pkgs, namespace, ... }:
+{ config
+, lib
+, pkgs
+, namespace
+, ...
+}:
 let
   cfg = config.${namespace}.services.swww;
 in

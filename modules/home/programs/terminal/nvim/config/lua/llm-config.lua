@@ -1,33 +1,16 @@
 local llm_endpoint = "https://llm-api.va.reichard.io"
-local llm_assistant_model = "devstral-small-2-instruct"
-local llm_infill_model = "qwen2.5-coder-3b-instruct"
+local llm_assistant_model = "qwen3-coder-30b-instruct"
+local llm_infill_model = "qwen3-coder-30b-instruct"
 
--- Default Llama - Toggle Llama & Copilot
-local current_fim = "llama"
-local function switch_llm_fim_provider(switch_to)
-	if switch_to == "llama" then
-		vim.g.copilot_filetypes = { ["*"] = true }
-		vim.cmd("Copilot disable")
-		vim.cmd("LlamaEnable")
-		current_fim = "llama"
-		vim.notify("Llama FIM enabled", vim.log.levels.INFO)
-	else
-		vim.g.copilot_filetypes = { ["*"] = true }
-		vim.cmd("Copilot enable")
-		vim.cmd("LlamaDisable")
-		current_fim = "copilot"
-		vim.notify("Copilot FIM enabled", vim.log.levels.INFO)
-	end
-end
+-- local llm_assistant_model = "devstral-small-2-instruct"
+-- local llm_infill_model = "qwen2.5-coder-3b-instruct"
 
-vim.api.nvim_create_autocmd("VimEnter", {
-	callback = function()
-		switch_llm_fim_provider(current_fim)
-	end,
-})
+
+local current_fim = "copilot" -- change this to switch default
 
 -- Copilot Configuration
 vim.g.copilot_no_tab_map = true
+vim.g.copilot_filetypes = { ["*"] = true }
 
 -- LLama LLM FIM
 vim.g.llama_config = {
@@ -35,8 +18,23 @@ vim.g.llama_config = {
 	model = llm_infill_model,
 	n_predict = 2048,
 	ring_n_chunks = 32,
-	enable_at_startup = false,
+	enable_at_startup = (current_fim == "llama"), -- enable based on default
 }
+
+-- Toggle function for manual switching
+local function switch_llm_fim_provider(switch_to)
+	if switch_to == "llama" then
+		vim.cmd("Copilot disable")
+		vim.cmd("LlamaEnable")
+		current_fim = "llama"
+		vim.notify("Llama FIM enabled", vim.log.levels.INFO)
+	else
+		vim.cmd("Copilot enable")
+		vim.cmd("LlamaDisable")
+		current_fim = "copilot"
+		vim.notify("Copilot FIM enabled", vim.log.levels.INFO)
+	end
+end
 
 -- Configure Code Companion
 require("plugins.codecompanion.fidget-spinner"):init()
