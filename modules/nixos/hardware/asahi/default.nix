@@ -1,7 +1,7 @@
 { config, lib, inputs, namespace, ... }:
 let
   inherit (lib) types optionalAttrs;
-  inherit (lib.${namespace}) mkOpt mkBoolOpt;
+  inherit (lib.${namespace}) mkOpt;
 
   cfg = config.${namespace}.hardware.asahi;
 in
@@ -12,7 +12,6 @@ in
 
   options.${namespace}.hardware.asahi = {
     enable = lib.mkEnableOption "support for asahi linux";
-    enableGPU = mkBoolOpt false "enable gpu driver";
     firmwareDirectory = mkOpt types.path null "firmware directory";
   };
 
@@ -21,7 +20,6 @@ in
       enable = cfg.enable;
     } // optionalAttrs cfg.enable {
       peripheralFirmwareDirectory = cfg.firmwareDirectory;
-      useExperimentalGPUDriver = cfg.enableGPU;
     };
   };
 }

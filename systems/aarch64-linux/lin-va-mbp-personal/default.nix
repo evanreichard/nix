@@ -1,4 +1,4 @@
-{ namespace, lib, ... }:
+{ namespace, lib, pkgs, ... }:
 let
   inherit (lib.${namespace}) enabled;
 in
@@ -30,7 +30,6 @@ in
       opengl = enabled;
       asahi = {
         enable = true;
-        enableGPU = true;
         firmwareDirectory = ./firmware;
       };
     };
@@ -54,4 +53,11 @@ in
       };
     };
   };
+
+  # Additional System Packages
+  environment.systemPackages = with pkgs; [
+    mosh
+    rclone
+    unzip
+  ];
 }
