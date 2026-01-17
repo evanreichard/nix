@@ -1,4 +1,8 @@
-{ config, lib, namespace, ... }:
+{ config
+, lib
+, namespace
+, ...
+}:
 let
   inherit (lib) mkIf mkDefault;
   inherit (lib.${namespace}) mkBoolOpt;
@@ -27,17 +31,19 @@ in
     services.xe-guest-utilities.enable = mkIf cfg.xenGuest true;
 
     boot = {
-      kernelParams = lib.optionals cfg.silentBoot [
-        "quiet"
-        "loglevel=3"
-        "udev.log_level=3"
-        "rd.udev.log_level=3"
-        "systemd.show_status=auto"
-        "rd.systemd.show_status=auto"
-        "vt.global_cursor_default=0"
-      ] ++ lib.optionals cfg.showNotch [
-        "apple_dcp.show_notch=1"
-      ];
+      kernelParams =
+        lib.optionals cfg.silentBoot [
+          "quiet"
+          "loglevel=3"
+          "udev.log_level=3"
+          "rd.udev.log_level=3"
+          "systemd.show_status=auto"
+          "rd.systemd.show_status=auto"
+          "vt.global_cursor_default=0"
+        ]
+        ++ lib.optionals cfg.showNotch [
+          "appledrm.show_notch=1"
+        ];
 
       loader = {
         efi = {
@@ -60,10 +66,17 @@ in
       };
 
       initrd = mkIf cfg.xenGuest {
-        kernelModules = [ "xen_netfront" "xen_blkfront" ];
+        kernelModules = [
+          "xen_netfront"
+          "xen_blkfront"
+        ];
         supportedFilesystems = [ "xenfs" ];
       };
-      kernelModules = mkIf cfg.xenGuest [ "xen_netfront" "xen_blkfront" "xenfs" ];
+      kernelModules = mkIf cfg.xenGuest [
+        "xen_netfront"
+        "xen_blkfront"
+        "xenfs"
+      ];
     };
   };
 }
