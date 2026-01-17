@@ -22,6 +22,9 @@ in
       fusuma = enabled;
       swww = enabled;
       poweralertd = enabled;
+    };
+
+    security = {
       sops = enabled;
     };
 

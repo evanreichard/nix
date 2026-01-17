@@ -1,4 +1,9 @@
-{ pkgs, lib, config, namespace, ... }:
+{ pkgs
+, lib
+, config
+, namespace
+, ...
+}:
 let
   inherit (lib) mkIf;
   cfg = config.${namespace}.programs.terminal.git;
@@ -82,10 +87,7 @@ in
       };
     };
 
-    home.packages = with pkgs; [
-      gh
-      pre-commit
-    ];
+    home.packages = with pkgs; [ gh ];
 
     # Copy Configuration
     xdg.configFile = {

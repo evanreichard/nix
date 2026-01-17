@@ -1,9 +1,8 @@
-{
-  pkgs,
-  lib,
-  config,
-  namespace,
-  ...
+{ pkgs
+, lib
+, config
+, namespace
+, ...
 }:
 let
   inherit (lib) mkIf;
@@ -149,7 +148,6 @@ in
         luaformatter
         nixpkgs-fmt
         nodePackages.prettier
-        sqlfluff
         stylua
 
         # Tools

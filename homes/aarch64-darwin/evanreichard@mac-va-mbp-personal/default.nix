@@ -30,5 +30,9 @@ in
         opencode = enabled;
       };
     };
+
+    security = {
+      sops = enabled;
+    };
   };
 }

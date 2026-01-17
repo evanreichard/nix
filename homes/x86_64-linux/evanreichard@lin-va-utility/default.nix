@@ -21,6 +21,9 @@ in
       ssh-agent = enabled;
       fusuma = enabled;
       swww = enabled;
+    };
+
+    security = {
       sops = enabled;
     };
 

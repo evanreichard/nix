@@ -9,10 +9,10 @@ let
   inherit (lib.${namespace}) mkOpt;
   getFile = lib.snowfall.fs.get-file;
 
-  cfg = config.${namespace}.services.sops;
+  cfg = config.${namespace}.security.sops;
 in
 {
-  options.${namespace}.services.sops = with types; {
+  options.${namespace}.security.sops = with types; {
     enable = mkEnableOption "Enable sops";
     defaultSopsFile = mkOpt str "secrets/common/evanreichard.yaml" "Default sops file.";
     sshKeyPaths = mkOpt (listOf path) [ ] "Additional SSH key paths to use.";
