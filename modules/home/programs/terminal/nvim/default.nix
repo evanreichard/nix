@@ -166,6 +166,9 @@ in
       };
 
       # Generate Nix Vars
+      # NOTE: https://github.com/NixOS/nixpkgs/issues/479348
+      #   omnisharp = "${pkgs.omnisharp-roslyn}/bin/OmniSharp",
+
       "nvim/lua/nix-vars.lua".text = ''
         local nix_vars = {
           bash = "${pkgs.bashInteractive}/bin/bash",
@@ -173,7 +176,6 @@ in
           golintls = "${pkgs.golangci-lint-langserver}/bin/golangci-lint-langserver",
           gopls = "${pkgs.gopls}/bin/gopls",
           luals = "${pkgs.lua-language-server}/bin/lua-language-server",
-          omnisharp = "${pkgs.omnisharp-roslyn}/bin/OmniSharp",
           sveltels = "${pkgs.nodePackages.svelte-language-server}/bin/svelteserver",
           tsls = "${pkgs.nodePackages.typescript-language-server}/bin/typescript-language-server",
           vscls = "${pkgs.nodePackages.vscode-langservers-extracted}",

@@ -166,14 +166,15 @@ setup_lsp("nil_ls", {
 })
 
 -- Omnisharp LSP Configuration
-setup_lsp("omnisharp", {
-	enable_roslyn_analyzers = true,
-	enable_import_completion = true,
-	organize_imports_on_format = true,
-	enable_decompilation_support = true,
-	filetypes = { "cs", "vb", "csproj", "sln", "slnx", "props", "csx", "targets", "tproj", "slngen", "fproj" },
-	cmd = { nix_vars.omnisharp, "--languageserver", "--hostPID", tostring(vim.fn.getpid()) },
-})
+-- NOTE: https://github.com/NixOS/nixpkgs/issues/479348
+-- setup_lsp("omnisharp", {
+-- 	enable_roslyn_analyzers = true,
+-- 	enable_import_completion = true,
+-- 	organize_imports_on_format = true,
+-- 	enable_decompilation_support = true,
+-- 	filetypes = { "cs", "vb", "csproj", "sln", "slnx", "props", "csx", "targets", "tproj", "slngen", "fproj" },
+-- 	cmd = { nix_vars.omnisharp, "--languageserver", "--hostPID", tostring(vim.fn.getpid()) },
+-- })
 
 -- Go LSP Configuration
 setup_lsp("gopls", {
