@@ -50,6 +50,7 @@ in
         git = enabled;
         k9s = enabled;
         nvim = enabled;
+        opencode = enabled;
       };
     };
   };

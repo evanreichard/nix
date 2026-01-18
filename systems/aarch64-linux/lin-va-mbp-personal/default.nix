@@ -1,4 +1,8 @@
-{ namespace, lib, pkgs, ... }:
+{ namespace
+, lib
+, pkgs
+, ...
+}:
 let
   inherit (lib.${namespace}) enabled;
 in
@@ -36,6 +40,11 @@ in
 
     services = {
       avahi = enabled;
+      printing = {
+        enable = true;
+        drivers = [ pkgs.gutenprint ];
+      };
+      tailscale = enabled;
       ydotool = enabled;
     };
 
