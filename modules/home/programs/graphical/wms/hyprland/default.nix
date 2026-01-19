@@ -38,10 +38,10 @@ in
           "$menuMod SHIFT, 1, exec, hyprshot -m output"
           "$menuMod SHIFT, 2, exec, hyprshot -m window"
           "$menuMod SHIFT, 3, exec, hyprshot -m region"
+          "$menuMod, Q, killactive"
 
           # Primary Bindings
           "$mainMod, RETURN, exec, $terminal"
-          "$mainMod, Q, killactive"
           "$mainMod, M, exit"
           "$mainMod, V, togglefloating"
           "$mainMod, P, pin"
