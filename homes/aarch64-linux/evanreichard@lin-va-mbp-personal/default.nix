@@ -31,12 +31,12 @@ in
       graphical = {
         wms.hyprland = {
           enable = true;
-          monitors = [
-            ",highres,auto,2" # Optional - 1.68
-          ];
+          mainMod = "ALT";
+          monitors = [ ",highres,auto,2" ]; # Alternatively - 1.68
         };
         ghostty = enabled;
         ghidra = enabled;
+        gimp = enabled;
         browsers.firefox = {
           enable = true;
           gpuAcceleration = true;

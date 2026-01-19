@@ -1,4 +1,9 @@
-{ lib, pkgs, config, namespace, ... }:
+{ lib
+, pkgs
+, config
+, namespace
+, ...
+}:
 let
   inherit (lib) types mkIf;
   inherit (lib.${namespace}) mkOpt enabled;
@@ -8,10 +13,9 @@ in
 {
   options.${namespace}.programs.graphical.wms.hyprland = {
     enable = lib.mkEnableOption "Hyprland";
-    mainMod = mkOpt types.str "SUPER" "Hyprland main modifier key";
-    monitors = mkOpt (with types; listOf str) [
-      ", preferred, auto, 1"
-    ] "Hyprland monitor configuration";
+    mainMod = mkOpt types.str "SUPER" "main modifier key";
+    menuMod = mkOpt types.str "SUPER" "menu modifier key (i.e. menuMod + space)";
+    monitors = mkOpt (with types; listOf str) [ ", preferred, auto, 1" ] "monitor configuration";
   };
 
   config = mkIf cfg.enable {
@@ -22,19 +26,20 @@ in
       extraConfig = builtins.readFile ./config/hyprland.conf;
       settings = {
         "$mainMod" = cfg.mainMod;
+        "$menuMod" = cfg.menuMod;
         "$terminal" = "ghostty";
         "$menu" = "wofi --show drun";
 
         monitor = cfg.monitors;
 
         bind = [
-          # Super Bindings (macOS Transition)
-          "ALT_SHIFT, 1, exec, hyprshot -m output"
-          "ALT_SHIFT, 2, exec, hyprshot -m window"
-          "ALT_SHIFT, 3, exec, hyprshot -m region"
+          # Menu Mod Bindings (macOS Transition - Spotlight & Screenshots)
+          "$menuMod, SPACE, exec, $menu"
+          "$menuMod SHIFT, 1, exec, hyprshot -m output"
+          "$menuMod SHIFT, 2, exec, hyprshot -m window"
+          "$menuMod SHIFT, 3, exec, hyprshot -m region"
 
           # Primary Bindings
-          "$mainMod, SPACE, exec, $menu"
           "$mainMod, RETURN, exec, $terminal"
           "$mainMod, Q, killactive"
           "$mainMod, M, exit"
@@ -91,8 +96,8 @@ in
           ",XF86MonBrightnessDown, exec, brightnessctl s 10%-"
 
           # macOS Keyboard Brightness
-          "ALT, XF86MonBrightnessUp, exec, brightnessctl -d kbd_backlight s 10%+"
-          "ALT, XF86MonBrightnessDown, exec, brightnessctl -d kbd_backlight s 10%-"
+          "$menuMod, XF86MonBrightnessUp, exec, brightnessctl -d kbd_backlight s 10%+"
+          "$menuMod, XF86MonBrightnessDown, exec, brightnessctl -d kbd_backlight s 10%-"
         ];
         bindl = [
           # Player Controls
@@ -107,153 +112,161 @@ in
     programs.waybar = {
       enable = true;
       style = builtins.readFile ./config/waybar-style.css;
-      settings = [{
-        layer = "top";
-        position = "top";
-        mod = "dock";
-        exclusive = true;
-        passtrough = false;
-        gtk-layer-shell = true;
-        height = 0;
-        modules-left = [
-          "hyprland/workspaces"
-          "hyprland/window"
-        ];
-        # modules-center = [ "hyprland/window" ];
-        modules-right = [
-          "tray"
-          "cpu"
-          "memory"
-          "pulseaudio"
-          "network"
-          "backlight"
-          "battery"
-          "clock"
-        ];
-        "hyprland/window" = { format = "{}"; };
-        "wlr/workspaces" = {
-          on-scroll-up = "hyprctl dispatch workspace e+1";
-          on-scroll-down = "hyprctl dispatch workspace e-1";
-          all-outputs = true;
-          on-click = "activate";
-        };
-        battery = {
-          states = {
-            warning = 30;
-            critical = 15;
-          };
-          format = "{icon}";
-          format-charging = "󰂄";
-          format-plugged = "󰂄";
-          format-alt = "{icon}";
-          format-icons = [
-            "󰂃"
-            "󰁺"
-            "󰁻"
-            "󰁼"
-            "󰁽"
-            "󰁾"
-            "󰁾"
-            "󰁿"
-            "󰂀"
-            "󰂁"
-            "󰂂"
-            "󰁹"
+      settings = [
+        {
+          layer = "top";
+          position = "top";
+          mod = "dock";
+          exclusive = true;
+          passtrough = false;
+          gtk-layer-shell = true;
+          height = 0;
+          modules-left = [
+            "hyprland/workspaces"
+            "hyprland/window"
           ];
-        };
-        cpu = {
-          interval = 10;
-          format = "  {}%";
-          max-length = 10;
-          on-click = "";
-        };
-        memory = {
-          interval = 30;
-          format = "  {}%";
-          format-alt = "  {used:0.1f}G";
-          max-length = 10;
-        };
-
-        backlight = {
-          format = "{icon}";
-          format-icons = [
-            "󰋙"
-            "󰫃"
-            "󰫄"
-            "󰫅"
-            "󰫆"
-            "󰫇"
-            "󰫈"
+          # modules-center = [ "hyprland/window" ];
+          modules-right = [
+            "tray"
+            "cpu"
+            "memory"
+            "pulseaudio"
+            "network"
+            "backlight"
+            "battery"
+            "clock"
           ];
-          on-scroll-up = "brightnessctl s 1%-";
-          on-scroll-down = "brightnessctl s +1%";
-        };
-        tray = {
-          icon-size = 13;
-          tooltip = false;
-          spacing = 10;
-        };
-        network = {
-          interval = 1;
-          format-wifi = "󰖩";
-          format-ethernet = "󰈀";
-          format-linked = "󰈁";
-          format-disconnected = "";
-          on-click-right = "${pkgs.networkmanagerapplet}/bin/nm-connection-editor";
-          # tooltip-format = ''
-          #   <big>Network Details</big>
-          #   <tt><small>Interface: {ifname}</small></tt>
-          #   <tt><small>IP: {ipaddr}/{cidr}</small></tt>
-          #   <tt><small>Gateway: {gwaddr}</small></tt>
-          #   <tt><small>󰜷 {bandwidthUpBytes}\n󰜮 {bandwidthDownBytes}</small></tt>'';
-          tooltip-format = ''
-            <big>Network Details</big>
-            <small>
-            Interface: {ifname}
-            SSID: {essid}
-            IP Address: {ipaddr}/{cidr}
-            Gateway: {gwaddr}
-
-            󰜷 {bandwidthUpBytes} / 󰜮 {bandwidthDownBytes}
-            </small>'';
-
-        };
-        clock = {
-          format = "   {:%Y-%m-%d %H:%M:%S}";
-          interval = 1;
-          tooltip-format = ''
-            <big>{:%Y %B}</big>
-            <tt><small>{calendar}</small></tt>'';
-        };
-        pulseaudio = {
-          format = "{icon}   {volume}%";
-          tooltip = false;
-          format-muted = "  Muted";
-          on-click = "pamixer -t";
-          on-scroll-up = "pamixer -i 5";
-          on-scroll-down = "pamixer -d 5";
-          scroll-step = 5;
-          format-icons = {
-            headphone = "";
-            hands-free = "";
-            headset = "";
-            phone = "";
-            portable = "";
-            car = "";
-            default = [ "" "" "" ];
+          "hyprland/window" = {
+            format = "{}";
           };
-        };
-        "pulseaudio#microphone" = {
-          format = "{format_source}";
-          tooltip = false;
-          format-source = " {volume}%";
-          format-source-muted = " Muted";
-          on-click = "pamixer --default-source -t";
-          on-scroll-up = "pamixer --default-source -i 5";
-          on-scroll-down = "pamixer --default-source -d 5";
-          scroll-step = 5;
-        };
-      }];
+          "wlr/workspaces" = {
+            on-scroll-up = "hyprctl dispatch workspace e+1";
+            on-scroll-down = "hyprctl dispatch workspace e-1";
+            all-outputs = true;
+            on-click = "activate";
+          };
+          battery = {
+            states = {
+              warning = 30;
+              critical = 15;
+            };
+            format = "{icon}";
+            format-charging = "󰂄";
+            format-plugged = "󰂄";
+            format-alt = "{icon}";
+            format-icons = [
+              "󰂃"
+              "󰁺"
+              "󰁻"
+              "󰁼"
+              "󰁽"
+              "󰁾"
+              "󰁾"
+              "󰁿"
+              "󰂀"
+              "󰂁"
+              "󰂂"
+              "󰁹"
+            ];
+          };
+          cpu = {
+            interval = 10;
+            format = "  {}%";
+            max-length = 10;
+            on-click = "";
+          };
+          memory = {
+            interval = 30;
+            format = "  {}%";
+            format-alt = "  {used:0.1f}G";
+            max-length = 10;
+          };
+
+          backlight = {
+            format = "{icon}";
+            format-icons = [
+              "󰋙"
+              "󰫃"
+              "󰫄"
+              "󰫅"
+              "󰫆"
+              "󰫇"
+              "󰫈"
+            ];
+            on-scroll-up = "brightnessctl s 1%-";
+            on-scroll-down = "brightnessctl s +1%";
+          };
+          tray = {
+            icon-size = 13;
+            tooltip = false;
+            spacing = 10;
+          };
+          network = {
+            interval = 1;
+            format-wifi = "󰖩";
+            format-ethernet = "󰈀";
+            format-linked = "󰈁";
+            format-disconnected = "";
+            on-click-right = "${pkgs.networkmanagerapplet}/bin/nm-connection-editor";
+            # tooltip-format = ''
+            #   <big>Network Details</big>
+            #   <tt><small>Interface: {ifname}</small></tt>
+            #   <tt><small>IP: {ipaddr}/{cidr}</small></tt>
+            #   <tt><small>Gateway: {gwaddr}</small></tt>
+            #   <tt><small>󰜷 {bandwidthUpBytes}\n󰜮 {bandwidthDownBytes}</small></tt>'';
+            tooltip-format = ''
+              <big>Network Details</big>
+              <small>
+              Interface: {ifname}
+              SSID: {essid}
+              IP Address: {ipaddr}/{cidr}
+              Gateway: {gwaddr}
+
+              󰜷 {bandwidthUpBytes} / 󰜮 {bandwidthDownBytes}
+              </small>'';
+
+          };
+          clock = {
+            format = "   {:%Y-%m-%d %H:%M:%S}";
+            interval = 1;
+            tooltip-format = ''
+              <big>{:%Y %B}</big>
+              <tt><small>{calendar}</small></tt>'';
+          };
+          pulseaudio = {
+            format = "{icon}   {volume}%";
+            tooltip = false;
+            format-muted = "  Muted";
+            on-click = "pamixer -t";
+            on-scroll-up = "pamixer -i 5";
+            on-scroll-down = "pamixer -d 5";
+            scroll-step = 5;
+            format-icons = {
+              headphone = "";
+              hands-free = "";
+              headset = "";
+              phone = "";
+              portable = "";
+              car = "";
+              default = [
+                ""
+                ""
+                ""
+              ];
+            };
+          };
+          "pulseaudio#microphone" = {
+            format = "{format_source}";
+            tooltip = false;
+            format-source = " {volume}%";
+            format-source-muted = " Muted";
+            on-click = "pamixer --default-source -t";
+            on-scroll-up = "pamixer --default-source -i 5";
+            on-scroll-down = "pamixer --default-source -d 5";
+            scroll-step = 5;
+          };
+        }
+      ];
     };
 
     home.packages = with pkgs; [

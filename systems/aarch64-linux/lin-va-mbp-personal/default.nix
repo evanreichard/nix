@@ -40,10 +40,7 @@ in
 
     services = {
       avahi = enabled;
-      printing = {
-        enable = true;
-        drivers = [ pkgs.gutenprint ];
-      };
+      printing = enabled;
       tailscale = enabled;
       ydotool = enabled;
     };

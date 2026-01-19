@@ -1,4 +1,9 @@
-{ pkgs, lib, config, namespace, ... }:
+{ pkgs
+, lib
+, config
+, namespace
+, ...
+}:
 let
   inherit (lib) mkIf mkEnableOption;
 
@@ -11,7 +16,9 @@ in
 
   config = mkIf cfg.enable {
     home.packages = with pkgs; [
+      darktable
       gimp-with-plugins
+      gthumb
     ];
   };
 }
