@@ -75,7 +75,7 @@ in
   # Kubernetes Secrets
   sops.secrets = lib.mkIf osConfig.${namespace}.security.sops.enable {
     rke2_kubeconfig = {
-      path = "${config.home.homeDirectory}/.kube/rke2";
+      path = "${config.home.homeDirectory}/.kube/lin-va-kube";
     };
   };
 }
