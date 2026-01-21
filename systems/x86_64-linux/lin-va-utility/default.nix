@@ -3,7 +3,7 @@ let
   inherit (lib.${namespace}) enabled;
 in
 {
-  system.stateVersion = "24.11";
+  system.stateVersion = "25.05";
   time.timeZone = "America/New_York";
 
   reichard = {
@@ -12,20 +12,37 @@ in
     system = {
       boot = {
         enable = true;
+        enableGrub = false;
+        enableSystemd = true;
         silentBoot = true;
       };
-      networking = enabled;
+
+      disk = {
+        enable = true;
+        diskPath = "/dev/disk/by-id/nvme-KINGSTON_SA2000M8250G_50026B768429D3EB";
+      };
+
+      networking = {
+        enable = true;
+        useStatic = {
+          interface = "eno1";
+          address = "10.0.20.50";
+          defaultGateway = "10.0.20.254";
+          nameservers = [ "10.0.20.20" ];
+        };
+      };
     };
 
     hardware = {
       opengl = {
         enable = true;
-        enable32Bit = true; # Necessary?
+        enable32Bit = true;
         enableIntel = true;
       };
     };
 
     services = {
+      openssh = enabled;
       avahi = enabled;
       ydotool = enabled;
     };

@@ -1,4 +1,9 @@
-{ config, lib, pkgs, namespace, ... }:
+{ config
+, lib
+, pkgs
+, namespace
+, ...
+}:
 let
   inherit (lib) mkIf mkForce;
   inherit (lib.${namespace}) mkBoolOpt;
@@ -16,12 +21,14 @@ in
   config = mkIf cfg.enable {
     services.xserver.videoDrivers = mkIf cfg.enableNvidia [ "nvidia" ];
 
-    environment.systemPackages = with pkgs; [
-      libva-utils
-      vdpauinfo
-    ] ++ lib.optionals (cfg.enableNvidia || cfg.enableIntel) [
-      nvtopPackages.full
-    ];
+    environment.systemPackages =
+      with pkgs;
+      [
+        libva-utils
+        vdpauinfo
+      ]
+      ++ lib.optional cfg.enableNvidia nvtopPackages.nvidia
+      ++ lib.optional cfg.enableIntel nvtopPackages.intel;
 
     # Enable Nvidia Hardware
     hardware.nvidia = mkIf cfg.enableNvidia {
@@ -38,14 +45,16 @@ in
       enable = true;
       enable32Bit = cfg.enable32Bit;
 
-      extraPackages = with pkgs;
+      extraPackages =
+        with pkgs;
         lib.optionals cfg.enableIntel [
           libvdpau-va-gl
           intel-vaapi-driver
           intel-media-driver
           intel-compute-runtime
           intel-ocl
-        ] ++ lib.optionals cfg.enableNvidia [
+        ]
+        ++ lib.optionals cfg.enableNvidia [
           cudatoolkit
         ];
     };

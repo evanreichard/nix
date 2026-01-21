@@ -9,7 +9,7 @@ let
   inherit (lib.${namespace}) enabled;
 in
 {
-  home.stateVersion = "24.11";
+  home.stateVersion = "25.05";
 
   reichard = {
     user = {
@@ -55,10 +55,6 @@ in
         color-scheme = "prefer-dark";
         cursor-theme = "catppuccin-macchiato-mauve-cursors";
         cursor-size = 24;
-        # enable-hot-corners = false;
-        # font-name = osConfig.${namespace}.system.fonts.default;
-        # gtk-theme = cfg.theme.name;
-        # icon-theme = cfg.icon.name;
       };
     };
   };

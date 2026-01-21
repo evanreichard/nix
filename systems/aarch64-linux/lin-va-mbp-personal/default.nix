@@ -14,6 +14,8 @@ in
   system.stateVersion = "25.11";
   time.timeZone = "America/New_York";
 
+  programs.firejail.enable = true;
+
   # System Config
   reichard = {
     nix = enabled;
