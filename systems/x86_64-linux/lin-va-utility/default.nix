@@ -42,9 +42,13 @@ in
     };
 
     services = {
-      openssh = enabled;
       avahi = enabled;
+      openssh = enabled;
       ydotool = enabled;
+      octoprint = {
+        enable = true;
+        openFirewall = true;
+      };
     };
 
     virtualisation = {

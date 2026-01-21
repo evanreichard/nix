@@ -55,6 +55,10 @@ in
     };
   };
 
+  home.packages = with pkgs; [
+    orca-slicer
+  ];
+
   dconf = {
     settings = {
       "org/gnome/desktop/interface" = {
