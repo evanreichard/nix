@@ -155,6 +155,9 @@ setup_lsp("lua_ls", {
 	filetypes = { "lua" },
 })
 
+-- Unison LSP Configuration
+setup_lsp("unison")
+
 -- Lua LSP Configuration
 setup_lsp("sqls", {
 	cmd = { nix_vars.sqls },

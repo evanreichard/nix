@@ -12,6 +12,7 @@ in
 {
   options.${namespace}.virtualisation.podman = {
     enable = lib.mkEnableOption "podman";
+    enableNvidia = lib.mkEnableOption "enable nvidia";
   };
 
   config = mkIf cfg.enable {
@@ -28,6 +29,8 @@ in
         ];
       };
     };
+
+    hardware.nvidia-container-toolkit.enable = mkIf cfg.enableNvidia true;
 
     virtualisation = {
       podman = {

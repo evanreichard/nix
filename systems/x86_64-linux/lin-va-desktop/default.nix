@@ -87,7 +87,10 @@ in
     };
 
     virtualisation = {
-      podman = enabled;
+      podman = {
+        enable = true;
+        enableNvidia = true;
+      };
     };
 
     security = {

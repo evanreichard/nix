@@ -7,6 +7,33 @@ let
 in
 {
   models = {
+    # docker run --device=nvidia.com/gpu=all -v ~/.cache/huggingface:/root/.cache/huggingface -p 0.0.0.0:8081:8000 --ipc=host vllm/vllm-openai:latest --model Qwen/Qwen3-0.6B
+    # docker run --device=nvidia.com/gpu=all -v /mnt/ssd/vLLM:/root/.cache/huggingface -p 0.0.0.0:8081:8000 --ipc=host vllm/vllm-openai:latest --model cyankiwi/Devstral-Small-2-24B-Instruct-2512-AWQ-4bit --max-model-len 60000 --kv-cache-dtype fp8_e4m3
+
+    # https://huggingface.co/unsloth/GLM-4.7-Flash-GGUF/tree/main
+    "glm-4.7-flash" = {
+      name = "GLM 4.7 Flash (30B) - Thinking";
+      macros.ctx = "80000";
+      cmd = ''
+        ${llama-cpp}/bin/llama-server \
+          --port ''${PORT} \
+          -m /mnt/ssd/Models/GLM/GLM-4.7-Flash-UD-Q4_K_XL.gguf \
+          -c ''${ctx} \
+          --jinja \
+          --threads -1 \
+          --temp 0.2 \
+          --top-k 50 \
+          --top-p 0.95 \
+          --min-p 0.01 \
+          --dry-multiplier 1.1 \
+          -fit off
+      '';
+      metadata = {
+        type = [ "text-generation" ];
+      };
+      env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
+    };
+
     # https://huggingface.co/unsloth/Devstral-Small-2-24B-Instruct-2512-GGUF/tree/main
     "devstral-small-2-instruct" = {
       name = "Devstral Small 2 (24B) - Instruct";
