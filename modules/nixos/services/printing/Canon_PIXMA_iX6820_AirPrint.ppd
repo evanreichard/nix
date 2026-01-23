@@ -24,7 +24,7 @@
 *Manufacturer: "Canon"
 *NickName: "Canon PIXMA iX6820-AirPrint"
 *Throughput: 12
-*APSupplies: "http://954290000000.local/index.html?PAGE_AAP"
+*APSupplies: "http://10.0.60.45/index.html?PAGE_AAP"
 *cupsSingleFile: True
 *cupsFilter2: "image/jpeg image/jpeg 0 maxsize(12582912) -"
 *cupsFilter: "image/jpeg 0 -"

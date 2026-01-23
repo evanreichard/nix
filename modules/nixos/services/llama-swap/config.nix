@@ -21,11 +21,9 @@ in
           -c ''${ctx} \
           --jinja \
           --threads -1 \
-          --temp 0.2 \
-          --top-k 50 \
-          --top-p 0.95 \
+          --temp 0.7 \
+          --top-p 1.0 \
           --min-p 0.01 \
-          --dry-multiplier 1.1 \
           -fit off
       '';
       metadata = {

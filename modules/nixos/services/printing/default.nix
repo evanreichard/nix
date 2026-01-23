@@ -1,8 +1,9 @@
-{ config
-, lib
-, pkgs
-, namespace
-, ...
+{
+  config,
+  lib,
+  pkgs,
+  namespace,
+  ...
 }:
 let
   inherit (lib) mkIf mkEnableOption;
@@ -21,7 +22,7 @@ in
         {
           name = "Canon_PIXMA_iX6820";
           location = "Home";
-          deviceUri = "ipp://954290000000.local:631/ipp/print";
+          deviceUri = "ipp://10.0.60.45:631/ipp/print";
           model = "Canon_PIXMA_iX6820.ppd";
           ppdOptions = {
             PageSize = "4x6.Fullbleed";
