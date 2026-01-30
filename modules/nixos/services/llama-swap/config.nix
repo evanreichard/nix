@@ -463,6 +463,7 @@ in
         "hf:meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8"
         "hf:MiniMaxAI/MiniMax-M2"
         "hf:MiniMaxAI/MiniMax-M2.1"
+        "hf:moonshotai/Kimi-K2.5"
         "hf:moonshotai/Kimi-K2-Instruct-0905"
         "hf:moonshotai/Kimi-K2-Thinking"
         "hf:openai/gpt-oss-120b"

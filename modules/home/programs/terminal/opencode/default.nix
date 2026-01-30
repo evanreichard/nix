@@ -31,6 +31,9 @@ in
         reviewer = ./config/agents/reviewer.md;
         agent-creator = ./config/agents/agent-creator.md;
       };
+      commands = {
+        commit = ./config/commands/commit.md;
+      };
     };
 
     # Define OpenCode Configuration
