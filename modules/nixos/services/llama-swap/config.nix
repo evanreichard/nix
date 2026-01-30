@@ -13,7 +13,7 @@ in
     # https://huggingface.co/unsloth/GLM-4.7-Flash-GGUF/tree/main
     "glm-4.7-flash" = {
       name = "GLM 4.7 Flash (30B) - Thinking";
-      macros.ctx = "80000";
+      macros.ctx = "202752";
       cmd = ''
         ${llama-cpp}/bin/llama-server \
           --port ''${PORT} \
@@ -24,7 +24,9 @@ in
           --temp 0.7 \
           --top-p 1.0 \
           --min-p 0.01 \
-          -fit off
+          --repeat-penalty 1.0 \
+          -fit off \
+          -dev CUDA0
       '';
       metadata = {
         type = [ "text-generation" ];
