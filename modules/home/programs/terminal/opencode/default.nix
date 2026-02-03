@@ -2,14 +2,13 @@
 , pkgs
 , config
 , namespace
-, osConfig
 , ...
 }:
 let
   inherit (lib) mkIf;
 
   helpers = import ./lib.nix { inherit lib; };
-  llamaSwapConfig = osConfig.${namespace}.services.llama-swap.config or { };
+  llamaSwapConfig = import ./../../../../nixos/services/llama-swap/config.nix { inherit pkgs; };
 
   cfg = config.${namespace}.programs.terminal.opencode;
 in

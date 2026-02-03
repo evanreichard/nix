@@ -32,6 +32,10 @@ in
         opencode = enabled;
       };
     };
+
+    security = {
+      sops = enabled;
+    };
   };
 
   # Global Packages
@@ -40,7 +44,5 @@ in
   home.packages = with pkgs; [
     colima
     docker
-    reichard.qwen-code
-    codex
   ];
 }

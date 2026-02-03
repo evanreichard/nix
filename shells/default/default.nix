@@ -20,6 +20,8 @@ pkgs.mkShell {
 
   buildInputs = with pkgs; [
     rsync
+    age
+    ssh-to-age
     sync-repo
   ];
 

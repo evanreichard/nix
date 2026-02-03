@@ -3,10 +3,11 @@ keys:
   - &admin_reichard age1sac93wpnjcv62s7583jv6a4yspndh6k0r25g3qx3k7gq748uvafst6nz4w
 
   # User SSH Derived
-  - &user_lin-va-mbp-personal age17ayje4uv2mhwehhp9jr3u9l0ds07396kt7ef40sufx89vm7cgfjq6d5d4y
-  - &user_mac-va-mbp-personal age1dccte7xtwswgef089nd80dutp96xnezx5lrqnneh9cusegsnda8sj3dj6c
-  - &user_lin-va-thinkpad age1avlhszrryt4gf4ya536jhzm7qwt9xfttm8x4sns6h9w2tahzqp8sspz9y5
   - &user_lin-va-desktop age15hdlen5dgjvdfgg2j0uzvchs5vs3xuptkhsw9xeuatcuk6uwrvcsz7hcsg
+  - &user_lin-va-mbp-personal age17ayje4uv2mhwehhp9jr3u9l0ds07396kt7ef40sufx89vm7cgfjq6d5d4y
+  - &user_lin-va-thinkpad age1avlhszrryt4gf4ya536jhzm7qwt9xfttm8x4sns6h9w2tahzqp8sspz9y5
+  - &user_mac-va-mbp-personal age1dccte7xtwswgef089nd80dutp96xnezx5lrqnneh9cusegsnda8sj3dj6c
+  - &user_mac-va-mbp-work age1jf7yuycuajc5m8vupgrndjvw8knekr2v9979j68xc5ykvcxag4lss454au
 
   # System SSH Derived
   - &system_lin-va-desktop age1mxjrvjxkn69kfn2np3wpd73g44fuhsgykw7l5ss9rx30em5jfp2scnrq32
@@ -29,3 +30,4 @@ creation_rules:
           - *user_lin-va-mbp-personal
           - *user_lin-va-thinkpad
           - *user_mac-va-mbp-personal
+          - *user_mac-va-mbp-work
