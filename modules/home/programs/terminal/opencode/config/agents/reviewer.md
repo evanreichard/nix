@@ -26,6 +26,7 @@ You review code implementations.
 1. Check `git status` - if uncommitted changes, stop and tell @developer to commit
 2. Review latest commit with `git show`
 3. Read full files only if needed for context
+4. Do NOT run tests - you only review code
 
 **Response format:**
 

@@ -28,13 +28,20 @@ You implement code. You're the only agent that modifies files.
 1. Read the plan file
 2. Read the specific files/lines mentioned in context maps
 3. Read incrementally if needed (imports, function definitions, etc.)
-4. Implement changes
+4. Implement changes and accompanying tests
 5. Commit:
    ```bash
    git add -A
    git commit -m "type: description"
    ```
    Types: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`
+
+**Testing Requirements:**
+
+- All tests must pass before committing
+- Never ignore or skip failing tests
+- If tests fail: either fix the code or fix the test
+- Run tests after implementation to verify
 
 **Rules:**
 

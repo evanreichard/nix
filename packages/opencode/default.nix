@@ -7,23 +7,24 @@
 , models-dev
 , nix-update-script
 , ripgrep
-, testers
+, installShellFiles
+, versionCheckHook
 , writableTmpDirAsHomeHook
 ,
 }:
-let
+stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "opencode";
-  version = "1.1.12";
+  version = "1.1.48";
   src = fetchFromGitHub {
     owner = "anomalyco";
     repo = "opencode";
-    tag = "v${version}";
-    hash = "sha256-k6wRBtWFwyLWJ6R0el3dY/nBlg2t+XkTpsuEseLXp+E=";
+    tag = "v${finalAttrs.version}";
+    hash = "sha256-zKkeJSsxEuhucQkWBHxLR7tCTu86q2p6neRST2g/1hA="; # "sha256-RTj64yrVLTFNpVc8MvPAJISOlBo/j2MnuL5jo4VtKWM=";
   };
 
   node_modules = stdenvNoCC.mkDerivation {
-    pname = "${pname}-node_modules";
-    inherit version src;
+    pname = "${finalAttrs.pname}-node_modules";
+    inherit (finalAttrs) version src;
 
     impureEnvVars = lib.fetchers.proxyImpureEnvVars ++ [
       "GIT_PROXY_COMMAND"
@@ -40,20 +41,17 @@ let
     buildPhase = ''
       runHook preBuild
 
-      export BUN_INSTALL_CACHE_DIR=$(mktemp -d)
-
       bun install \
         --cpu="*" \
-        --filter=./packages/opencode \
-        --force \
         --frozen-lockfile \
+        --filter ./packages/opencode \
+        --filter ./packages/desktop \
         --ignore-scripts \
         --no-progress \
-        --os="*" \
-        --production
+        --os="*"
 
-      bun run ./nix/scripts/canonicalize-node-modules.ts
-      bun run ./nix/scripts/normalize-bun-binaries.ts
+      bun --bun ./nix/scripts/canonicalize-node-modules.ts
+      bun --bun ./nix/scripts/normalize-bun-binaries.ts
 
       runHook postBuild
     '';
@@ -62,12 +60,7 @@ let
       runHook preInstall
 
       mkdir -p $out
-      while IFS= read -r dir; do
-        rel="''${dir#./}"
-        dest="$out/$rel"
-        mkdir -p "$(dirname "$dest")"
-        cp -R "$dir" "$dest"
-      done < <(find . -type d -name node_modules -prune | sort)
+      find . -type d -name node_modules -exec cp -R --parents {} $out \;
 
       runHook postInstall
     '';
@@ -75,34 +68,35 @@ let
     # NOTE: Required else we get errors that our fixed-output derivation references store paths
     dontFixup = true;
 
-    outputHash = "sha256-vRIWQt02VljcoYG3mwJy8uCihSTB/OLypyw+vt8LuL8=";
+    outputHash = "sha256-aQScGeakRanvH1LxizXrWA17YOmJJfRuypX4Jau4zQw="; # "sha256-37pmIiJzPEWeA7+5u5lz39vlFPI+N13Qw9weHrAaGW4=";
     outputHashAlgo = "sha256";
     outputHashMode = "recursive";
   };
-in
-stdenvNoCC.mkDerivation (finalAttrs: {
-  inherit
-    pname
-    version
-    src
-    node_modules
-    ;
 
   nativeBuildInputs = [
     bun
+    installShellFiles
     makeBinaryWrapper
     models-dev
+    writableTmpDirAsHomeHook
   ];
 
   patches = [
-    ./relax-bun-version-check.patch # NOTE: Relax Bun version check to be a warning instead of an error
+    ./remove-special-and-windows-build-targets.patch # NOTE: Remove special and windows build targes
     ./root_fix.patch # https://github.com/anomalyco/opencode/pull/7691
   ];
+
+  postPatch = ''
+    # NOTE: Relax Bun version check to be a warning instead of an error
+    substituteInPlace packages/script/src/index.ts \
+      --replace-fail 'throw new Error(`This script requires bun@''${expectedBunVersionRange}' \
+                     'console.warn(`Warning: This script requires bun@''${expectedBunVersionRange}'
+  '';
 
   configurePhase = ''
     runHook preConfigure
 
-    cp -R ${node_modules}/. .
+    cp -R ${finalAttrs.node_modules}/. .
 
     runHook postConfigure
   '';
@@ -113,13 +107,6 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
   preBuild = ''
     chmod -R u+w ./packages/opencode/node_modules
-    pushd ./packages/opencode/node_modules/@parcel/
-      for pkg in ../../../../node_modules/.bun/@parcel+watcher-*; do
-        linkName=$(basename "$pkg" | sed 's/@.*+\(.*\)@.*/\1/')
-        ln -sf "$pkg/node_modules/@parcel/$linkName" "$linkName"
-      done
-    popd
-
     pushd ./packages/opencode/node_modules/@opentui/
       for pkg in ../../../../node_modules/.bun/@opentui+core-*; do
         linkName=$(basename "$pkg" | sed 's/@.*+\(.*\)@.*/\1/')
@@ -131,74 +118,47 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   buildPhase = ''
     runHook preBuild
 
-
     cd ./packages/opencode
-    cp ${./bundle.ts} ./bundle.ts
-    bun run ./bundle.ts
+    bun --bun ./script/build.ts --single --skip-install
+    bun --bun ./script/schema.ts schema.json
 
     runHook postBuild
   '';
 
-  dontStrip = true;
-
   installPhase = ''
     runHook preInstall
 
-    mkdir -p $out/lib/opencode
-    # Copy the bundled dist directory
-    cp -r dist $out/lib/opencode/
-
-    # Fix WASM paths in worker.ts - use absolute paths to the installed location
-    # Main wasm is tree-sitter-<hash>.wasm, language wasms are tree-sitter-<lang>-<hash>.wasm
-    main_wasm=$(find "$out/lib/opencode/dist" -maxdepth 1 -name 'tree-sitter-[a-z0-9]*.wasm' -print -quit)
-
-    substituteInPlace $out/lib/opencode/dist/worker.ts \
-      --replace-fail 'module2.exports = "../../../tree-sitter-' 'module2.exports = "'"$out"'/lib/opencode/dist/tree-sitter-' \
-      --replace-fail 'new URL("tree-sitter.wasm", import.meta.url).href' "\"$main_wasm\""
-
-    # Copy only the native modules we need (marked as external in bundle.ts)
-    mkdir -p $out/lib/opencode/node_modules/.bun
-    mkdir -p $out/lib/opencode/node_modules/@opentui
-
-    # Copy @opentui/core platform-specific packages
-    for pkg in ../../node_modules/.bun/@opentui+core-*; do
-      if [ -d "$pkg" ]; then
-        cp -r "$pkg" $out/lib/opencode/node_modules/.bun/$(basename "$pkg")
-      fi
-    done
-
-    mkdir -p $out/bin
-    makeWrapper ${lib.getExe bun} $out/bin/opencode \
-      --add-flags "run" \
-      --add-flags "$out/lib/opencode/dist/index.js" \
-      --prefix PATH : ${
-        lib.makeBinPath [
-          fzf
-          ripgrep
-        ]
-      } \
-      --argv0 opencode
+    install -Dm755 dist/opencode-*/bin/opencode $out/bin/opencode
+    install -Dm644 schema.json $out/share/opencode/schema.json
 
     runHook postInstall
   '';
 
-  postInstall = ''
-    # Add symlinks for platform-specific native modules
-    for pkg in $out/lib/opencode/node_modules/.bun/@opentui+core-*; do
-      if [ -d "$pkg" ]; then
-        pkgName=$(basename "$pkg" | sed 's/@opentui+\(core-[^@]*\)@.*/\1/')
-        ln -sf ../.bun/$(basename "$pkg")/node_modules/@opentui/$pkgName \
-               $out/lib/opencode/node_modules/@opentui/$pkgName
-      fi
-    done
+  postInstall = lib.optionalString (stdenvNoCC.buildPlatform.canExecute stdenvNoCC.hostPlatform) ''
+    installShellCompletion --cmd opencode \
+      --bash <($out/bin/opencode completion)
   '';
 
+  postFixup = ''
+    wrapProgram $out/bin/opencode \
+     --prefix PATH : ${
+       lib.makeBinPath [
+         fzf
+         ripgrep
+       ]
+     }
+  '';
+
+  nativeInstallCheckInputs = [
+    versionCheckHook
+    writableTmpDirAsHomeHook
+  ];
+  doInstallCheck = true;
+  versionCheckKeepEnvironment = [ "HOME" ];
+  versionCheckProgramArg = "--version";
+
   passthru = {
-    tests.version = testers.testVersion {
-      package = finalAttrs.finalPackage;
-      command = "HOME=$(mktemp -d) opencode --version";
-      inherit (finalAttrs) version;
-    };
+    jsonschema = "${placeholder "out"}/share/opencode/schema.json";
     updateScript = nix-update-script {
       extraArgs = [
         "--subpackage"
@@ -209,13 +169,13 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
   meta = {
     description = "AI coding agent built for the terminal";
-    longDescription = ''
-      OpenCode is a terminal-based agent that can build anything.
-      It combines a TypeScript/JavaScript core with a Go-based TUI
-      to provide an interactive AI coding experience.
-    '';
-    homepage = "https://github.com/sst/opencode";
+    homepage = "https://github.com/anomalyco/opencode";
     license = lib.licenses.mit;
+    maintainers = with lib.maintainers; [
+      delafthi
+      graham33
+    ];
+    sourceProvenance = with lib.sourceTypes; [ fromSource ];
     platforms = [
       "aarch64-linux"
       "x86_64-linux"

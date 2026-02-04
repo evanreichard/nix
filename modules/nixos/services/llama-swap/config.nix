@@ -19,8 +19,8 @@ in
           --port ''${PORT} \
           -m /mnt/ssd/Models/GLM/GLM-4.7-Flash-UD-Q4_K_XL.gguf \
           -c ''${ctx} \
+          -ctk q8_0 \
           --jinja \
-          --threads -1 \
           --temp 0.7 \
           --top-p 1.0 \
           --min-p 0.01 \
@@ -33,6 +33,11 @@ in
       };
       env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
     };
+
+    # --spec-type ngram-mod \
+    # --spec-ngram-size-n 24 \
+    # --draft-min 48 \
+    # --draft-max 64 \
 
     # https://huggingface.co/unsloth/Devstral-Small-2-24B-Instruct-2512-GGUF/tree/main
     "devstral-small-2-instruct" = {
