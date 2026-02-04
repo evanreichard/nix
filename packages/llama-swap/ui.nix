@@ -12,7 +12,7 @@ buildNpmPackage (finalAttrs: {
       --replace-fail "../proxy/ui_dist" "${placeholder "out"}/ui_dist"
   '';
 
-  sourceRoot = "${finalAttrs.src.name}/ui";
+  sourceRoot = "${finalAttrs.src.name}/ui-svelte";
 
   # bundled "ui_dist" doesn't need node_modules
   postInstall = ''
