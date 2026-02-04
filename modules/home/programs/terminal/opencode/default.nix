@@ -41,7 +41,7 @@ in
         sopsFile = lib.snowfall.fs.get-file "secrets/common/evanreichard.yaml";
       };
       templates."opencode.json" = {
-        path = ".config/opencode/opencode.json";
+        path = "${config.home.homeDirectory}/.config/opencode/opencode.json";
         content = builtins.toJSON {
           "$schema" = "https://opencode.ai/config.json";
           theme = "catppuccin";

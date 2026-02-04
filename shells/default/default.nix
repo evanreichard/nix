@@ -19,8 +19,10 @@ pkgs.mkShell {
   name = "reichard-dev";
 
   buildInputs = with pkgs; [
-    rsync
     age
+    git
+    home-manager
+    rsync
     ssh-to-age
     sync-repo
   ];

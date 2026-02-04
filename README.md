@@ -87,10 +87,8 @@ fi
 4. Edit file
 
 ```bash
-# Ensure Config
-mkdir -p ~/.config/sops/age
-
 # Convert SSH to Age
+mkdir -p ~/.config/sops/age
 ssh-to-age -private-key -i $HOME/.ssh/id_ed25519 -o ~/.config/sops/age/keys.txt
 
 # Get Public Key

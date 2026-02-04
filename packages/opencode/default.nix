@@ -1,25 +1,29 @@
 { lib
+, inputs
+, system
 , stdenvNoCC
-, bun
 , fetchFromGitHub
-, fzf
 , makeBinaryWrapper
 , models-dev
 , nix-update-script
 , ripgrep
+, sysctl
 , installShellFiles
 , versionCheckHook
 , writableTmpDirAsHomeHook
 ,
 }:
+let
+  bun = inputs.nixpkgs-unstable.legacyPackages.${system}.bun;
+in
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "opencode";
-  version = "1.1.48";
+  version = "1.1.51";
   src = fetchFromGitHub {
     owner = "anomalyco";
     repo = "opencode";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-zKkeJSsxEuhucQkWBHxLR7tCTu86q2p6neRST2g/1hA="; # "sha256-RTj64yrVLTFNpVc8MvPAJISOlBo/j2MnuL5jo4VtKWM=";
+    hash = "sha256-i9KR5n6bT0p7xLErlgaq2TAj/B7ZbLd9a+4Czg8q/cI=";
   };
 
   node_modules = stdenvNoCC.mkDerivation {
@@ -68,7 +72,11 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     # NOTE: Required else we get errors that our fixed-output derivation references store paths
     dontFixup = true;
 
-    outputHash = "sha256-aQScGeakRanvH1LxizXrWA17YOmJJfRuypX4Jau4zQw="; # "sha256-37pmIiJzPEWeA7+5u5lz39vlFPI+N13Qw9weHrAaGW4=";
+    outputHash =
+      if stdenvNoCC.hostPlatform.isDarwin then
+        "sha256-DChoXNWJFlyyAqeiR06BQMLITwVQXy0wvQs58l0d1Xc="
+      else
+        "sha256-zkinMkPR1hCBbB5BIuqozQZDpjX4eiFXjM6lpwUx1fM=";
     outputHashAlgo = "sha256";
     outputHashMode = "recursive";
   };
@@ -82,16 +90,8 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   ];
 
   patches = [
-    ./remove-special-and-windows-build-targets.patch # NOTE: Remove special and windows build targes
     ./root_fix.patch # https://github.com/anomalyco/opencode/pull/7691
   ];
-
-  postPatch = ''
-    # NOTE: Relax Bun version check to be a warning instead of an error
-    substituteInPlace packages/script/src/index.ts \
-      --replace-fail 'throw new Error(`This script requires bun@''${expectedBunVersionRange}' \
-                     'console.warn(`Warning: This script requires bun@''${expectedBunVersionRange}'
-  '';
 
   configurePhase = ''
     runHook preConfigure
@@ -104,16 +104,6 @@ stdenvNoCC.mkDerivation (finalAttrs: {
   env.MODELS_DEV_API_JSON = "${models-dev}/dist/_api.json";
   env.OPENCODE_VERSION = finalAttrs.version;
   env.OPENCODE_CHANNEL = "stable";
-
-  preBuild = ''
-    chmod -R u+w ./packages/opencode/node_modules
-    pushd ./packages/opencode/node_modules/@opentui/
-      for pkg in ../../../../node_modules/.bun/@opentui+core-*; do
-        linkName=$(basename "$pkg" | sed 's/@.*+\(.*\)@.*/\1/')
-        ln -sf "$pkg/node_modules/@opentui/$linkName" "$linkName"
-      done
-    popd
-  '';
 
   buildPhase = ''
     runHook preBuild
@@ -129,6 +119,18 @@ stdenvNoCC.mkDerivation (finalAttrs: {
     runHook preInstall
 
     install -Dm755 dist/opencode-*/bin/opencode $out/bin/opencode
+    wrapProgram $out/bin/opencode \
+     --prefix PATH : ${
+       lib.makeBinPath (
+         [
+           ripgrep
+         ]
+         ++ lib.optionals stdenvNoCC.hostPlatform.isDarwin [
+           sysctl
+         ]
+       )
+     }
+
     install -Dm644 schema.json $out/share/opencode/schema.json
 
     runHook postInstall
@@ -136,17 +138,8 @@ stdenvNoCC.mkDerivation (finalAttrs: {
 
   postInstall = lib.optionalString (stdenvNoCC.buildPlatform.canExecute stdenvNoCC.hostPlatform) ''
     installShellCompletion --cmd opencode \
-      --bash <($out/bin/opencode completion)
-  '';
-
-  postFixup = ''
-    wrapProgram $out/bin/opencode \
-     --prefix PATH : ${
-       lib.makeBinPath [
-         fzf
-         ripgrep
-       ]
-     }
+      --bash <($out/bin/opencode completion) \
+      --zsh <(SHELL=/bin/zsh $out/bin/opencode completion)
   '';
 
   nativeInstallCheckInputs = [
