@@ -147,6 +147,29 @@ in
       env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
     };
 
+    # https://huggingface.co/unsloth/Qwen3-Coder-Next-GGUF/tree/main
+    "qwen3-coder-next-80b-instruct" = {
+      name = "Qwen3 Coder Next (80B) - Instruct";
+      macros.ctx = "262144";
+      cmd = ''
+        ${llama-cpp}/bin/llama-server \
+          --port ''${PORT} \
+          -m /mnt/ssd/Models/Qwen3/Qwen3-Coder-Next-UD-Q2_K_XL.gguf \
+          -c ''${ctx} \
+          --temp 1.0 \
+          --min-p 0.01 \
+          --top-p 0.95 \
+          --top-k 40 \
+          -ctk q8_0 \
+          -ctv q8_0 \
+          -fit off
+      '';
+      metadata = {
+        type = [ "text-generation" ];
+      };
+      env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
+    };
+
     # https://huggingface.co/unsloth/Qwen3-30B-A3B-Instruct-2507-GGUF/tree/main
     "qwen3-30b-2507-instruct" = {
       name = "Qwen3 2507 (30B) - Instruct";
