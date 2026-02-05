@@ -76,7 +76,7 @@ stdenvNoCC.mkDerivation (finalAttrs: {
       if stdenvNoCC.hostPlatform.isDarwin then
         "sha256-DChoXNWJFlyyAqeiR06BQMLITwVQXy0wvQs58l0d1Xc="
       else
-        "sha256-zkinMkPR1hCBbB5BIuqozQZDpjX4eiFXjM6lpwUx1fM=";
+        "sha256-tPDRjMcfGWC7TJaQHa3mt7PsZ6Gr5l4lMUOSXoozqoU=";
     outputHashAlgo = "sha256";
     outputHashMode = "recursive";
   };

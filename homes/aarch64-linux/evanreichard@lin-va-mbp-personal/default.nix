@@ -51,6 +51,7 @@ in
         k9s = enabled;
         nvim = enabled;
         opencode = enabled;
+        pi = enabled;
       };
     };
   };
