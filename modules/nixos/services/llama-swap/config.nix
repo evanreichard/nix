@@ -29,7 +29,10 @@ in
           -dev CUDA0
       '';
       metadata = {
-        type = [ "text-generation" ];
+        type = [
+          "text-generation"
+          "coding"
+        ];
       };
       env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
     };
@@ -56,7 +59,10 @@ in
           -dev CUDA0
       '';
       metadata = {
-        type = [ "text-generation" ];
+        type = [
+          "text-generation"
+          "coding"
+        ];
       };
       env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
     };
@@ -142,7 +148,10 @@ in
           -fit off
       '';
       metadata = {
-        type = [ "text-generation" ];
+        type = [
+          "text-generation"
+          "coding"
+        ];
       };
       env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
     };
@@ -165,7 +174,10 @@ in
           -fit off
       '';
       metadata = {
-        type = [ "text-generation" ];
+        type = [
+          "text-generation"
+          "coding"
+        ];
       };
       env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
     };
@@ -216,7 +228,10 @@ in
           -fit off
       '';
       metadata = {
-        type = [ "text-generation" ];
+        type = [
+          "text-generation"
+          "coding"
+        ];
       };
       env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
     };
@@ -261,7 +276,10 @@ in
           -fit off
       '';
       metadata = {
-        type = [ "text-generation" ];
+        type = [
+          "text-generation"
+          "coding"
+        ];
       };
       env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
     };
