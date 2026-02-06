@@ -41,6 +41,10 @@ in
         source = ./config/skills;
         recursive = true;
       };
+      ".pi/agent/prompts" = {
+        source = ./config/prompts;
+        recursive = true;
+      };
     };
   };
 }
