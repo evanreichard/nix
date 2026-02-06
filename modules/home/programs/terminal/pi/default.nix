@@ -24,13 +24,9 @@ in
     ];
 
     # Define Pi Configuration
-    sops = {
-      secrets.context7_apikey = {
-        sopsFile = lib.snowfall.fs.get-file "secrets/common/evanreichard.yaml";
-      };
-      templates."pi.json" = {
-        path = "${config.home.homeDirectory}/.pi/agent/models.json";
-        content = builtins.toJSON {
+    home.file = {
+      ".pi/agent/models.json" = {
+        text = builtins.toJSON {
           providers = {
             "llama-swap" = {
               baseUrl = "https://llm-api.va.reichard.io/v1";
@@ -40,6 +36,10 @@ in
             };
           };
         };
+      };
+      ".pi/agent/skills" = {
+        source = ./config/skills;
+        recursive = true;
       };
     };
   };
