@@ -7,26 +7,21 @@ let
 in
 {
   models = {
-    # docker run --device=nvidia.com/gpu=all -v ~/.cache/huggingface:/root/.cache/huggingface -p 0.0.0.0:8081:8000 --ipc=host vllm/vllm-openai:latest --model Qwen/Qwen3-0.6B
-    # docker run --device=nvidia.com/gpu=all -v /mnt/ssd/vLLM:/root/.cache/huggingface -p 0.0.0.0:8081:8000 --ipc=host vllm/vllm-openai:latest --model cyankiwi/Devstral-Small-2-24B-Instruct-2512-AWQ-4bit --max-model-len 60000 --kv-cache-dtype fp8_e4m3
-
     # https://huggingface.co/unsloth/GLM-4.7-Flash-GGUF/tree/main
     "glm-4.7-flash" = {
       name = "GLM 4.7 Flash (30B) - Thinking";
-      macros.ctx = "202752";
+      macros.ctx = "131072";
       cmd = ''
         ${llama-cpp}/bin/llama-server \
           --port ''${PORT} \
-          -m /mnt/ssd/Models/GLM/GLM-4.7-Flash-UD-Q4_K_XL.gguf \
+          -m /mnt/ssd/Models/GLM/GLM-4.7-Flash-UD-Q6_K_XL.gguf \
           -c ''${ctx} \
-          -ctk q8_0 \
-          --jinja \
           --temp 0.7 \
           --top-p 1.0 \
           --min-p 0.01 \
           --repeat-penalty 1.0 \
           -fit off \
-          -dev CUDA0
+          -ts 70,30
       '';
       metadata = {
         type = [
@@ -34,29 +29,22 @@ in
           "coding"
         ];
       };
-      env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
     };
-
-    # --spec-type ngram-mod \
-    # --spec-ngram-size-n 24 \
-    # --draft-min 48 \
-    # --draft-max 64 \
 
     # https://huggingface.co/unsloth/Devstral-Small-2-24B-Instruct-2512-GGUF/tree/main
     "devstral-small-2-instruct" = {
       name = "Devstral Small 2 (24B) - Instruct";
-      macros.ctx = "98304";
+      macros.ctx = "131072";
       cmd = ''
         ${llama-cpp}/bin/llama-server \
           --port ''${PORT} \
-          -m /mnt/ssd/Models/Devstral/Devstral-Small-2-24B-Instruct-2512-UD-Q4_K_XL.gguf \
-          --chat-template-file /mnt/ssd/Models/Devstral/Devstral-Small-2-24B-Instruct-2512-UD-Q4_K_XL_template.jinja \
+          -m /mnt/ssd/Models/Devstral/Devstral-Small-2-24B-Instruct-2512-UD-Q6_K_XL.gguf \
           --temp 0.15 \
           -c ''${ctx} \
           -ctk q8_0 \
           -ctv q8_0 \
           -fit off \
-          -dev CUDA0
+          -ts 75,25
       '';
       metadata = {
         type = [
@@ -64,7 +52,6 @@ in
           "coding"
         ];
       };
-      env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
     };
 
     # https://huggingface.co/unsloth/GLM-4-32B-0414-GGUF/tree/main
@@ -86,7 +73,6 @@ in
       metadata = {
         type = [ "text-generation" ];
       };
-      env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
     };
 
     # https://huggingface.co/mradermacher/gpt-oss-20b-heretic-v2-i1-GGUF/tree/main
@@ -106,7 +92,6 @@ in
       metadata = {
         type = [ "text-generation" ];
       };
-      env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
     };
 
     # https://huggingface.co/mradermacher/GPT-OSS-Cybersecurity-20B-Merged-i1-GGUF/tree/main
@@ -126,7 +111,6 @@ in
       metadata = {
         type = [ "text-generation" ];
       };
-      env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
     };
 
     # https://huggingface.co/unsloth/Qwen3-Next-80B-A3B-Instruct-GGUF/tree/main
@@ -153,33 +137,32 @@ in
           "coding"
         ];
       };
-      env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
     };
 
     # https://huggingface.co/unsloth/Qwen3-Coder-Next-GGUF/tree/main
     "qwen3-coder-next-80b-instruct" = {
       name = "Qwen3 Coder Next (80B) - Instruct";
-      macros.ctx = "262144";
+      macros.ctx = "131072";
       cmd = ''
         ${llama-cpp}/bin/llama-server \
           --port ''${PORT} \
-          -m /mnt/ssd/Models/Qwen3/Qwen3-Coder-Next-UD-Q2_K_XL.gguf \
+          -m /mnt/ssd/Models/Qwen3/Qwen3-Coder-Next-UD-Q4_K_XL.gguf \
           -c ''${ctx} \
           --temp 1.0 \
-          --min-p 0.01 \
           --top-p 0.95 \
+          --min-p 0.01 \
           --top-k 40 \
-          -ctk q8_0 \
-          -ctv q8_0 \
-          -fit off
+          -fit off \
+          -ncmoe 18 \
+          -ts 78,22
       '';
+
       metadata = {
         type = [
           "text-generation"
           "coding"
         ];
       };
-      env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
     };
 
     # https://huggingface.co/unsloth/Qwen3-30B-A3B-Instruct-2507-GGUF/tree/main
@@ -205,7 +188,6 @@ in
       metadata = {
         type = [ "text-generation" ];
       };
-      env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
     };
 
     # https://huggingface.co/unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF/tree/main
@@ -233,7 +215,6 @@ in
           "coding"
         ];
       };
-      env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
     };
 
     # https://huggingface.co/unsloth/Qwen3-30B-A3B-Thinking-2507-GGUF/tree/main
@@ -259,7 +240,6 @@ in
       metadata = {
         type = [ "text-generation" ];
       };
-      env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
     };
 
     # https://huggingface.co/unsloth/Nemotron-3-Nano-30B-A3B-GGUF/tree/main
@@ -281,7 +261,6 @@ in
           "coding"
         ];
       };
-      env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
     };
 
     # https://huggingface.co/unsloth/Qwen3-VL-8B-Instruct-GGUF/tree/main
@@ -306,7 +285,6 @@ in
       metadata = {
         type = [ "text-generation" ];
       };
-      env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
     };
 
     # https://huggingface.co/unsloth/Qwen2.5-Coder-7B-Instruct-128K-GGUF/tree/main
@@ -325,26 +303,6 @@ in
       metadata = {
         type = [ "text-generation" ];
       };
-      env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
-    };
-
-    # https://huggingface.co/unsloth/Qwen2.5-Coder-3B-Instruct-128K-GGUF/tree/main
-    "qwen2.5-coder-3b-instruct" = {
-      name = "Qwen2.5 Coder (3B) - Instruct";
-      macros.ctx = "131072";
-      cmd = ''
-        ${llama-cpp}/bin/llama-server \
-          -m /mnt/ssd/Models/Qwen2.5/Qwen2.5-Coder-3B-Instruct-Q8_0.gguf \
-          --fim-qwen-3b-default \
-          --port ''${PORT} \
-          -c ''${ctx} \
-          -fit off \
-          -dev CUDA1
-      '';
-      metadata = {
-        type = [ "text-generation" ];
-      };
-      env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
     };
 
     # https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF/tree/main
@@ -364,7 +322,6 @@ in
       metadata = {
         type = [ "text-generation" ];
       };
-      env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
     };
 
     # ---------------------------------------
@@ -388,7 +345,6 @@ in
       metadata = {
         type = [ "image-generation" ];
       };
-      env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
     };
 
     "qwen-image-edit-2511" = {
@@ -415,7 +371,6 @@ in
           "image-generation"
         ];
       };
-      env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
     };
 
     "qwen-image-2512" = {
@@ -438,7 +393,6 @@ in
       metadata = {
         type = [ "image-generation" ];
       };
-      env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
     };
 
     "chroma-radiance" = {
@@ -457,43 +411,6 @@ in
       metadata = {
         type = [ "image-generation" ];
       };
-      env = [ "GGML_CUDA_ENABLE_UNIFIED_MEMORY=1" ];
-    };
-  };
-
-  groups = {
-    shared = {
-      swap = true;
-      exclusive = false;
-      members = [
-        "nemotron-3-nano-30b-thinking"
-        "qwen3-30b-2507-instruct"
-        "qwen3-30b-2507-thinking"
-        "qwen3-coder-30b-instruct"
-        "qwen3-next-80b-instruct"
-      ];
-    };
-
-    cuda0 = {
-      swap = true;
-      exclusive = false;
-      members = [
-        "devstral-small-2-instruct"
-        "glm-4-32b-instruct"
-        "gpt-oss-20b-thinking"
-        "gpt-oss-csec-20b-thinking"
-      ];
-    };
-
-    cuda1 = {
-      swap = true;
-      exclusive = false;
-      members = [
-        "qwen2.5-coder-3b-instruct"
-        "qwen2.5-coder-7b-instruct"
-        "qwen3-4b-2507-instruct"
-        "qwen3-8b-vision"
-      ];
     };
   };
 

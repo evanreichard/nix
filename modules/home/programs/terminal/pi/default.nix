@@ -37,6 +37,9 @@ in
           };
         };
       };
+      ".pi/agent/AGENTS.md" = {
+        source = ./config/AGENTS.md;
+      };
       ".pi/agent/skills" = {
         source = ./config/skills;
         recursive = true;

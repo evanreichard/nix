@@ -1,10 +1,6 @@
 local llm_endpoint = "https://llm-api.va.reichard.io"
-local llm_assistant_model = "qwen3-coder-30b-instruct"
-local llm_infill_model = "qwen3-coder-30b-instruct"
-
--- local llm_assistant_model = "devstral-small-2-instruct"
--- local llm_infill_model = "qwen2.5-coder-3b-instruct"
-
+local llm_assistant_model = "qwen3-coder-next-80b-instruct"
+local llm_infill_model = llm_assistant_model
 
 local current_fim = "copilot" -- change this to switch default
 
