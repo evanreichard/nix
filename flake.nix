@@ -5,6 +5,7 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     disko.url = "github:nix-community/disko";
+    determinate.url = "github:determinatesystems/determinate";
     snowfall-lib = {
       url = "github:snowfallorg/lib";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -73,6 +74,7 @@
           ./modules/nixos/common
         ];
         darwin = with inputs; [
+          determinate.darwinModules.default
           home-manager.darwinModules.home-manager
           sops-nix.darwinModules.sops
         ];

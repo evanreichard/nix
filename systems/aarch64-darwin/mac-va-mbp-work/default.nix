@@ -7,7 +7,5 @@
     nixosVmBasedLinuxBuilder.enable = true;
   };
 
-  # System Config
-  reichard = {
-  };
+  reichard = { };
 }
