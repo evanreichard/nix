@@ -153,6 +153,8 @@ in
         # Tools
         ripgrep
         lazygit
+        git
+        gh
       ];
 
       extraConfig = ":luafile ~/.config/nvim/lua/init.lua";
