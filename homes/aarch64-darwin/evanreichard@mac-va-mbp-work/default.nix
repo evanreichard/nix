@@ -45,5 +45,6 @@ in
   home.packages = with pkgs; [
     colima
     docker
+    keycastr
   ];
 }
