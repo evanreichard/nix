@@ -22,6 +22,10 @@ in
       };
 
       terminal = {
+        bash = {
+          enable = true;
+          customFastFetchLogo = ./prophet.txt;
+        };
         aws = enabled;
         btop = enabled;
         claude-code = enabled;

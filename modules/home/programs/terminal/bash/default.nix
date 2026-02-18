@@ -5,13 +5,16 @@
 , ...
 }:
 let
-  inherit (lib) mkIf optionalAttrs;
+  inherit (lib.${namespace}) mkOpt;
+  inherit (lib) mkEnableOption mkIf optionalAttrs;
   inherit (pkgs.stdenv) isLinux isDarwin;
+
   cfg = config.${namespace}.programs.terminal.bash;
 in
 {
-  options.${namespace}.programs.terminal.bash = {
-    enable = lib.mkEnableOption "bash";
+  options.${namespace}.programs.terminal.bash = with lib.types; {
+    enable = mkEnableOption "bash";
+    customFastFetchLogo = mkOpt (nullOr path) null "custom fast fetch logo path";
   };
 
   config = mkIf cfg.enable {
@@ -76,7 +79,7 @@ in
       nerd-fonts.meslo-lg
     ];
 
-    home.file.".config/fastfetch/config.jsonc".text = builtins.readFile ./config/fastfetch.jsonc;
+    home.file.".config/fastfetch/config.jsonc".text = import ./config/fastfetch.nix { inherit cfg; };
     home.file.".sqliterc".text = builtins.readFile ./config/.sqliterc;
   };
 }
