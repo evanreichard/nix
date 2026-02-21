@@ -36,6 +36,7 @@ in
           prune = true;
           pruneTags = true;
           all = true;
+          forceUpdateTags = true;
         };
         help = {
           autocorrect = true;
