@@ -19,16 +19,20 @@ in
       ssh-agent = enabled;
     };
 
+    security = {
+      sops = enabled;
+    };
+
     programs = {
       terminal = {
         bash = enabled;
         btop = enabled;
-        claude-code = enabled;
         direnv = enabled;
         git = enabled;
         k9s = enabled;
         nvim = enabled;
         opencode = enabled;
+        pi = enabled;
         tmux = enabled;
       };
     };

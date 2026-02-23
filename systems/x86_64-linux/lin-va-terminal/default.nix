@@ -44,5 +44,9 @@ in
     virtualisation = {
       podman = enabled;
     };
+
+    security = {
+      sops = enabled;
+    };
   };
 }
