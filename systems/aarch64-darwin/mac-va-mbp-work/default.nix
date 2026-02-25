@@ -12,7 +12,6 @@
     };
   };
 
-  # Three Finger Drag
   system.primaryUser = "evanreichard";
   system.defaults = {
     trackpad = {
@@ -27,11 +26,15 @@
     };
     NSGlobalDomain = {
       KeyRepeat = 2;
+      NSWindowShouldDragOnGesture = true;
+      AppleICUForce24HourTime = true;
     };
     WindowManager = {
       HideDesktop = true;
     };
   };
+
+  security.pam.services.sudo_local.touchIdAuth = true;
 
   reichard = { };
 }
