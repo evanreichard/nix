@@ -165,6 +165,54 @@ in
       };
     };
 
+    # https://huggingface.co/unsloth/Qwen3.5-35B-A3B-GGUF/tree/main
+    "qwen3.5-35b-thinking" = {
+      name = "Qwen3.5 (35B) - Thinking";
+      macros.ctx = "262144";
+      cmd = ''
+        ${llama-cpp}/bin/llama-server \
+          --port ''${PORT} \
+          -m /mnt/ssd/Models/Qwen3.5/Qwen3.5-35B-A3B-UD-Q4_K_XL.gguf \
+          -c ''${ctx} \
+          --temp 0.6 \
+          --top-p 0.95 \
+          --top-k 20 \
+          --min-p 0.00 \
+          -fit off
+      '';
+      # --chat-template-kwargs "{\"enable_thinking\": false}"
+      metadata = {
+        type = [
+          "text-generation"
+          "coding"
+        ];
+      };
+    };
+
+    # https://huggingface.co/unsloth/Qwen3.5-27B-GGUF/tree/main
+    "qwen3.5-27b-thinking" = {
+      name = "Qwen3.5 (27B) - Thinking";
+      macros.ctx = "131072";
+      cmd = ''
+        ${llama-cpp}/bin/llama-server \
+          --port ''${PORT} \
+          -m /mnt/ssd/Models/Qwen3.5/Qwen3.5-27B-UD-Q4_K_XL.gguf \
+          -c ''${ctx} \
+          --temp 0.6 \
+          --top-p 0.95 \
+          --top-k 20 \
+          --min-p 0.00 \
+          -fit off
+      '';
+      # --chat-template-kwargs "{\"enable_thinking\": false}"
+      metadata = {
+        type = [
+          "text-generation"
+          "coding"
+        ];
+      };
+    };
+
     # https://huggingface.co/unsloth/Qwen3-30B-A3B-Instruct-2507-GGUF/tree/main
     "qwen3-30b-2507-instruct" = {
       name = "Qwen3 2507 (30B) - Instruct";
@@ -287,24 +335,6 @@ in
       };
     };
 
-    # https://huggingface.co/unsloth/Qwen2.5-Coder-7B-Instruct-128K-GGUF/tree/main
-    "qwen2.5-coder-7b-instruct" = {
-      name = "Qwen2.5 Coder (7B) - Instruct";
-      macros.ctx = "131072";
-      cmd = ''
-        ${llama-cpp}/bin/llama-server \
-          -m /mnt/ssd/Models/Qwen2.5/Qwen2.5-Coder-7B-Instruct-Q8_0.gguf \
-          --fim-qwen-7b-default \
-          -c ''${ctx} \
-          --port ''${PORT} \
-          -fit off \
-          -dev CUDA1
-      '';
-      metadata = {
-        type = [ "text-generation" ];
-      };
-    };
-
     # https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF/tree/main
     "qwen3-4b-2507-instruct" = {
       name = "Qwen3 2507 (4B) - Instruct";
@@ -418,26 +448,13 @@ in
     synthetic = {
       proxy = "https://api.synthetic.new/openai/";
       models = [
-        "hf:deepseek-ai/DeepSeek-R1-0528"
-        "hf:deepseek-ai/DeepSeek-V3"
-        "hf:deepseek-ai/DeepSeek-V3-0324"
-        "hf:deepseek-ai/DeepSeek-V3.1"
-        "hf:deepseek-ai/DeepSeek-V3.1-Terminus"
-        "hf:deepseek-ai/DeepSeek-V3.2"
-        "hf:meta-llama/Llama-3.3-70B-Instruct"
-        "hf:meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8"
-        "hf:MiniMaxAI/MiniMax-M2"
         "hf:MiniMaxAI/MiniMax-M2.1"
+        "hf:MiniMaxAI/MiniMax-M2.5"
         "hf:moonshotai/Kimi-K2.5"
         "hf:moonshotai/Kimi-K2-Instruct-0905"
         "hf:moonshotai/Kimi-K2-Thinking"
         "hf:openai/gpt-oss-120b"
-        "hf:Qwen/Qwen3-235B-A22B-Instruct-2507"
-        "hf:Qwen/Qwen3-235B-A22B-Thinking-2507"
-        "hf:Qwen/Qwen3-Coder-480B-A35B-Instruct"
-        "hf:Qwen/Qwen3-VL-235B-A22B-Instruct"
-        "hf:zai-org/GLM-4.5"
-        "hf:zai-org/GLM-4.6"
+        "hf:Qwen/Qwen3.5-397B-A17B"
         "hf:zai-org/GLM-4.7"
       ];
     };
