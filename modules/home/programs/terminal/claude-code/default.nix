@@ -16,6 +16,7 @@ in
   config = mkIf cfg.enable {
     programs.claude-code = {
       enable = true;
+      package = pkgs.reichard.claude-code;
       mcpServers = {
         gopls = {
           type = "stdio";
@@ -27,7 +28,7 @@ in
 
     programs.bash = lib.mkIf config.programs.bash.enable {
       shellAliases = {
-        claude = "default_claude_custom";
+        claude-custom = "default_claude_custom";
       };
 
       initExtra =
