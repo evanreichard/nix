@@ -165,19 +165,20 @@ in
       };
     };
 
-    # https://huggingface.co/unsloth/Qwen3.5-35B-A3B-GGUF/tree/main
+    # https://huggingface.co/AesSedai/Qwen3.5-35B-A3B-GGUF/tree/main
     "qwen3.5-35b-thinking" = {
       name = "Qwen3.5 (35B) - Thinking";
       macros.ctx = "262144";
       cmd = ''
         ${llama-cpp}/bin/llama-server \
           --port ''${PORT} \
-          -m /mnt/ssd/Models/Qwen3.5/Qwen3.5-35B-A3B-UD-Q4_K_XL.gguf \
+          -m /mnt/ssd/Models/Qwen3.5/Qwen3.5-35B-A3B-IQ4_XS-00001-of-00002.gguf \
           -c ''${ctx} \
           --temp 0.6 \
           --top-p 0.95 \
           --top-k 20 \
           --min-p 0.00 \
+          -dev CUDA0 \
           -fit off
       '';
       # --chat-template-kwargs "{\"enable_thinking\": false}"

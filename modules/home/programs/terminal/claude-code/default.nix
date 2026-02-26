@@ -69,13 +69,21 @@ in
             local prev=''${COMP_WORDS[COMP_CWORD-1]}
 
             if [[ "$prev" == "-m" || "$prev" == "--model" ]]; then
-              local models=( $(${pkgs.curl}/bin/curl -s -H "Authorization: Bearer ${authToken}" "${baseUrl}/v1/models" | ${pkgs.jq}/bin/jq -r '.data[].id' 2>/dev/null) )
+              local models=( $(${pkgs.curl}/bin/curl -s -H "Authorization: Bearer ${authToken}" "${baseUrl}/v1/models" | ${pkgs.jq}/bin/jq -r '
+                .data[] |
+                select(
+                  (try (.meta.llamaswap.type[] | contains("coding")) catch false) or
+                  (.name | startswith("synthetic:"))
+                ) |
+                .id
+              ' 2>/dev/null) )
+
               COMPREPLY=( $(compgen -W "''${models[*]}" -- "$cur") )
             fi
           }
 
           # Register Completion
-          complete -F _complete_claude_custom claude
+          complete -F _complete_claude_custom claude-custom
         '';
     };
   };
