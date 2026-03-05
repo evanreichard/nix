@@ -54,27 +54,6 @@ in
       };
     };
 
-    # https://huggingface.co/unsloth/GLM-4-32B-0414-GGUF/tree/main
-    "glm-4-32b-instruct" = {
-      name = "GLM 4 (32B) - Instruct";
-      macros.ctx = "32768";
-      cmd = ''
-        ${llama-cpp}/bin/llama-server \
-          --port ''${PORT} \
-          -m /mnt/ssd/Models/GLM/GLM-4-32B-0414-Q4_K_M.gguf \
-          -c ''${ctx} \
-          --temp 0.6 \
-          --top-k 40 \
-          --top-p 0.95 \
-          --min-p 0.0 \
-          -fit off \
-          -dev CUDA0
-      '';
-      metadata = {
-        type = [ "text-generation" ];
-      };
-    };
-
     # https://huggingface.co/mradermacher/gpt-oss-20b-heretic-v2-i1-GGUF/tree/main
     "gpt-oss-20b-thinking" = {
       name = "GPT OSS (20B) - Thinking";
@@ -190,19 +169,22 @@ in
       };
     };
 
-    # https://huggingface.co/unsloth/Qwen3.5-27B-GGUF/tree/main
+    # https://huggingface.co/bartowski/Qwen_Qwen3.5-27B-GGUF/tree/main
     "qwen3.5-27b-thinking" = {
       name = "Qwen3.5 (27B) - Thinking";
-      macros.ctx = "131072";
+      macros.ctx = "196608";
       cmd = ''
         ${llama-cpp}/bin/llama-server \
           --port ''${PORT} \
-          -m /mnt/ssd/Models/Qwen3.5/Qwen3.5-27B-UD-Q4_K_XL.gguf \
+          -m /mnt/ssd/Models/Qwen3.5/Qwen_Qwen3.5-27B-IQ4_XS.gguf \
           -c ''${ctx} \
           --temp 0.6 \
           --top-p 0.95 \
           --top-k 20 \
           --min-p 0.00 \
+          -ctk q8_0 \
+          -ctv q8_0 \
+          -dev CUDA0 \
           -fit off
       '';
       # --chat-template-kwargs "{\"enable_thinking\": false}"

@@ -1,5 +1,5 @@
 local llm_endpoint = "https://llm-api.va.reichard.io"
-local llm_assistant_model = "qwen3-coder-next-80b-instruct"
+local llm_assistant_model = "qwen3.5-27b-thinking"
 local llm_infill_model = llm_assistant_model
 local current_fim = "copilot"
 
@@ -63,7 +63,7 @@ codecompanion.setup({
 		inline = { adapter = "llamaswap" },
 		cmd = { adapter = "llamaswap" },
 	},
-	chat = { dispay = "telescope" },
+	chat = { display = "telescope" },
 	memory = { opts = { chat = { enabled = true } } },
 })
 

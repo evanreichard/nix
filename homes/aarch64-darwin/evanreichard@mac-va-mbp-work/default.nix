@@ -50,5 +50,6 @@ in
     colima
     docker
     keycastr
+    _1password-cli
   ];
 }
