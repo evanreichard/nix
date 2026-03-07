@@ -73,51 +73,6 @@ in
       };
     };
 
-    # https://huggingface.co/mradermacher/GPT-OSS-Cybersecurity-20B-Merged-i1-GGUF/tree/main
-    "gpt-oss-csec-20b-thinking" = {
-      name = "GPT OSS CSEC (20B) - Thinking";
-      macros.ctx = "131072";
-      cmd = ''
-        ${llama-cpp}/bin/llama-server \
-          --port ''${PORT} \
-          -m /mnt/ssd/Models/GPT-OSS/GPT-OSS-Cybersecurity-20B-Merged.i1-MXFP4_MOE.gguf \
-          -c ''${ctx} \
-          --temp 1.0 \
-          --top-p 1.0 \
-          --top-k 40 \
-          -dev CUDA0
-      '';
-      metadata = {
-        type = [ "text-generation" ];
-      };
-    };
-
-    # https://huggingface.co/unsloth/Qwen3-Next-80B-A3B-Instruct-GGUF/tree/main
-    "qwen3-next-80b-instruct" = {
-      name = "Qwen3 Next (80B) - Instruct";
-      macros.ctx = "262144";
-      cmd = ''
-        ${llama-cpp}/bin/llama-server \
-          --port ''${PORT} \
-          -m /mnt/ssd/Models/Qwen3/Qwen3-Next-80B-A3B-Instruct-UD-Q2_K_XL.gguf \
-          -c ''${ctx} \
-          --temp 0.7 \
-          --min-p 0.0 \
-          --top-p 0.8 \
-          --top-k 20 \
-          --repeat-penalty 1.05 \
-          -ctk q8_0 \
-          -ctv q8_0 \
-          -fit off
-      '';
-      metadata = {
-        type = [
-          "text-generation"
-          "coding"
-        ];
-      };
-    };
-
     # https://huggingface.co/unsloth/Qwen3-Coder-Next-GGUF/tree/main
     "qwen3-coder-next-80b-instruct" = {
       name = "Qwen3 Coder Next (80B) - Instruct";
@@ -132,7 +87,7 @@ in
           --min-p 0.01 \
           --top-k 40 \
           -fit off \
-          -ncmoe 18 \
+          -ncmoe 19 \
           -ts 78,22
       '';
 
