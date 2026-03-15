@@ -189,7 +189,6 @@ setup_lsp("gopls", {
 			callback = organize_go_imports,
 		})
 	end,
-	cmd = { nix_vars.gopls },
 	filetypes = { "go" },
 	settings = {
 		gopls = {

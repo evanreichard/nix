@@ -133,7 +133,6 @@ in
         go
         golangci-lint
         golangci-lint-langserver
-        gopls
         lua-language-server
         nil
         nodePackages.eslint
@@ -176,7 +175,6 @@ in
           bash = "${pkgs.bashInteractive}/bin/bash",
           clangd = "${pkgs.clang-tools}/bin/clangd",
           golintls = "${pkgs.golangci-lint-langserver}/bin/golangci-lint-langserver",
-          gopls = "${pkgs.gopls}/bin/gopls",
           luals = "${pkgs.lua-language-server}/bin/lua-language-server",
           sveltels = "${pkgs.nodePackages.svelte-language-server}/bin/svelteserver",
           tsls = "${pkgs.nodePackages.typescript-language-server}/bin/typescript-language-server",

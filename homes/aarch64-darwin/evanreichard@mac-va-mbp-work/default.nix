@@ -35,6 +35,7 @@ in
         nvim = enabled;
         opencode = enabled;
         pi = enabled;
+        zk = enabled;
       };
     };
 
