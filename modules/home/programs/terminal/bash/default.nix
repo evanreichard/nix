@@ -47,6 +47,8 @@ in
         fi
 
         [[ -f ~/.bash_custom ]] && . ~/.bash_custom
+
+        source ${./config/hey-intern.sh}
       '';
     };
 
