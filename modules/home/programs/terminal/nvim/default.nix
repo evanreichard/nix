@@ -148,6 +148,7 @@ in
         nixpkgs-fmt
         nodePackages.prettier
         stylua
+        sql-formatter
 
         # Tools
         ripgrep

@@ -158,9 +158,11 @@ setup_lsp("lua_ls", {
 -- Unison LSP Configuration
 setup_lsp("unison")
 
--- Lua LSP Configuration
+-- SQL Configuration
 setup_lsp("sqls", {
-	cmd = { nix_vars.sqls },
+	on_attach = on_attach_no_formatting,
+	cmd = { nix_vars.sqls, "-config", ".sqls.yml" },
+	root_markers = { ".sqls.yml", ".git" },
 })
 
 -- Nix LSP Configuration
@@ -225,6 +227,12 @@ none_ls.setup({
 		none_ls.builtins.formatting.prettier,
 		none_ls.builtins.formatting.prettier.with({ filetypes = { "template" } }),
 		none_ls.builtins.formatting.nixpkgs_fmt, -- TODO: nixd native LSP?
+		none_ls.builtins.formatting.sql_formatter.with({
+			extra_args = {
+				"--config",
+				'{"tabWidth":4,"keywordCase":"upper","language":"sql"}',
+			}
+		}),
 		require("none-ls.formatting.autopep8").with({
 			filetypes = { "starlark", "python" },
 			extra_args = { "--max-line-length", "100" },
