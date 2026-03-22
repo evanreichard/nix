@@ -5,5 +5,6 @@
     jnv
     jq
     ncdu
+    rg
   ];
 }

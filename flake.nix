@@ -65,6 +65,7 @@
 
       homes.modules = with inputs; [
         sops-nix.homeManagerModules.sops
+        ./modules/home/common
       ];
 
       systems.modules = {
