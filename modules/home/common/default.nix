@@ -5,6 +5,6 @@
     jnv
     jq
     ncdu
-    rg
+    ripgrep
   ];
 }

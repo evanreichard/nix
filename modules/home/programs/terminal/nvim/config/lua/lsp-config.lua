@@ -97,6 +97,7 @@ local default_config = {
 	capabilities = require("cmp_nvim_lsp").default_capabilities(),
 	on_attach = on_attach,
 }
+
 local setup_lsp = function(name, config)
 	local final_config = vim.tbl_deep_extend("force", default_config, config or {})
 
@@ -159,10 +160,25 @@ setup_lsp("lua_ls", {
 setup_lsp("unison")
 
 -- SQL Configuration
+-- NOTE: root_markers resolves root_dir but Neovim does NOT use root_dir as
+-- the process cwd (cmd_cwd defaults to Neovim's cwd). We use cmd as a
+-- function so we can read root_dir from the resolved config and build an
+-- absolute path to .sqls.yml.
 setup_lsp("sqls", {
 	on_attach = on_attach_no_formatting,
-	cmd = { nix_vars.sqls, "-config", ".sqls.yml" },
 	root_markers = { ".sqls.yml", ".git" },
+	cmd = function(dispatchers, config)
+		local cmd = { nix_vars.sqls }
+		if config.root_dir then
+			local config_file = config.root_dir .. "/.sqls.yml"
+			if vim.fn.filereadable(config_file) == 1 then
+				cmd = { nix_vars.sqls, "-config", config_file }
+			end
+		end
+		return vim.lsp.rpc.start(cmd, dispatchers, {
+			cwd = config.root_dir,
+		})
+	end,
 })
 
 -- Nix LSP Configuration
