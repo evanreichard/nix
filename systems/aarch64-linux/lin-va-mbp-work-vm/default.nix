@@ -14,6 +14,9 @@ in
   system.stateVersion = "25.11";
   time.timeZone = "America/New_York";
 
+  networking.firewall.trustedInterfaces = [ "enp0s1" ];
+  programs.nix-ld.enable = true;
+
   # System Config
   reichard = {
     nix = enabled;
