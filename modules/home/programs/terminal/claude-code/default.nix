@@ -16,7 +16,6 @@ in
   config = mkIf cfg.enable {
     programs.claude-code = {
       enable = true;
-      package = pkgs.reichard.claude-code;
       mcpServers = {
         gopls = {
           type = "stdio";
