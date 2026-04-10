@@ -48,6 +48,10 @@ in
         source = ./config/prompts;
         recursive = true;
       };
+      ".pi/agent/extensions" = {
+        source = ./config/extensions;
+        recursive = true;
+      };
     };
   };
 }
