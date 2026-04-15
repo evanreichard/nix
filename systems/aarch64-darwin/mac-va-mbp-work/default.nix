@@ -28,11 +28,19 @@
       KeyRepeat = 2;
       NSWindowShouldDragOnGesture = true;
       AppleICUForce24HourTime = true;
+      _HIHideMenuBar = true;
     };
     WindowManager = {
       HideDesktop = true;
     };
+    finder = {
+      CreateDesktop = false;
+    };
   };
+
+  system.activationScripts.postActivation.text = ''
+    sudo defaults write /Library/Preferences/com.apple.iokit.AmbientLightSensor "Automatic Display Enabled" -bool false
+  '';
 
   security.pam.services.sudo_local.touchIdAuth = true;
 

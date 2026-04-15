@@ -40,6 +40,10 @@ in
       };
     };
 
+    services = {
+      nunc = enabled;
+    };
+
     security = {
       sops = enabled;
     };
