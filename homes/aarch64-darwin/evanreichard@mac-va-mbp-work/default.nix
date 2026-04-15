@@ -24,6 +24,7 @@ in
       terminal = {
         bash = {
           enable = true;
+          customProfile = builtins.readFile ./vm-init.sh;
           customFastFetchLogo = ./prophet.txt;
         };
         aws = enabled;
@@ -48,7 +49,7 @@ in
   programs.jq = enabled;
   programs.pandoc = enabled;
   home.packages = with pkgs; [
-    colima
+    # colima
     docker
     keycastr
     _1password-cli

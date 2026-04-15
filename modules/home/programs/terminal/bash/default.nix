@@ -14,6 +14,7 @@ in
 {
   options.${namespace}.programs.terminal.bash = with lib.types; {
     enable = mkEnableOption "bash";
+    customProfile = mkOpt str "" "custom profile";
     customFastFetchLogo = mkOpt (nullOr path) null "custom fast fetch logo path";
   };
 
@@ -49,7 +50,8 @@ in
         [[ -f ~/.bash_custom ]] && . ~/.bash_custom
 
         source ${./config/hey-intern.sh}
-      '';
+      ''
+      + cfg.customProfile;
     };
 
     programs.powerline-go = {
