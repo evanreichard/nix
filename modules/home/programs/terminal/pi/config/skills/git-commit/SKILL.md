@@ -1,6 +1,6 @@
 ---
 name: git-commit
-description: 'Execute git commit with conventional commit message analysis, intelligent staging, and message generation. Use when user asks to commit changes, create a git commit, or mentions "/commit". Supports: (1) Auto-detecting type and scope from changes, (2) Generating conventional commit messages from diff, (3) Interactive commit with optional type/scope/description overrides, (4) Intelligent file staging for logical grouping'
+description: 'Execute git commit with conventional commit message analysis, intelligent staging, and message generation. Use when user asks to commit changes, create a git commit, mentions "/commit", or simply says "do it". Automatically commits without confirmation. Supports: (1) Auto-detecting type and scope from changes, (2) Generating conventional commit messages from diff, (3) Optional type/scope/description overrides, (4) Intelligent file staging for logical grouping'
 ---
 
 # Git Commit with Conventional Commits
@@ -8,6 +8,13 @@ description: 'Execute git commit with conventional commit message analysis, inte
 ## Overview
 
 Create standardized, semantic git commits using the Conventional Commits specification. Analyze the actual diff to determine appropriate type, scope, and message.
+
+## Automatic Execution
+
+**When invoked, execute the commit immediately without asking for confirmation.** Simply analyze the diff and create the commit. Do not ask "what would you like to do" or wait for further input. Only ask clarifying questions if:
+- Nothing is staged or modified
+- Changes span multiple unrelated logical groups that should be committed separately
+- Secrets appear to be about to be committed
 
 ## Conventional Commit Format
 
