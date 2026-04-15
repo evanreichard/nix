@@ -14,7 +14,6 @@ in
   system.stateVersion = "25.11";
   time.timeZone = "America/New_York";
 
-  networking.firewall.trustedInterfaces = [ "enp0s1" ];
   programs.nix-ld.enable = true;
 
   # System Config
@@ -53,16 +52,29 @@ in
     };
   };
 
+  # Trust Interface & NAT All Ports
+  networking = {
+    firewall.trustedInterfaces = [ "enp0s1" ];
+    nftables.enable = true;
+    nftables.ruleset = ''
+      table ip nat {
+        chain prerouting {
+          type nat hook prerouting priority dstnat; policy accept;
+          iifname "enp0s1" meta l4proto tcp dnat ip to 127.0.0.1
+          iifname "enp0s1" meta l4proto udp dnat ip to 127.0.0.1
+        }
+      }
+    '';
+  };
+
+  # Allow NAT
+  boot.kernel.sysctl = {
+    "net.ipv4.conf.all.route_localnet" = 1;
+  };
+
   fileSystems."/mnt/host-share" = {
     device = "share";
     fsType = "virtiofs";
     options = [ "defaults" ];
   };
-
-  # fileSystems."/home/evanreichard/Development" = {
-  #   device = "/mnt/host-share/Development";
-  #   fsType = "none";
-  #   options = [ "bind" ];
-  #   depends = [ "/mnt/host-share" ];
-  # };
 }
