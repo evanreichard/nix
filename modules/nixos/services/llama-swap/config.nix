@@ -124,6 +124,32 @@ in
       };
     };
 
+    # https://huggingface.co/unsloth/Qwen3.6-35B-A3B-GGUF/tree/main
+    "qwen3.6-35b-thinking" = {
+      name = "Qwen3.6 (35B) - Thinking";
+      macros.ctx = "262144";
+      cmd = ''
+        ${llama-cpp}/bin/llama-server \
+          --port ''${PORT} \
+          -m /mnt/ssd/Models/Qwen3.6/Qwen3.6-35B-A3B-UD-IQ4_XS.gguf \
+          -c ''${ctx} \
+          --temp 0.6 \
+          --top-p 0.95 \
+          --top-k 20 \
+          --min-p 0.0 \
+          --presence-penalty 0.0 \
+          --repeat-penalty 1.0 \
+          -dev CUDA0 \
+          -fit off
+      '';
+      metadata = {
+        type = [
+          "text-generation"
+          "coding"
+        ];
+      };
+    };
+
     # https://huggingface.co/bartowski/Qwen_Qwen3.5-27B-GGUF/tree/main
     "qwen3.5-27b-thinking" = {
       name = "Qwen3.5 (27B) - Thinking";
