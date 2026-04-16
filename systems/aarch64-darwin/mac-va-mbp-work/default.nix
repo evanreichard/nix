@@ -32,6 +32,7 @@
     };
     WindowManager = {
       HideDesktop = true;
+      StandardHideDesktopIcons = true;
     };
     finder = {
       CreateDesktop = false;
