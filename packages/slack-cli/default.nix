@@ -69,8 +69,8 @@ pythonPackages.buildPythonApplication {
 
   src = fetchgit {
     url = "https://gitea.va.reichard.io/evan/slack-cli.git";
-    rev = "b06604788efc9f6e889a2cb1a24f7067e7c94775";
-    hash = "sha256-sM3Dd9QNzQmOT3PrBmUUt7Zrowo9JdmCEAAGRi8O7aY=";
+    rev = "7cc6b740485e45cda8eb7ab44f82f8b45e536418";
+    hash = "sha256-/Z+WoIkl5UyoRrR/8AS6S4ihREA97coBqr1GtCy2REg=";
   };
 
   build-system = [ pythonPackages.setuptools ];
