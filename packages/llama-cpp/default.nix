@@ -7,18 +7,23 @@
   vulkanSupport = true;
 }).overrideAttrs
   (oldAttrs: rec {
-    version = "8680";
+    version = "8815";
     src = pkgs.fetchFromGitHub {
       owner = "ggml-org";
       repo = "llama.cpp";
       tag = "b${version}";
-      hash = "sha256-tJCA19BQs0vZc0VjPnbIrh3CJFxyPL6Ne4oIG4gfozw=";
+      hash = "sha256-QJsGBHLdvFfMXZJSk9D76b7v6DP06NaTYztHv41o/CA=";
       leaveDotGit = true;
       postFetch = ''
         git -C "$out" rev-parse --short HEAD > $out/COMMIT
         find "$out" -name .git -print0 | xargs -0 rm -rf
       '';
     };
+
+    # Add SPIR-V Headers for Vulkan Backend
+    # Newer llama.cpp requires spirv/unified1/spirv.hpp which isn't
+    # pulled in by vulkan-headers alone.
+    buildInputs = (oldAttrs.buildInputs or [ ]) ++ [ pkgs.spirv-headers ];
 
     # Auto CPU Optimizations
     cmakeFlags = (oldAttrs.cmakeFlags or [ ]) ++ [
