@@ -42,7 +42,7 @@ write(path="file.txt", content="content")
 
 ### Comment Style
 
-A logical "block" of code (doesn't have to be a scope, but a cohesive group of statements responsible for something) should have a comment above it with a short "title". For example:
+A logical "block" of code (doesn't have to be a scope, but a cohesive group of statements responsible for something) should have a comment above it with a short "title". The title must be in **Title Case**. For example:
 
 ```go
 // Map Component Results
