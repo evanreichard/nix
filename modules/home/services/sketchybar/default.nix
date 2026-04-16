@@ -10,7 +10,7 @@ let
   colors = {
     white = "0xddffffff";
     white_dim = "0x99ffffff";
-    bg = "0x30000000";
+    bg = "0x1a808080";
     transparent = "0x00000000";
     green = "0xff8ceb34";
     yellow = "0xffe8d44d";
@@ -48,12 +48,12 @@ let
     sketchybar --default \
       icon.font="$NERD_FONT" \
       icon.color=$COLOR_WHITE \
-      icon.padding_left=$PADDING \
+      icon.padding_left=$(($PADDING + 2)) \
       icon.padding_right=2 \
       label.font="$FONT_FACE:Medium:13.0" \
       label.color=$COLOR_WHITE \
       label.padding_left=2 \
-      label.padding_right=$PADDING \
+      label.padding_right=$(($PADDING + 2)) \
       background.color=$COLOR_BG \
       background.corner_radius=6 \
       background.clip=0.5 \
@@ -121,7 +121,7 @@ let
           elif [ "$VOL" -ge 30 ]; then
             ICON="󰖀"
           elif [ "$VOL" -gt 0 ]; then
-            ICON=""
+            ICON="󰕿"
           else
             ICON="󰖁"
           fi
