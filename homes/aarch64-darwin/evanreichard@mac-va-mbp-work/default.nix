@@ -41,7 +41,8 @@ in
     };
 
     services = {
-      nunc = enabled;
+      # nunc = enabled;
+      sketchybar = enabled;
     };
 
     security = {
