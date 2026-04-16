@@ -10,7 +10,7 @@ let
   colors = {
     white = "0xddffffff";
     white_dim = "0x99ffffff";
-    bg = "0x20000000";
+    bg = "0x30000000";
     transparent = "0x00000000";
     green = "0xff8ceb34";
     yellow = "0xffe8d44d";
@@ -56,8 +56,10 @@ let
       label.padding_right=$PADDING \
       background.color=$COLOR_BG \
       background.corner_radius=6 \
+      background.clip=0.5 \
       background.height=32 \
       background.padding_left=4 \
+      blur_radius=30 \
       background.padding_right=4
 
     # Right side items (rightmost → leftmost)
