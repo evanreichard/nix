@@ -57,6 +57,7 @@ in
     # colima
     docker
     keycastr
+    reichard.slack-cli
     _1password-cli
   ];
 }
