@@ -9,12 +9,19 @@ description: 'Execute git commit with conventional commit message analysis, inte
 
 Create standardized, semantic git commits using the Conventional Commits specification. Analyze the actual diff to determine appropriate type, scope, and message.
 
-## Automatic Execution
+## Automatic Execution — CRITICAL
 
-**When invoked, execute the commit immediately without asking for confirmation.** Simply analyze the diff and create the commit. Do not ask "what would you like to do" or wait for further input. Only ask clarifying questions if:
-- Nothing is staged or modified
-- Changes span multiple unrelated logical groups that should be committed separately
-- Secrets appear to be about to be committed
+**When this skill is invoked, EXECUTE THE COMMIT IMMEDIATELY. Do NOT ask for confirmation. Do NOT say "I'm ready" or "let me know when you want to proceed." Do NOT wait for further input. Do NOT acknowledge and then wait.**
+
+The skill is invoked when the user says "commit", "do it", "/commit", "make a commit", "create a commit", or any similar phrase. The moment you recognize this intent, analyze the diff and run `git commit`. That's it.
+
+**Zero prompts. Zero confirmation requests. Zero hand-holding.**
+
+Only skip the commit if:
+- Nothing is staged or modified (say "Nothing to commit" and stop)
+- Secrets appear to be about to be committed (refuse and stop)
+
+For everything else — just commit.
 
 ## Conventional Commit Format
 
