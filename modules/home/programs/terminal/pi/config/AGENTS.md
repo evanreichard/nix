@@ -31,3 +31,33 @@ bash(command="cat > file.txt << 'EOF'\ncontent\nEOF")
 ```bash
 write(path="file.txt", content="content")
 ```
+
+## Principles
+
+1. **KISS / YAGNI** - Keep solutions simple and straightforward. Don't introduce abstractions, generics, or indirection unless there is a concrete, immediate need. Prefer obvious code over clever code.
+
+2. **Maintain AGENTS.md** - If the project has an `AGENTS.md`, keep it up to date as conventions or architecture evolve. However, follow the **BLUF** (Bottom Line Up Front) principle: keep it concise, actionable, and context-size conscious. Don't overload it with information that belongs in code comments or external docs.
+
+## Style
+
+### Comment Style
+
+A logical "block" of code (doesn't have to be a scope, but a cohesive group of statements responsible for something) should have a comment above it with a short "title". For example:
+
+```go
+// Map Component Results
+for _, comp := range components {
+    results[comp.Name] = comp.Result
+}
+```
+
+If the block is more complicated or non-obvious, explain _why_ it does what it does after the title:
+
+```go
+// Map Component Results - This is needed because downstream consumers
+// expect a name-keyed lookup. Without it, the renderer would fall back
+// to O(n) scans on every frame.
+for _, comp := range components {
+    results[comp.Name] = comp.Result
+}
+```
