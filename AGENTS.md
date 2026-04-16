@@ -116,3 +116,4 @@ Shared library helpers. `lib/module/default.nix` exports `mkOpt`, `mkBoolOpt`, `
 - **Editing Neovim config (Lua):** Modify files under `modules/home/programs/terminal/nvim/config/lua/`.
 - **Managing secrets:** Edit `.sops.yaml` for key groups, use `sops` CLI to encrypt/decrypt files in `secrets/`.
 - **Building/testing:** `nix build .#packages.<arch>.<name>` for packages, `nix build .#nixosConfigurations.<host>.config.system.build.toplevel` for full system builds.
+- **Bumping a package version / refreshing hashes:** Use the `update-package-hashes` skill at `.pi/skills/update-package-hashes/`.
