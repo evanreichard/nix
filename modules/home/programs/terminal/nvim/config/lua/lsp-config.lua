@@ -208,6 +208,7 @@ setup_lsp("gopls", {
 		})
 	end,
 	filetypes = { "go" },
+	cmd = { "gopls", "-remote=auto" },
 	settings = {
 		gopls = {
 			buildFlags = { "-tags=e2e" },
