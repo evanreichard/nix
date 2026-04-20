@@ -138,10 +138,23 @@ setup_lsp("ts_ls", {
 	filetypes = { "typescript", "typescriptreact", "javascript" },
 })
 
--- ESLint LSP
-setup_lsp("eslint", {
+-- Oxlint - Prefer a project-local oxlint from node_modules so the LSP
+-- version matches the project's pinned dependency; fall back to PATH.
+setup_lsp("oxlint", {
 	on_attach = on_attach_no_formatting,
-	cmd = { nix_vars.vscls .. "/bin/vscode-eslint-language-server", "--stdio" },
+	root_markers = { ".oxlintrc.json", "oxlint.config.json", "package.json", ".git" },
+	cmd = function(dispatchers, config)
+		local bin = "oxlint"
+		if config.root_dir then
+			local local_bin = config.root_dir .. "/node_modules/.bin/oxlint"
+			if vim.fn.executable(local_bin) == 1 then
+				bin = local_bin
+			end
+		end
+		return vim.lsp.rpc.start({ bin, "--lsp" }, dispatchers, {
+			cwd = config.root_dir,
+		})
+	end,
 })
 
 -- C LSP Configuration
