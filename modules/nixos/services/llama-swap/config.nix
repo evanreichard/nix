@@ -177,6 +177,34 @@ in
       };
     };
 
+    # https://huggingface.co/unsloth/Qwen3.6-27B-GGUF/tree/main
+    "qwen3.6-27b-thinking" = {
+      name = "Qwen3.6 (27B) - Thinking";
+      macros.ctx = "196608";
+      cmd = ''
+        ${llama-cpp}/bin/llama-server \
+          --port ''${PORT} \
+          -m /mnt/ssd/Models/Qwen3.6/Qwen3.6-27B-IQ4_XS.gguf \
+          -c ''${ctx} \
+          --temp 0.6 \
+          --top-p 0.95 \
+          --top-k 20 \
+          --min-p 0.00 \
+          --presence-penalty 1.5 \
+          -ctk q8_0 \
+          -ctv q8_0 \
+          -dev CUDA0 \
+          -fit off
+      '';
+      # --chat-template-kwargs "{\"enable_thinking\": false}"
+      metadata = {
+        type = [
+          "text-generation"
+          "coding"
+        ];
+      };
+    };
+
     # https://huggingface.co/unsloth/Qwen3-30B-A3B-Instruct-2507-GGUF/tree/main
     "qwen3-30b-2507-instruct" = {
       name = "Qwen3 2507 (30B) - Instruct";
