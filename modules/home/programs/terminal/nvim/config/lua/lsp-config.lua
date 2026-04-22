@@ -98,10 +98,30 @@ local default_config = {
 	on_attach = on_attach,
 }
 
-local setup_lsp = function(name, config)
+local setup_lsp = function(name, config, opts)
+	opts = opts or {}
 	local final_config = vim.tbl_deep_extend("force", default_config, config or {})
 
 	vim.lsp.config(name, final_config)
+
+	-- Manual Mode - Register a buffer-local command instead of auto-enabling.
+	-- The command name is derived from opts.cmd_name or the LSP name.
+	if opts.manual then
+		local cmd_name = opts.cmd_name or name:gsub("^%l", string.upper):gsub("_%l", function(s)
+			return s:sub(2):upper()
+		end)
+		local fts = final_config.filetypes or {}
+		vim.api.nvim_create_autocmd("FileType", {
+			pattern = fts,
+			callback = function(ev)
+				vim.api.nvim_buf_create_user_command(ev.buf, cmd_name, function()
+					vim.lsp.enable(name)
+				end, { desc = "Enable " .. name .. " LSP" })
+			end,
+		})
+		return
+	end
+
 	vim.lsp.enable(name)
 end
 
@@ -244,7 +264,7 @@ setup_lsp("golangci_lint_ls", {
 			"--issues-exit-code=1",
 		},
 	},
-})
+}, { manual = true, cmd_name = "GolangciLint" })
 
 ------------------------------------------------------
 --------------------- None-LS LSP --------------------
