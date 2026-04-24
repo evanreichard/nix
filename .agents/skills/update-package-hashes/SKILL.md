@@ -1,11 +1,13 @@
 ---
 name: update-package-hashes
-description: Update a package in packages/ to a new version and refresh its hashes (src, vendorHash, npmDepsHash, cargoHash, etc.) WITHOUT compiling the package. Use when the user asks to bump, update, or upgrade a specific package under packages/. Requires package name and target version/rev.
+description: Update a package in packages/ to a new version and refresh its hashes (src, vendorHash, npmDepsHash, cargoHash, etc.) WITHOUT compiling the package. Use when the user asks to bump, update, or upgrade a specific package under packages/. If version is provided, proceed directly. If not, look up the latest version and ask the user before proceeding.
 ---
 
 # Update Package Hashes (Without Building)
 
-Require the user to supply the **package name** and **target version/rev/tag**. Ask if missing.
+If the user provides a **package name** and **target version/rev/tag**, proceed directly.
+
+If the user provides only a **package name** (no version), look up the latest version and **ask the user** if they want to proceed before updating.
 
 ## Hard Rules — Read First
 
@@ -47,13 +49,37 @@ Setting the hash to `sha256-AAAA...` (44 A's) or leaving the old one in place bo
 
 **Note:** `.src`, `.goModules`, etc. are sub-attributes of the derivation. They download but do not compile. `nix build .#<name>` (without the `.src` suffix) compiles — never do that.
 
+## Lookup Latest Version
+
+When the user asks to update a package but doesn't specify a version, look it up and present it for confirmation.
+
+1. Read `packages/<name>/default.nix` to find the git URL and current version/tag.
+2. Determine the tag pattern from the current `tag` field (e.g. `"b${version}"` → tags like `b8815`; `"v${version}"` → tags like `v1.2.3`).
+3. Fetch the newest matching tag:
+
+   ```bash
+   # Find the latest tag matching the package's pattern
+   git ls-remote --tags https://github.com/ggml-org/llama.cpp.git 'b*' 2>&1 | tail -1
+   ```
+
+   For non-GitHub repos, use the appropriate remote URL from the package's `fetchFrom*` expression.
+4. Present the result to the user and **ask for confirmation** before proceeding:
+
+   ```
+   Current: b8815 → Latest: b8914
+   Proceed with update? (yes/no)
+   ```
+
+   If the user confirms, use the latest version. If they provide a different target, use that instead. If they say no, abort.
+
 ## Flow
 
-1. Edit `packages/<name>/default.nix` — bump `version` / `rev` / `tag`. Check for sibling `.nix` files (e.g. `ui.nix`) that may also need bumping.
-2. Get the new `src` hash with **Method A** (`nurl`). If the package uses a custom fetcher, use **Method B** on `.src` instead.
-3. For each dependency hash (`vendorHash` / `npmDepsHash` / `cargoHash` / etc.), use **Method B** on the matching sub-attribute.
-4. **Opaque `outputHash` FODs** (e.g. opencode's `node_modules` which runs `bun install`) — do NOT attempt locally. Leave as-is and flag for CI in the summary.
-5. Show `git diff -- packages/<name>/` and list any hashes left for CI.
+1. **If no version was provided**, look up the latest version (see section above) and ask the user to confirm.
+2. Edit `packages/<name>/default.nix` — bump `version` / `rev` / `tag`. Check for sibling `.nix` files (e.g. `ui.nix`) that may also need bumping.
+3. Get the new `src` hash with **Method A** (`nurl`). If the package uses a custom fetcher, use **Method B** on `.src` instead.
+4. For each dependency hash (`vendorHash` / `npmDepsHash` / `cargoHash` / etc.), use **Method B** on the matching sub-attribute.
+5. **Opaque `outputHash` FODs** (e.g. opencode's `node_modules` which runs `bun install`) — do NOT attempt locally. Leave as-is and flag for CI in the summary.
+6. Show `git diff -- packages/<name>/` and list any hashes left for CI.
 
 ## Resolving Tags Without Cloning
 
