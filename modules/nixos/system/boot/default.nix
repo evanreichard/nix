@@ -31,6 +31,7 @@ in
     services.xe-guest-utilities.enable = mkIf cfg.xenGuest true;
 
     boot = {
+      supportedFilesystems = [ "nfs" ];
       kernelParams =
         lib.optionals cfg.silentBoot [
           "quiet"

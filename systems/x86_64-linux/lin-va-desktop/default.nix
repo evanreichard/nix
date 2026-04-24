@@ -14,7 +14,6 @@ in
 {
   system.stateVersion = "25.11";
   time.timeZone = "America/New_York";
-  boot.supportedFilesystems = [ "nfs" ];
   nixpkgs.config.allowUnfree = true;
   hardware.nvidia-container-toolkit.enable = true;
 

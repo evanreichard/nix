@@ -8,7 +8,6 @@ in
 
   # Config Boot
   boot = {
-    supportedFilesystems = [ "nfs" ];
     loader.timeout = lib.mkForce 0;
     consoleLogLevel = 7;
 

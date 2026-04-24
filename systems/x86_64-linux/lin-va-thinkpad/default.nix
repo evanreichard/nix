@@ -11,7 +11,6 @@ in
   time.timeZone = "America/New_York";
 
   boot = {
-    supportedFilesystems = [ "nfs" ];
     kernelParams = [
       # Mask GPE03 (EC wakeup events) to allow hibernation without spurious CPU wakeups
       "acpi_mask_gpe=0x03"
