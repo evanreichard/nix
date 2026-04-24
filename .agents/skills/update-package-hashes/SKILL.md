@@ -17,21 +17,15 @@ If the user provides only a **package name** (no version), look up the latest ve
 
 ## The Only Two Methods
 
-### Method A — `nurl` (preferred for `src` on any git forge)
+### Method A — `nurl` via helper script (preferred for `src` on any git forge)
 
-`nurl` works for **any git URL**, not just GitHub: `gitea.va.reichard.io`, `gitlab`, `codeberg`, `sourcehut`, plain `https://...git`, all fine. It downloads the source and prints a complete fetcher expression with the correct hash.
+Use the co-located helper script. It wraps `nurl` and works for any git URL.
 
 ```bash
-nix run nixpkgs#nurl -- <git-url> <rev-or-tag>
+./update-package-hashes.sh hash <git-url> <rev-or-tag>
 ```
 
-Examples:
-```bash
-nix run nixpkgs#nurl -- https://github.com/owner/repo v1.2.3
-nix run nixpkgs#nurl -- https://gitea.va.reichard.io/evan/slack-cli.git 0a9484257a2adc414aa4cdab4fb9539a37e04d1f
-```
-
-Copy the `hash = "sha256-..."` line into the package's `src` block.
+Copy the `hash = "sha256-..."` line from the output into the package's `src` block.
 
 ### Method B — FOD mismatch trick (for everything else)
 
@@ -51,26 +45,18 @@ Setting the hash to `sha256-AAAA...` (44 A's) or leaving the old one in place bo
 
 ## Lookup Latest Version
 
-When the user asks to update a package but doesn't specify a version, look it up and present it for confirmation.
+When the user asks to update a package but doesn't specify a version:
 
 1. Read `packages/<name>/default.nix` to find the git URL and current version/tag.
-2. Determine the tag pattern from the current `tag` field (e.g. `"b${version}"` → tags like `b8815`; `"v${version}"` → tags like `v1.2.3`).
-3. Fetch the newest matching tag:
+2. Determine the tag pattern from the `tag` field (e.g. `"b${version}"` → `'b*'`, `"v${version}"` → `'v*'`).
+3. Run the helper script:
 
    ```bash
-   # Find the latest tag matching the package's pattern
-   git ls-remote --tags https://github.com/ggml-org/llama.cpp.git 'b*' 2>&1 | tail -1
+   ./update-package-hashes.sh releases <git-url> '<pattern>'
    ```
 
-   For non-GitHub repos, use the appropriate remote URL from the package's `fetchFrom*` expression.
-4. Present the result to the user and **ask for confirmation** before proceeding:
-
-   ```
-   Current: b8815 → Latest: b8914
-   Proceed with update? (yes/no)
-   ```
-
-   If the user confirms, use the latest version. If they provide a different target, use that instead. If they say no, abort.
+   Shows main HEAD + 5 newest matching tags with commit hashes.
+4. **Ask the user** before proceeding (`Current: b8815 → Latest: b8914 — proceed?`).
 
 ## Flow
 
@@ -80,12 +66,6 @@ When the user asks to update a package but doesn't specify a version, look it up
 4. For each dependency hash (`vendorHash` / `npmDepsHash` / `cargoHash` / etc.), use **Method B** on the matching sub-attribute.
 5. **Opaque `outputHash` FODs** (e.g. opencode's `node_modules` which runs `bun install`) — do NOT attempt locally. Leave as-is and flag for CI in the summary.
 6. Show `git diff -- packages/<name>/` and list any hashes left for CI.
-
-## Resolving Tags Without Cloning
-
-```bash
-git ls-remote <url> refs/tags/<tag>
-```
 
 ## Don't Touch What Didn't Change
 
