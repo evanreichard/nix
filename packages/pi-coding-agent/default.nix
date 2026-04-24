@@ -14,16 +14,16 @@
 
 buildNpmPackage rec {
   pname = "pi-coding-agent";
-  version = "0.67.5";
+  version = "0.70.0";
 
   src = fetchFromGitHub {
     owner = "badlogic";
     repo = "pi-mono";
     rev = "v${version}";
-    hash = "sha256-Pw2f/6rKGWzmSdswungerrGrR6i9tUVFNiA4xaNygsQ=";
+    hash = "sha256-gB3QUxA4OZ8Zg5YGbAHmknSnAHrhEGxzz/DXRiKiK50=";
   };
 
-  npmDepsHash = "sha256-L53UEVQNsLoSkmP9L9AZQ74iThdMFBgtnLaXqZHqBRw=";
+  npmDepsHash = "sha256-SBm5GPmHNZ24zYBo3rA9n3XTz8Y7oNOaGJ2dY/X2ccw=";
 
   nativeBuildInputs = [ pkg-config ];
 
