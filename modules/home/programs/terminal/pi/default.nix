@@ -11,6 +11,15 @@ let
   llamaSwapConfig = import ./../../../../nixos/services/llama-swap/config.nix { inherit pkgs; };
 
   cfg = config.${namespace}.programs.terminal.pi;
+
+  # Nix-Owned Plugin List - Source of truth for `packages` in settings.json.
+  # Merged into the (mutable) settings.json on activation so pi can keep
+  # writing other fields (current model, etc.) without us clobbering them.
+  piPackages = [
+    "https://gitea.va.reichard.io/evan/pi-lsp.git@61bca87bba"
+  ];
+
+  piPackagesJson = pkgs.writeText "pi-packages.json" (builtins.toJSON piPackages);
 in
 {
   options.${namespace}.programs.terminal.pi = {
@@ -53,5 +62,19 @@ in
         recursive = true;
       };
     };
+
+    # Merge Nix-Defined Plugins Into Mutable settings.json - We can't symlink
+    # this file into the nix store because pi rewrites it at runtime (e.g. to
+    # persist the last-used model). Instead, on every activation we use jq to
+    # set `.packages` from Nix while preserving every other field.
+    home.activation.piSettingsMerge = config.lib.dag.entryAfter [ "writeBoundary" ] ''
+      PI_SETTINGS="$HOME/.pi/agent/settings.json"
+      mkdir -p "$(dirname "$PI_SETTINGS")"
+      [ -s "$PI_SETTINGS" ] || echo '{}' > "$PI_SETTINGS"
+      tmp=$(mktemp)
+      ${pkgs.jq}/bin/jq --slurpfile pkgs ${piPackagesJson} \
+        '.packages = $pkgs[0]' "$PI_SETTINGS" > "$tmp"
+      mv "$tmp" "$PI_SETTINGS"
+    '';
   };
 }
