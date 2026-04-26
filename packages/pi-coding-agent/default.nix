@@ -2,6 +2,8 @@
 , buildNpmPackage
 , fetchFromGitHub
 , nodejs
+, nodejs_22
+, makeWrapper
 , pkg-config
 , pixman
 , cairo
@@ -25,7 +27,7 @@ buildNpmPackage rec {
 
   npmDepsHash = "sha256-ImDvTC0Nm+IGYJuqjwUUfnOtA65uJvjlpP4h2Xt/2vE=";
 
-  nativeBuildInputs = [ pkg-config ];
+  nativeBuildInputs = [ pkg-config makeWrapper ];
 
   buildInputs = [
     pixman
@@ -69,6 +71,9 @@ buildNpmPackage rec {
     import('$out/lib/pi-coding-agent/packages/coding-agent/dist/cli.js');
     EOF
       chmod +x $out/bin/pi
+
+      wrapProgram $out/bin/pi \
+        --prefix PATH : ${lib.makeBinPath [ nodejs_22 ]}
 
       runHook postInstall
   '';
