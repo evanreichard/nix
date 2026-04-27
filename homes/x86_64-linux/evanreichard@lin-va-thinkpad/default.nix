@@ -30,7 +30,10 @@ in
 
     programs = {
       graphical = {
-        wms.hyprland = enabled;
+        wms.hyprland = {
+          enable = true;
+          menuMod = "ALT";
+        };
         ghostty = enabled;
         strawberry = enabled;
         gimp = enabled;
@@ -50,7 +53,7 @@ in
         git = enabled;
         k9s = enabled;
         nvim = enabled;
-        opencode = enabled;
+        pi = enabled;
       };
     };
   };
