@@ -29,6 +29,7 @@ in
   config = mkIf cfg.enable {
     # Add Pi Coding Agent to Home Packages
     home.packages = with pkgs; [
+      reichard.glimpse
       reichard.pi-coding-agent
     ];
 
