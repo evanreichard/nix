@@ -27,11 +27,11 @@ in
   };
 
   config = mkIf cfg.enable {
+    # Enable Glimpse
+    ${namespace}.programs.terminal.glimpse.enable = true;
+
     # Add Pi Coding Agent to Home Packages
-    home.packages = with pkgs; [
-      reichard.glimpse
-      reichard.pi-coding-agent
-    ];
+    home.packages = with pkgs; [ reichard.pi-coding-agent ];
 
     # Define Pi Configuration
     home.file = {
