@@ -19,6 +19,10 @@ in
       ssh-agent = enabled;
     };
 
+    security = {
+      sops = enabled;
+    };
+
     programs = {
       terminal = {
         bash = {
