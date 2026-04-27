@@ -34,14 +34,12 @@ in
         git = enabled;
         k9s = enabled;
         nvim = enabled;
-        opencode = enabled;
         pi = enabled;
         zk = enabled;
       };
     };
 
     services = {
-      # nunc = enabled;
       sketchybar = enabled;
     };
 
@@ -54,8 +52,6 @@ in
   programs.jq = enabled;
   programs.pandoc = enabled;
   home.packages = with pkgs; [
-    # colima
-    docker
     keycastr
     reichard.slack-cli
     _1password-cli

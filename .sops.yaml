@@ -9,7 +9,7 @@ keys:
   - &user_lin-va-terminal age1w6avj7gd4f5frk90lsyh4e2k5am6z92hzlr0vpgrm767muyj59qsnuah62
   - &user_lin-va-thinkpad age1avlhszrryt4gf4ya536jhzm7qwt9xfttm8x4sns6h9w2tahzqp8sspz9y5
   - &user_mac-va-mbp-personal age1dccte7xtwswgef089nd80dutp96xnezx5lrqnneh9cusegsnda8sj3dj6c
-  - &user_mac-va-mbp-work age1jf7yuycuajc5m8vupgrndjvw8knekr2v9979j68xc5ykvcxag4lss454au
+  - &user_mac-va-mbp-work age1ped3hpugq06908ex8kgama33qckqe03rmac5pa6th87vks5d249qhshvqu
 
   # System SSH Derived
   - &system_lin-va-desktop age1mxjrvjxkn69kfn2np3wpd73g44fuhsgykw7l5ss9rx30em5jfp2scnrq32
