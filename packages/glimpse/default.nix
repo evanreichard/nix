@@ -9,17 +9,17 @@
 
 buildNpmPackage rec {
   pname = "glimpse";
-  version = "unstable-2026-04-26";
+  version = "unstable-2026-04-27";
 
   src = fetchgit {
     url = "https://gitea.va.reichard.io/evan/glimpse.git";
-    rev = "2f83fa311720a5b68f8a98bbcd2ae9b1563d6a47";
-    hash = "sha256-ODbqzBWiN0Z81KDPUbJB1/DPy/iM2rAaUmzqtAgp9QI=";
+    rev = "6b3ec32b3ab7a82eb937cc850d217413ec752483";
+    hash = "sha256-o4SPiZqsARwDmVpybcYMjyGRdAfDxMTuldWblbMpoCQ=";
   };
 
-  npmDepsHash = "sha256-IWzSvrGgkoR6gg7P1m/mwakGOOKmm2OFtBirKgE09Ds=";
+  npmDepsHash = "sha256-ycAjPZZqI3ZMIUubJbWy8G6X6LaXDcgdZGswikfkQj8=";
 
-  dontNpmBuild = true;
+  npmBuildScript = "build";
 
   nativeBuildInputs = [ makeWrapper ];
 

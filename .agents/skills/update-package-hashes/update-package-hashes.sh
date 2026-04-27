@@ -88,7 +88,7 @@ show_main_head() {
     line=$(git ls-remote "$url" "refs/heads/$branch" 2>/dev/null | head -1)
     if [[ -n "$line" ]]; then
       local full_rev="${line%%	*}"
-      echo "  main: ${full_rev:0:12}"
+      echo "  main: $full_rev"
       echo
       return
     fi
@@ -120,13 +120,13 @@ cmd_releases() {
       | grep -v '\^{}' \
       | sed -E 's/^[a-f0-9]+[[:space:]]+refs\/tags\/([^\/]+)[[:space:]]*$/\1/' \
       | sort -V \
-      | tail -5)
+      | tail -5 || true)
   else
     tags=$(git ls-remote --tags "$url" 2>&1 \
       | grep -v '\^{}' \
       | sed -E 's/^[a-f0-9]+[[:space:]]+refs\/tags\/([^\/]+)[[:space:]]*$/\1/' \
       | sort -V \
-      | tail -5)
+      | tail -5 || true)
   fi
 
   if [[ -z "$tags" ]]; then
@@ -135,13 +135,13 @@ cmd_releases() {
   fi
 
   printf "  %-30s  %s\n" "TAG" "COMMIT"
-  echo "  $(printf '%.0s-' {1..45})"
+  echo "  $(printf '%.0s-' {1..72})"
 
   echo "$tags" | tac | while IFS= read -r tag_name; do
     local full_rev
     full_rev=$(git ls-remote "$url" "refs/tags/$tag_name" 2>/dev/null | head -1 | cut -f1)
     if [[ -n "$full_rev" ]]; then
-      printf "  %-30s  %s\n" "$tag_name" "${full_rev:0:12}"
+      printf "  %-30s  %s\n" "$tag_name" "$full_rev"
     else
       printf "  %-30s  %s\n" "$tag_name" "(not found)"
     fi
