@@ -34,7 +34,7 @@ in
       profileExtra = ''
         export COLORTERM=truecolor
         SHELL="$BASH"
-        PATH=~/.bin:$PATH
+        PATH=~/.local/bin:$PATH
         bind "set show-mode-in-prompt on"
 
         set -o vi || true

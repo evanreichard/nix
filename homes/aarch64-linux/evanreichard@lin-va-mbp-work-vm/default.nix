@@ -20,6 +20,7 @@ in
     };
 
     security = {
+      pass-keyring = enabled;
       sops = enabled;
     };
 
