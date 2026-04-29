@@ -1,6 +1,6 @@
 { lib
 , stdenv
-, buildGoModule
+, buildGo126Module
 , fetchFromGitHub
 , versionCheckHook
 , callPackage
@@ -11,15 +11,15 @@
 let
   canExecute = stdenv.buildPlatform.canExecute stdenv.hostPlatform;
 in
-buildGoModule (finalAttrs: {
+buildGo126Module (finalAttrs: {
   pname = "llama-swap";
-  version = "197";
+  version = "208";
 
   src = fetchFromGitHub {
     owner = "mostlygeek";
     repo = "llama-swap";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-EXgyYmpbN/zzr6KeSpvFEB+FS7gDIZFinNMv70v5boY=";
+    hash = "sha256-E+BqqQcCLlW/DWvjwC66ClV6yuQ5x7cAMkLPJkS3x5M=";
     # populate values that require us to use git. By doing this in postFetch we
     # can delete .git afterwards and maintain better reproducibility of the src.
     leaveDotGit = true;
@@ -32,10 +32,10 @@ buildGoModule (finalAttrs: {
     '';
   };
 
-  vendorHash = "sha256-XiDYlw/byu8CWvg4KSPC7m8PGCZXtp08Y1velx4BR8U=";
+  vendorHash = "sha256-tOOZgugiVcICYg9HyeTolyAg+YZWtxSJTvAuwfMazHQ=";
 
   passthru.ui = callPackage ./ui.nix { llama-swap = finalAttrs.finalPackage; };
-  passthru.npmDepsHash = "sha256-Fs7+JKE8YBp2Xj8bVBlwmT+UwuD642VeUHiPx+fv94c=";
+  passthru.npmDepsHash = "sha256-6D4F58sSBkr7FKKO34gDhnZ9uN/SfsyYn1xJjYsMeq4=";
 
   nativeBuildInputs = [
     versionCheckHook

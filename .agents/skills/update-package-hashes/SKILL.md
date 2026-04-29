@@ -39,9 +39,60 @@ nix build .#<name>.cargoDeps --no-link 2>&1 | tee /tmp/hash.log   # for cargoHas
 grep -E '^[[:space:]]*got:' /tmp/hash.log | tail -1 | awk '{print $2}'
 ```
 
-Setting the hash to `sha256-AAAA...` (44 A's) or leaving the old one in place both work — the build will fail at the FOD with `got: sha256-...` which is the correct value.
+Setting the hash to `lib.fakeHash` (preferred when `lib` is in scope), `sha256-AAAA...` (44 A's), or leaving the old one in place all work — the build will fail at the FOD with `got: sha256-...` which is the correct value.
 
 **Note:** `.src`, `.goModules`, etc. are sub-attributes of the derivation. They download but do not compile. `nix build .#<name>` (without the `.src` suffix) compiles — never do that.
+
+### Example — Package With `src`, `npmDepsHash`, and `vendorHash`
+
+Use the same pattern for packages that combine a custom `src` fetcher, Go dependencies, and a nested npm UI derivation. `llama-swap` is a concrete example because it uses `leaveDotGit` + `postFetch`, `vendorHash`, and a UI package exposed under `passthru.ui`.
+
+1. Set stale hashes to `lib.fakeHash` where possible:
+
+   ```nix
+   src.hash = lib.fakeHash;
+   vendorHash = lib.fakeHash;
+   passthru.npmDepsHash = lib.fakeHash;
+   ```
+
+2. Resolve the custom `src` hash first; downstream FODs depend on it:
+
+   ```bash
+   nix build .#llama-swap.src --no-link 2>&1 | tee /tmp/llama-swap-src.log
+   grep -E '^[[:space:]]*got:' /tmp/llama-swap-src.log | tail -1 | awk '{print $2}'
+   ```
+
+   Put the `got:` value into `src.hash` before resolving dependency hashes.
+
+3. Resolve the UI npm dependency hash from the nested UI derivation:
+
+   ```bash
+   nix build .#llama-swap.passthru.ui.npmDeps --no-link 2>&1 | tee /tmp/llama-swap-npm.log
+   grep -E '^[[:space:]]*got:' /tmp/llama-swap-npm.log | tail -1 | awk '{print $2}'
+   ```
+
+   Put the `got:` value into `passthru.npmDepsHash`.
+
+4. Resolve the Go `vendorHash`:
+
+   ```bash
+   nix build .#llama-swap.goModules --no-link 2>&1 | tee /tmp/llama-swap-go.log
+   grep -E '^[[:space:]]*got:' /tmp/llama-swap-go.log | tail -1 | awk '{print $2}'
+   ```
+
+   Put the `got:` value into `vendorHash`.
+
+   For other packages, adapt the flake attribute path to where the FOD is exposed (for example, `.#<name>.npmDeps`, `.#<name>.passthru.ui.npmDeps`, or `.#<name>.goModules`).
+
+5. Re-run the FOD sub-attribute builds to confirm they realise successfully:
+
+   ```bash
+   nix build .#llama-swap.src --no-link
+   nix build .#llama-swap.passthru.ui.npmDeps --no-link
+   nix build .#llama-swap.goModules --no-link
+   ```
+
+   If a dependency FOD fails before a hash mismatch (for example, `go.mod requires go >= ...`), fix the package inputs minimally (for example, switch to the matching `buildGo126Module`) and re-run the same FOD sub-attribute. Do not build `.#llama-swap`.
 
 ## Lookup Latest Version
 
