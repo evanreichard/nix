@@ -186,6 +186,7 @@ in
           --port ''${PORT} \
           -m /mnt/ssd/Models/Qwen3.6/Qwen3.6-27B-IQ4_XS.gguf \
           -c ''${ctx} \
+          --parallel 2 \
           --temp 0.6 \
           --top-p 0.95 \
           --top-k 20 \
@@ -193,11 +194,20 @@ in
           --presence-penalty 1.5 \
           -ctk q8_0 \
           -ctv q8_0 \
+          --keep 3000 \
+          --batch-size 4096 \
+          --ubatch-size 1024 \
+          --spec-type ngram-mod \
+          --spec-ngram-mod-n-match 24 \
+          --spec-draft-n-min 16 \
+          --spec-draft-n-max 64 \
           -dev CUDA0 \
           -fit off \
           --chat-template-kwargs "{\"preserve_thinking\": true}"
       '';
       # --chat-template-kwargs "{\"enable_thinking\": false}"
+      # --spec-draft-n-min 16 \
+      # --spec-draft-n-max 32 \
       metadata = {
         type = [
           "text-generation"
@@ -434,22 +444,6 @@ in
       metadata = {
         type = [ "image-generation" ];
       };
-    };
-  };
-
-  peers = {
-    synthetic = {
-      proxy = "https://api.synthetic.new/openai/";
-      models = [
-        "hf:MiniMaxAI/MiniMax-M2.1"
-        "hf:MiniMaxAI/MiniMax-M2.5"
-        "hf:moonshotai/Kimi-K2.5"
-        "hf:moonshotai/Kimi-K2-Instruct-0905"
-        "hf:moonshotai/Kimi-K2-Thinking"
-        "hf:openai/gpt-oss-120b"
-        "hf:Qwen/Qwen3.5-397B-A17B"
-        "hf:zai-org/GLM-4.7"
-      ];
     };
   };
 }

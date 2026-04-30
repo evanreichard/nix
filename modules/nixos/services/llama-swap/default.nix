@@ -94,11 +94,12 @@ in
         owner = "llama-swap";
         group = "llama-swap";
         mode = "0400";
-        content = builtins.toJSON (
-          recursiveUpdate cfg.config {
-            peers.synthetic.apiKey = config.sops.placeholder.synthetic_apikey;
-          }
-        );
+        content = builtins.toJSON cfg.config;
+        # content = builtins.toJSON (
+        #   recursiveUpdate cfg.config {
+        #     peers.synthetic.apiKey = config.sops.placeholder.synthetic_apikey;
+        #   }
+        # );
       };
     };
 
