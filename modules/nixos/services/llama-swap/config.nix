@@ -140,7 +140,8 @@ in
           --presence-penalty 0.0 \
           --repeat-penalty 1.0 \
           -dev CUDA0 \
-          -fit off
+          -fit off \
+          --chat-template-kwargs "{\"preserve_thinking\": true}"
       '';
       metadata = {
         type = [
@@ -168,7 +169,6 @@ in
           -dev CUDA0 \
           -fit off
       '';
-      # --chat-template-kwargs "{\"enable_thinking\": false}"
       metadata = {
         type = [
           "text-generation"
@@ -194,7 +194,8 @@ in
           -ctk q8_0 \
           -ctv q8_0 \
           -dev CUDA0 \
-          -fit off
+          -fit off \
+          --chat-template-kwargs "{\"preserve_thinking\": true}"
       '';
       # --chat-template-kwargs "{\"enable_thinking\": false}"
       metadata = {
