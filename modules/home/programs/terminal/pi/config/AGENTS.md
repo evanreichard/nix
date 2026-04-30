@@ -6,6 +6,8 @@
 
 2. **File writing**: Do NOT use `cat` with heredocs to write files. Use the `write` tool instead (or `edit` for modifications).
 
+3. **Ephemeral files**: Put temporary scripts, plans, notes, and other scratch artifacts in `_scratch/`. It is gitignored, and reusable exploration/testing scripts should be iterated there instead of recreated repeatedly.
+
 ## Example of Correct Usage
 
 ### Incorrect (will hang):
