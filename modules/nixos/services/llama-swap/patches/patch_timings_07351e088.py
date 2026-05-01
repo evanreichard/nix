@@ -85,8 +85,70 @@ def _write(path, content):
 
 def _replace_once(content, old, new, label):
     count = content.count(old)
-    if count != 1:
-        raise RuntimeError(f"{label}: anchor matched {count} times")
+    if count == 1:
+        return content.replace(old, new, 1)
+
+    # vLLM v0.20 added system_fingerprint to response constructors. Preserve
+    # compatibility with the original dev205 anchors by retrying with that
+    # field inserted when the old anchor is not present.
+    variants = [
+        (
+            old.replace(
+                "                    usage=final_usage,\n                )",
+                "                    usage=final_usage,\n                    system_fingerprint=self.system_fingerprint,\n                )",
+            ),
+            new.replace(
+                "                    usage=final_usage,\n                )",
+                "                    usage=final_usage,\n                    system_fingerprint=self.system_fingerprint,\n                )",
+            ),
+        ),
+        (
+            old.replace(
+                "            usage=usage,\n            prompt_logprobs=",
+                "            usage=usage,\n            system_fingerprint=self.system_fingerprint,\n            prompt_logprobs=",
+            ),
+            new.replace(
+                "            usage=usage,\n            prompt_logprobs=",
+                "            usage=usage,\n            system_fingerprint=self.system_fingerprint,\n            prompt_logprobs=",
+            ),
+        ),
+        (
+            old.replace(
+                "                    usage=final_usage_info,\n                )",
+                "                    usage=final_usage_info,\n                    system_fingerprint=self.system_fingerprint,\n                )",
+            ),
+            new.replace(
+                "                    usage=final_usage_info,\n                )",
+                "                    usage=final_usage_info,\n                    system_fingerprint=self.system_fingerprint,\n                )",
+            ),
+        ),
+        (
+            old.replace(
+                "            usage=usage,\n            kv_transfer_params=kv_transfer_params,",
+                "            usage=usage,\n            system_fingerprint=self.system_fingerprint,\n            kv_transfer_params=kv_transfer_params,",
+            ),
+            new.replace(
+                "            usage=usage,\n            kv_transfer_params=kv_transfer_params,",
+                "            usage=usage,\n            system_fingerprint=self.system_fingerprint,\n            kv_transfer_params=kv_transfer_params,",
+            ),
+        ),
+    ]
+    matches = [(variant_old, variant_new) for variant_old, variant_new in variants if content.count(variant_old) == 1]
+    if len(matches) == 1:
+        variant_old, variant_new = matches[0]
+        return content.replace(variant_old, variant_new, 1)
+
+    variant_counts = [content.count(variant_old) for variant_old, _ in variants]
+    raise RuntimeError(f"{label}: anchor matched {count} times; v0.20 variants matched {variant_counts}")
+
+
+def _replace_once_any(content, replacements, label):
+    """Replace exactly one of several version-specific anchors."""
+    matches = [(old, new) for old, new in replacements if content.count(old) == 1]
+    if len(matches) != 1:
+        counts = [content.count(old) for old, _ in replacements]
+        raise RuntimeError(f"{label}: versioned anchors matched {counts}")
+    old, new = matches[0]
     return content.replace(old, new, 1)
 
 

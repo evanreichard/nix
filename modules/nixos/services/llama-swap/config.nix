@@ -358,24 +358,20 @@ in
       };
     };
 
-    # https://github.com/noonghunna/club-3090/tree/master/models/qwen3.6-27b/vllm
-    # Long-text variant - experimental single-3090 profile, text-only (no vision)
-    # TurboQuant 3-bit KV + MTP n=3 + PN12/P104 cliff-closure stack.
-    # 96K + 0.93 recovers substantial activation/scratch headroom versus
-    # club-3090's 185K + 0.975 while still offering a large KV pool for long
-    # agentic sessions.
+    # https://github.com/noonghunna/club-3090/tree/v0.20-experimental/models/qwen3.6-27b/vllm
+    # Long-text variant - v0.20 experimental single-3090 profile, text-only (no vision)
+    # TurboQuant 3-bit KV + MTP n=3 + workspace-lock sidecar.
     "vllm-qwen3.6-27b-long-text" = {
       name = "vLLM Qwen3.6 (27B) - Long Text";
-      macros.ctx = "96000";
+      macros.ctx = "214000";
       proxy = "http://127.0.0.1:\${PORT}";
       cmd =
         let
           vllmCmd = ''
             set -e; pip install xxhash pandas scipy -q;
             python3 -m vllm._genesis.patches.apply_all;
-            python3 /patches/patch_pn12_ffn_pool_anchor.py;
             python3 /patches/patch_pn12_compile_safe_custom_op.py;
-            python3 /patches/patch_fa_max_seqlen_clamp.py;
+            python3 /patches/patch_workspace_lock_disable.py;
             python3 /patches/patch_tolist_cudagraph.py;
             python3 /patches/patch_timings_07351e088.py;
             exec vllm serve
@@ -385,7 +381,7 @@ in
             --dtype float16
             --tensor-parallel-size 1
             --max-model-len ''${ctx}
-            --gpu-memory-utilization 0.93
+            --gpu-memory-utilization 0.985
             --max-num-seqs 1
             --max-num-batched-tokens 4128
             --kv-cache-dtype turboquant_3bit_nc
@@ -410,7 +406,7 @@ in
             -e VLLM_WORKER_MULTIPROC_METHOD=spawn \
             -e NCCL_CUMEM_ENABLE=0 \
             -e NCCL_P2P_DISABLE=1 \
-            -e VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS=1 \
+            -e VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS=0 \
             -e VLLM_NO_USAGE_STATS=1 \
             -e PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True,max_split_size_mb:512 \
             -e VLLM_FLOAT32_MATMUL_PRECISION=high \
@@ -428,22 +424,21 @@ in
             -e GENESIS_ENABLE_P103=1 \
             -e GENESIS_ENABLE_PN12_FFN_INTERMEDIATE_POOL=1 \
             -e GENESIS_ENABLE_PN13_CUDA_GRAPH_LAMBDA_ARITY=1 \
-            -e GENESIS_ENABLE_FA_MAX_SEQLEN_CLAMP=1 \
             -e GENESIS_ENABLE_PN17_FA2_LSE_CLAMP=1 \
-            -e GENESIS_ENABLE_P37=1 \
+            -e GENESIS_ENABLE_PN19_SCOPED_MAX_SPLIT=1 \
+            -e GENESIS_ENABLE_P98=1 \
             -v /mnt/ssd/vLLM/Models:/root/.cache/huggingface \
             -v /mnt/ssd/vLLM/Patches/genesis/vllm/_genesis:/usr/local/lib/python3.12/dist-packages/vllm/_genesis:ro \
             -v /mnt/ssd/vLLM/Patches/patch_tolist_cudagraph.py:/patches/patch_tolist_cudagraph.py:ro \
-            -v /mnt/ssd/vLLM/Patches/patch_pn12_ffn_pool_anchor.py:/patches/patch_pn12_ffn_pool_anchor.py:ro \
             -v /mnt/ssd/vLLM/Patches/patch_pn12_compile_safe_custom_op.py:/patches/patch_pn12_compile_safe_custom_op.py:ro \
-            -v /mnt/ssd/vLLM/Patches/patch_fa_max_seqlen_clamp.py:/patches/patch_fa_max_seqlen_clamp.py:ro \
+            -v /mnt/ssd/vLLM/Patches/patch_workspace_lock_disable.py:/patches/patch_workspace_lock_disable.py:ro \
             -v /mnt/ssd/vLLM/Patches/patch_timings_07351e088.py:/patches/patch_timings_07351e088.py:ro \
             -p ''${PORT}:8000 \
             --entrypoint /bin/bash \
-            vllm/vllm-openai:nightly-07351e0883470724dd5a7e9730ed10e01fc99d08 \
+            vllm/vllm-openai:nightly-7a1eb8ac2ec4ea69338c51dc7afd4b15010abfa8 \
             -c "${vllmCmdFlat}"
         '';
-      cmdStop = "docker stop \${MODEL_ID}";
+      cmdStop = "${pkgs.docker}/bin/docker stop \${MODEL_ID}";
 
       metadata = {
         type = [
@@ -521,7 +516,7 @@ in
             vllm/vllm-openai:nightly-07351e0883470724dd5a7e9730ed10e01fc99d08 \
             -c "${vllmCmdFlat}"
         '';
-      cmdStop = "docker stop \${MODEL_ID}";
+      cmdStop = "${pkgs.docker}/bin/docker stop \${MODEL_ID}";
 
       metadata = {
         type = [
@@ -611,7 +606,7 @@ in
             vllm/vllm-openai:nightly-07351e0883470724dd5a7e9730ed10e01fc99d08 \
             -c "${vllmCmdFlat}"
         '';
-      cmdStop = "docker stop \${MODEL_ID}";
+      cmdStop = "${pkgs.docker}/bin/docker stop \${MODEL_ID}";
 
       metadata = {
         type = [

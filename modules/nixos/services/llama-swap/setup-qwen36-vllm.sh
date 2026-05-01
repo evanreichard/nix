@@ -18,14 +18,16 @@ TOLIST_PATCH="${PATCHES_DIR}/patch_tolist_cudagraph.py"
 PN12_FFN_PATCH="${PATCHES_DIR}/patch_pn12_ffn_pool_anchor.py"
 PN12_COMPILE_PATCH="${PATCHES_DIR}/patch_pn12_compile_safe_custom_op.py"
 FA_CLAMP_PATCH="${PATCHES_DIR}/patch_fa_max_seqlen_clamp.py"
+WORKSPACE_LOCK_PATCH="${PATCHES_DIR}/patch_workspace_lock_disable.py"
 TIMINGS_PATCH="${PATCHES_DIR}/patch_timings_07351e088.py"
 TIMINGS_PATCH_URL="${TIMINGS_PATCH_URL:-https://gitea.va.reichard.io/evan/nix/raw/branch/master/modules/nixos/services/llama-swap/patches/patch_timings_07351e088.py}"
 
-# Base URL for sidecar patches (club-3090 repo, master branch)
+# Base URLs for sidecar patches (club-3090 repo)
 PATCH_BASE_URL="https://raw.githubusercontent.com/noonghunna/club-3090/master/models/qwen3.6-27b/vllm/patches"
+PATCH_EXPERIMENTAL_BASE_URL="https://raw.githubusercontent.com/noonghunna/club-3090/v0.20-experimental/models/qwen3.6-27b/vllm/patches"
 
 # ---------- Preflight Checks ----------
-for cmd in git git-lfs python3 curl; do
+for cmd in git git-lfs curl; do
   if ! command -v "$cmd" &>/dev/null; then
     echo "ERROR: '$cmd' not found in PATH." >&2
     exit 1
@@ -66,16 +68,7 @@ download_patch() {
     echo "Patch ${filename} already present, skipping."
   else
     echo "Downloading ${filename}..."
-    python3 -c "
-import urllib.request, sys
-url = '${PATCH_BASE_URL}/' + sys.argv[2]
-try:
-    urllib.request.urlretrieve(url, sys.argv[1])
-    print('Downloaded from GitHub.')
-except Exception as e:
-    print(f'Download failed: {e}', file=sys.stderr)
-    sys.exit(1)
-" "${dest}" "${filename}"
+    curl -fsSL "${PATCH_BASE_URL}/${filename}" -o "${dest}"
     echo "Patch ${filename} written."
   fi
 }
@@ -84,6 +77,17 @@ download_patch "${TOLIST_PATCH}"
 download_patch "${PN12_FFN_PATCH}"
 download_patch "${PN12_COMPILE_PATCH}"
 download_patch "${FA_CLAMP_PATCH}"
+
+# ---------- Download v0.20 Workspace Patch ----------
+if [ -f "${WORKSPACE_LOCK_PATCH}" ]; then
+  echo "Patch $(basename "${WORKSPACE_LOCK_PATCH}") already present, skipping."
+else
+  echo "Downloading $(basename "${WORKSPACE_LOCK_PATCH}") from v0.20-experimental..."
+  curl -fsSL \
+    "${PATCH_EXPERIMENTAL_BASE_URL}/$(basename "${WORKSPACE_LOCK_PATCH}")" \
+    -o "${WORKSPACE_LOCK_PATCH}"
+  echo "Patch $(basename "${WORKSPACE_LOCK_PATCH}") written."
+fi
 
 # ---------- Download Timing Patch ----------
 tmp_timings_patch="$(mktemp)"
@@ -106,7 +110,8 @@ echo "=== Setup Complete ==="
 echo "  Model:   ${MODEL_DIR}/${MODEL_SUBDIR}"
 echo "  Genesis: ${GENESIS_DIR}"
 echo "  Patch:   ${TOLIST_PATCH}"
-echo "  Timings: ${TIMINGS_PATCH}"
+echo "  Workspace: ${WORKSPACE_LOCK_PATCH}"
+echo "  Timings:   ${TIMINGS_PATCH}"
 echo ""
 echo "Expected layout:"
 echo "  /mnt/ssd/vLLM/"
@@ -119,4 +124,5 @@ echo "      ├── patch_tolist_cudagraph.py              (cudagraph capture 
 echo "      ├── patch_pn12_ffn_pool_anchor.py          (PN12 FFN pool anchor fix)"
 echo "      ├── patch_pn12_compile_safe_custom_op.py   (PN12 compile-safe custom op)"
 echo "      ├── patch_fa_max_seqlen_clamp.py           (FA softmax_lse clamp — P104)"
+echo "      ├── patch_workspace_lock_disable.py        (v0.20 WorkspaceManager lock workaround)"
 echo "      └── patch_timings_07351e088.py             (llama.cpp-compatible timings)"
