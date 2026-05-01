@@ -16,7 +16,7 @@ let
   # Merged into the (mutable) settings.json on activation so pi can keep
   # writing other fields (current model, etc.) without us clobbering them.
   piPackages = [
-    "https://gitea.va.reichard.io/evan/pi-lsp.git@61bca87bba"
+    "https://gitea.va.reichard.io/evan/pi-lsp.git@main"
   ];
 
   piPackagesJson = pkgs.writeText "pi-packages.json" (builtins.toJSON piPackages);
