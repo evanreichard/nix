@@ -709,4 +709,41 @@ in
       };
     };
   };
+
+  # Concurrent Model Matrix
+  #
+  # CUDA0 models can run alongside CUDA1 models (one each). Models not
+  # listed in any set (dual-GPU models using -ts) run alone and evict
+  # everything.
+  matrix = {
+    vars = {
+      # CUDA0 Models
+      go = "gpt-oss-20b-thinking";
+      q35a = "qwen3.5-35b-thinking";
+      q36a = "qwen3.6-35b-thinking";
+      q35b = "qwen3.5-27b-thinking";
+      q36b = "qwen3.6-27b-thinking";
+      vlt = "vllm-qwen3.6-27b-long-text";
+      vtt = "vllm-qwen3.6-27b-tools-text";
+      vlv = "vllm-qwen3.6-27b-long-vision";
+      zi = "z-image-turbo";
+      qie = "qwen-image-edit-2511";
+      qi = "qwen-image-2512";
+      cr = "chroma-radiance";
+
+      # CUDA1 Models
+      qv = "qwen3-8b-vision";
+      q4 = "qwen3-4b-2507-instruct";
+    };
+
+    evict_costs = {
+      vlt = 50;
+      vtt = 50;
+      vlv = 50;
+    };
+
+    sets = {
+      concurrent = "(go | q35a | q36a | q35b | q36b | vlt | vtt | vlv | zi | qie | qi | cr) & (qv | q4)";
+    };
+  };
 }
