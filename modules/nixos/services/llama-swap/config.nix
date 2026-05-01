@@ -358,12 +358,15 @@ in
       };
     };
 
-    # https://github.com/Lorbus/qwen36-27b-single-3090
-    # Long-text variant - 185K context, text-only (no vision)
-    # TurboQuant 3-bit KV + MTP n=3 + PN12/P104 cliff-closure stack
+    # https://github.com/noonghunna/club-3090/tree/master/models/qwen3.6-27b/vllm
+    # Long-text variant - experimental single-3090 profile, text-only (no vision)
+    # TurboQuant 3-bit KV + MTP n=3 + PN12/P104 cliff-closure stack.
+    # 96K + 0.93 recovers substantial activation/scratch headroom versus
+    # club-3090's 185K + 0.975 while still offering a large KV pool for long
+    # agentic sessions.
     "vllm-qwen3.6-27b-long-text" = {
       name = "vLLM Qwen3.6 (27B) - Long Text";
-      macros.ctx = "185000";
+      macros.ctx = "96000";
       proxy = "http://127.0.0.1:\${PORT}";
       cmd =
         let
@@ -374,6 +377,7 @@ in
             python3 /patches/patch_pn12_compile_safe_custom_op.py;
             python3 /patches/patch_fa_max_seqlen_clamp.py;
             python3 /patches/patch_tolist_cudagraph.py;
+            python3 /patches/patch_timings_07351e088.py;
             exec vllm serve
             --served-model-name ''${MODEL_ID}
             --model /root/.cache/huggingface/qwen3.6-27b-autoround-int4
@@ -381,7 +385,7 @@ in
             --dtype float16
             --tensor-parallel-size 1
             --max-model-len ''${ctx}
-            --gpu-memory-utilization 0.975
+            --gpu-memory-utilization 0.93
             --max-num-seqs 1
             --max-num-batched-tokens 4128
             --kv-cache-dtype turboquant_3bit_nc
@@ -433,6 +437,7 @@ in
             -v /mnt/ssd/vLLM/Patches/patch_pn12_ffn_pool_anchor.py:/patches/patch_pn12_ffn_pool_anchor.py:ro \
             -v /mnt/ssd/vLLM/Patches/patch_pn12_compile_safe_custom_op.py:/patches/patch_pn12_compile_safe_custom_op.py:ro \
             -v /mnt/ssd/vLLM/Patches/patch_fa_max_seqlen_clamp.py:/patches/patch_fa_max_seqlen_clamp.py:ro \
+            -v /mnt/ssd/vLLM/Patches/patch_timings_07351e088.py:/patches/patch_timings_07351e088.py:ro \
             -p ''${PORT}:8000 \
             --entrypoint /bin/bash \
             vllm/vllm-openai:nightly-07351e0883470724dd5a7e9730ed10e01fc99d08 \
@@ -448,7 +453,85 @@ in
       };
     };
 
-    # https://github.com/Lorbus/qwen36-27b-single-3090
+    # https://github.com/noonghunna/club-3090/tree/master/models/qwen3.6-27b/vllm
+    # Tools-text variant - 75K context, text-only (no vision)
+    # fp8_e5m2 KV + MTP n=3. This is the repo's validated long-context
+    # tool-calling profile and should be more stable than TurboQuant 128K.
+    "vllm-qwen3.6-27b-tools-text" = {
+      name = "vLLM Qwen3.6 (27B) - Tools Text";
+      macros.ctx = "75000";
+      proxy = "http://127.0.0.1:\${PORT}";
+      cmd =
+        let
+          vllmCmd = ''
+            set -e; pip install xxhash pandas scipy -q;
+            python3 -m vllm._genesis.patches.apply_all;
+            python3 /patches/patch_tolist_cudagraph.py;
+            python3 /patches/patch_timings_07351e088.py;
+            exec vllm serve
+            --served-model-name ''${MODEL_ID}
+            --model /root/.cache/huggingface/qwen3.6-27b-autoround-int4
+            --quantization auto_round
+            --dtype float16
+            --tensor-parallel-size 1
+            --max-model-len ''${ctx}
+            --gpu-memory-utilization 0.97
+            --max-num-seqs 1
+            --max-num-batched-tokens 2048
+            --kv-cache-dtype fp8_e5m2
+            --language-model-only
+            --trust-remote-code
+            --reasoning-parser qwen3
+            --enable-auto-tool-choice
+            --tool-call-parser qwen3_coder
+            --enable-prefix-caching
+            --enable-chunked-prefill
+            --speculative-config '{\"method\":\"mtp\",\"num_speculative_tokens\":3}'
+            --host 0.0.0.0
+            --port 8000
+          '';
+          vllmCmdFlat = builtins.replaceStrings [ "\n" ] [ " " ] vllmCmd;
+        in
+        ''
+          ${pkgs.docker}/bin/docker run --rm --device=nvidia.com/gpu=all \
+            --name ''${MODEL_ID} \
+            --ipc=host \
+            -e VLLM_WORKER_MULTIPROC_METHOD=spawn \
+            -e NCCL_CUMEM_ENABLE=0 \
+            -e NCCL_P2P_DISABLE=1 \
+            -e VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS=1 \
+            -e VLLM_NO_USAGE_STATS=1 \
+            -e PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True,max_split_size_mb:512 \
+            -e VLLM_FLOAT32_MATMUL_PRECISION=high \
+            -e VLLM_USE_FLASHINFER_SAMPLER=1 \
+            -e OMP_NUM_THREADS=1 \
+            -e CUDA_DEVICE_MAX_CONNECTIONS=8 \
+            -e CUDA_VISIBLE_DEVICES=0 \
+            -e CUDA_DEVICE_ORDER=PCI_BUS_ID \
+            -e VLLM_ALLOW_LONG_MAX_MODEL_LEN=1 \
+            -e VLLM_MARLIN_USE_ATOMIC_ADD=1 \
+            -e GENESIS_ENABLE_P64_QWEN3CODER_MTP_STREAMING=1 \
+            -e GENESIS_ENABLE_PN8_MTP_DRAFT_ONLINE_QUANT=1 \
+            -v /mnt/ssd/vLLM/Models:/root/.cache/huggingface \
+            -v /mnt/ssd/vLLM/Patches/genesis/vllm/_genesis:/usr/local/lib/python3.12/dist-packages/vllm/_genesis:ro \
+            -v /mnt/ssd/vLLM/Patches/patch_tolist_cudagraph.py:/patches/patch_tolist_cudagraph.py:ro \
+            -v /mnt/ssd/vLLM/Patches/patch_timings_07351e088.py:/patches/patch_timings_07351e088.py:ro \
+            -p ''${PORT}:8000 \
+            --entrypoint /bin/bash \
+            vllm/vllm-openai:nightly-07351e0883470724dd5a7e9730ed10e01fc99d08 \
+            -c "${vllmCmdFlat}"
+        '';
+      cmdStop = "docker stop \${MODEL_ID}";
+
+      metadata = {
+        type = [
+          "text-generation"
+          "coding"
+        ];
+      };
+    };
+
+    # https://github.com/noonghunna/club-3090/tree/master/models/qwen3.6-27b/vllm
     # Long-vision variant - 140K context with vision tower active
     # TurboQuant 3-bit KV + MTP n=3 + PN12/P104 cliff-closure stack
     "vllm-qwen3.6-27b-long-vision" = {
@@ -464,6 +547,7 @@ in
             python3 /patches/patch_pn12_compile_safe_custom_op.py;
             python3 /patches/patch_fa_max_seqlen_clamp.py;
             python3 /patches/patch_tolist_cudagraph.py;
+            python3 /patches/patch_timings_07351e088.py;
             exec vllm serve
             --served-model-name ''${MODEL_ID}
             --model /root/.cache/huggingface/qwen3.6-27b-autoround-int4
@@ -521,6 +605,7 @@ in
             -v /mnt/ssd/vLLM/Patches/patch_pn12_ffn_pool_anchor.py:/patches/patch_pn12_ffn_pool_anchor.py:ro \
             -v /mnt/ssd/vLLM/Patches/patch_pn12_compile_safe_custom_op.py:/patches/patch_pn12_compile_safe_custom_op.py:ro \
             -v /mnt/ssd/vLLM/Patches/patch_fa_max_seqlen_clamp.py:/patches/patch_fa_max_seqlen_clamp.py:ro \
+            -v /mnt/ssd/vLLM/Patches/patch_timings_07351e088.py:/patches/patch_timings_07351e088.py:ro \
             -p ''${PORT}:8000 \
             --entrypoint /bin/bash \
             vllm/vllm-openai:nightly-07351e0883470724dd5a7e9730ed10e01fc99d08 \

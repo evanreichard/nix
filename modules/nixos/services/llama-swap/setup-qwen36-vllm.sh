@@ -18,12 +18,14 @@ TOLIST_PATCH="${PATCHES_DIR}/patch_tolist_cudagraph.py"
 PN12_FFN_PATCH="${PATCHES_DIR}/patch_pn12_ffn_pool_anchor.py"
 PN12_COMPILE_PATCH="${PATCHES_DIR}/patch_pn12_compile_safe_custom_op.py"
 FA_CLAMP_PATCH="${PATCHES_DIR}/patch_fa_max_seqlen_clamp.py"
+TIMINGS_PATCH="${PATCHES_DIR}/patch_timings_07351e088.py"
+TIMINGS_PATCH_URL="${TIMINGS_PATCH_URL:-https://gitea.va.reichard.io/evan/nix/raw/branch/master/modules/nixos/services/llama-swap/patches/patch_timings_07351e088.py}"
 
 # Base URL for sidecar patches (club-3090 repo, master branch)
 PATCH_BASE_URL="https://raw.githubusercontent.com/noonghunna/club-3090/master/models/qwen3.6-27b/vllm/patches"
 
 # ---------- Preflight Checks ----------
-for cmd in git git-lfs; do
+for cmd in git git-lfs python3 curl; do
   if ! command -v "$cmd" &>/dev/null; then
     echo "ERROR: '$cmd' not found in PATH." >&2
     exit 1
@@ -83,12 +85,28 @@ download_patch "${PN12_FFN_PATCH}"
 download_patch "${PN12_COMPILE_PATCH}"
 download_patch "${FA_CLAMP_PATCH}"
 
+# ---------- Download Timing Patch ----------
+tmp_timings_patch="$(mktemp)"
+trap 'rm -f "${tmp_timings_patch}"' EXIT
+
+echo "Downloading patch_timings_07351e088.py from this repo..."
+curl -fsSL "${TIMINGS_PATCH_URL}" -o "${tmp_timings_patch}"
+
+if [ -f "${TIMINGS_PATCH}" ] && cmp -s "${tmp_timings_patch}" "${TIMINGS_PATCH}"; then
+  echo "Timing patch already current at ${TIMINGS_PATCH}, skipping."
+else
+  echo "Installing timing patch to ${TIMINGS_PATCH}..."
+  install -m 0644 "${tmp_timings_patch}" "${TIMINGS_PATCH}"
+  echo "Timing patch installed."
+fi
+
 # ---------- Summary ----------
 echo ""
 echo "=== Setup Complete ==="
 echo "  Model:   ${MODEL_DIR}/${MODEL_SUBDIR}"
 echo "  Genesis: ${GENESIS_DIR}"
 echo "  Patch:   ${TOLIST_PATCH}"
+echo "  Timings: ${TIMINGS_PATCH}"
 echo ""
 echo "Expected layout:"
 echo "  /mnt/ssd/vLLM/"
@@ -100,4 +118,5 @@ echo "      │   └── vllm/_genesis/                     (mounted into con
 echo "      ├── patch_tolist_cudagraph.py              (cudagraph capture fix)"
 echo "      ├── patch_pn12_ffn_pool_anchor.py          (PN12 FFN pool anchor fix)"
 echo "      ├── patch_pn12_compile_safe_custom_op.py   (PN12 compile-safe custom op)"
-echo "      └── patch_fa_max_seqlen_clamp.py           (FA softmax_lse clamp — P104)"
+echo "      ├── patch_fa_max_seqlen_clamp.py           (FA softmax_lse clamp — P104)"
+echo "      └── patch_timings_07351e088.py             (llama.cpp-compatible timings)"
