@@ -335,7 +335,10 @@ in
           -dev CUDA1
       '';
       metadata = {
-        type = [ "text-generation" ];
+        type = [
+          "text-generation"
+          "vision"
+        ];
       };
     };
 
@@ -612,6 +615,7 @@ in
         type = [
           "text-generation"
           "coding"
+          "vision"
         ];
       };
     };

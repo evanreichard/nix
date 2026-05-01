@@ -13,9 +13,9 @@ in
   toPiModels =
     llamaSwapConfig:
     let
-      textGenModels = filterAttrs (name: model: any (t: t == "coding") (model.metadata.type or [ ])) (
-        llamaSwapConfig.models or { }
-      );
+      hasType = type: model: any (t: t == type) (model.metadata.type or [ ]);
+
+      codingModels = filterAttrs (_name: model: hasType "coding" model) (llamaSwapConfig.models or { });
 
       localModels = mapAttrs
         (
@@ -32,8 +32,19 @@ in
               else
                 { }
             )
+            // (
+              if hasType "vision" model then
+                {
+                  input = [
+                    "text"
+                    "image"
+                  ];
+                }
+              else
+                { }
+            )
         )
-        textGenModels;
+        codingModels;
 
       peerModels = listToAttrs (
         flatten (
