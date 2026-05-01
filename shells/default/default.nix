@@ -2,6 +2,9 @@
 
 let
   sync-repo = pkgs.writeShellScriptBin "sync-repo" ''
+    # Navigate to repo root so rsync copies the entire repository
+    cd "$(git rev-parse --show-toplevel)"
+
     if [ -z "$1" ]; then
       echo "Usage: sync-repo <ip-address>"
       echo "Example: sync-repo 23.29.118.42"

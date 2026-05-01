@@ -25,6 +25,7 @@ in
         btop = enabled;
         direnv = enabled;
         tmux = enabled;
+        git = enabled;
       };
     };
   };

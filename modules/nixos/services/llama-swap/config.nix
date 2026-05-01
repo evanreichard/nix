@@ -6,6 +6,7 @@ let
   };
 in
 {
+  healthCheckTimeout = 500;
   models = {
     # https://huggingface.co/unsloth/GLM-4.7-Flash-GGUF/tree/main
     "glm-4.7-flash" = {
@@ -388,6 +389,83 @@ in
           --default-chat-template-kwargs '{"enable_thinking": true}' \
           --tool-call-parser qwen3_coder
       '';
+      cmdStop = "docker stop \${MODEL_ID}";
+
+      metadata = {
+        type = [
+          "text-generation"
+          "coding"
+        ];
+      };
+    };
+
+    # https://github.com/Lorbus/qwen36-27b-single-3090
+    # Model: Lorbus/Qwen3.6-27B-int4-AutoRound (auto_round int4)
+    # Genesis v7.14+ patches for MTP streaming + tool adherence
+    # Text-only (no vision) to maximize KV budget for ~100k context
+    "vllm-qwen3.6-27b-thinking" = {
+      name = "vLLM Qwen3.6 (27B) - Thinking";
+      macros.ctx = "75000";
+      proxy = "http://127.0.0.1:\${PORT}";
+      cmd =
+        let
+          vllmCmd = ''
+            set -e; pip install xxhash pandas scipy -q;
+            python3 -m vllm._genesis.patches.apply_all;
+            python3 /patches/patch_tolist_cudagraph.py;
+            exec vllm serve
+            --served-model-name ''${MODEL_ID}
+            --model /root/.cache/huggingface/qwen3.6-27b-autoround-int4
+            --quantization auto_round
+            --dtype float16
+            --tensor-parallel-size 1
+            --max-model-len ''${ctx}
+            --gpu-memory-utilization 0.97
+            --max-num-seqs 1
+            --max-num-batched-tokens 2048
+            --kv-cache-dtype fp8_e5m2
+            --language-model-only
+            --trust-remote-code
+            --reasoning-parser qwen3
+            --enable-auto-tool-choice
+            --tool-call-parser qwen3_coder
+            --enable-prefix-caching
+            --enable-chunked-prefill
+            --speculative-config '{\"method\":\"mtp\",\"num_speculative_tokens\":3}'
+            --host 0.0.0.0
+            --port 8000
+          '';
+          vllmCmdFlat = builtins.replaceStrings [ "\n" ] [ " " ] vllmCmd;
+        in
+        ''
+          ${pkgs.docker}/bin/docker run --rm --device=nvidia.com/gpu=all \
+            --name ''${MODEL_ID} \
+            --ipc=host \
+            -e VLLM_WORKER_MULTIPROC_METHOD=spawn \
+            -e NCCL_CUMEM_ENABLE=0 \
+            -e NCCL_P2P_DISABLE=1 \
+            -e VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS=1 \
+            -e VLLM_NO_USAGE_STATS=1 \
+            -e PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True,max_split_size_mb:512 \
+            -e VLLM_FLOAT32_MATMUL_PRECISION=high \
+            -e VLLM_USE_FLASHINFER_SAMPLER=1 \
+            -e OMP_NUM_THREADS=1 \
+            -e CUDA_DEVICE_MAX_CONNECTIONS=8 \
+            -e CUDA_VISIBLE_DEVICES=0 \
+            -e CUDA_DEVICE_ORDER=PCI_BUS_ID \
+            -e VLLM_ALLOW_LONG_MAX_MODEL_LEN=1 \
+            -e VLLM_MARLIN_USE_ATOMIC_ADD=1 \
+            -e GENESIS_ENABLE_P64_QWEN3CODER_MTP_STREAMING=1 \
+            -e GENESIS_ENABLE_P68_AUTO_FORCE_TOOL=1 \
+            -e GENESIS_ENABLE_P69_LONG_CTX_TOOL_REMINDER=1 \
+            -v /mnt/ssd/vLLM/Models:/root/.cache/huggingface \
+            -v /mnt/ssd/vLLM/Patches/genesis/vllm/_genesis:/usr/local/lib/python3.12/dist-packages/vllm/_genesis:ro \
+            -v /mnt/ssd/vLLM/Patches/patch_tolist_cudagraph.py:/patches/patch_tolist_cudagraph.py:ro \
+            -p ''${PORT}:8000 \
+            --entrypoint /bin/bash \
+            vllm/vllm-openai:nightly-07351e0883470724dd5a7e9730ed10e01fc99d08 \
+            -c "${vllmCmdFlat}"
+        '';
       cmdStop = "docker stop \${MODEL_ID}";
 
       metadata = {
