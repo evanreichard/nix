@@ -1,0 +1,210 @@
+diff --git a/vllm/entrypoints/openai/chat_completion/protocol.py b/vllm/entrypoints/openai/chat_completion/protocol.py
+index aacac38..074ca45 100644
+--- a/vllm/entrypoints/openai/chat_completion/protocol.py
++++ b/vllm/entrypoints/openai/chat_completion/protocol.py
+@@ -111,6 +111,9 @@ class ChatCompletionResponse(OpenAIBaseModel):
+         default=None, description="KVTransfer parameters."
+     )
+ 
++    # llama.cpp-compatible per-request timings  # [patch_timings]
++    timings: dict[str, Any] | None = None
++
+ 
+ class ChatCompletionResponseStreamChoice(OpenAIBaseModel):
+     index: int
+@@ -132,6 +135,9 @@ class ChatCompletionStreamResponse(OpenAIBaseModel):
+     # not part of the OpenAI spec but for tracing the tokens
+     prompt_token_ids: list[int] | None = None
+ 
++    # llama.cpp-compatible per-request timings  # [patch_timings]
++    timings: dict[str, Any] | None = None
++
+ 
+ class ChatCompletionToolsParam(OpenAIBaseModel):
+     type: Literal["function"] = "function"
+diff --git a/vllm/entrypoints/openai/chat_completion/serving.py b/vllm/entrypoints/openai/chat_completion/serving.py
+index 12dc2cd..c15fb6d 100644
+--- a/vllm/entrypoints/openai/chat_completion/serving.py
++++ b/vllm/entrypoints/openai/chat_completion/serving.py
+@@ -83,6 +83,34 @@ if TYPE_CHECKING:
+ logger = init_logger(__name__)
+ 
+ 
++
++# [patch_timings]
++def _compute_timings(metrics, num_prompt, num_gen, num_cached=None):
++    """Compute llama.cpp-compatible timings from RequestStateStats."""
++    t = {
++        "prompt_n": num_prompt,
++        "prompt_ms": 0.0,
++        "prompt_per_second": 0.0,
++        "predicted_n": num_gen,
++        "predicted_ms": 0.0,
++        "predicted_per_second": 0.0,
++        "cache_n": num_cached if num_cached is not None else -1,
++    }
++    if metrics is None:
++        return t
++    if metrics.first_token_ts > 0 and metrics.scheduled_ts > 0:
++        ps = metrics.first_token_ts - metrics.scheduled_ts
++        if ps > 0:
++            t["prompt_ms"] = ps * 1000.0
++            t["prompt_per_second"] = num_prompt / ps
++    if metrics.last_token_ts > 0 and metrics.first_token_ts > 0:
++        ds = metrics.last_token_ts - metrics.first_token_ts
++        if ds > 0:
++            t["predicted_ms"] = ds * 1000.0
++            t["predicted_per_second"] = num_gen / ds
++    return t
++
++
+ class OpenAIServingChat(OpenAIServing):
+     def __init__(
+         self,
+@@ -633,6 +661,7 @@ class OpenAIServingChat(OpenAIServing):
+ 
+         try:
+             async for res in result_generator:
++                _last_stream_res = res  # [patch_timings]
+                 if res.prompt_token_ids is not None:
+                     num_prompt_tokens = len(res.prompt_token_ids)
+                     if res.encoder_prompt_token_ids is not None:
+@@ -1230,6 +1259,15 @@ class OpenAIServingChat(OpenAIServing):
+                     model=model_name,
+                     usage=final_usage,
+                 )
++                # Inject Timings  # [patch_timings]
++                try:
++                    _s_cached = _last_stream_res.num_cached_tokens
++                    final_usage_chunk.timings = _compute_timings(
++                        _last_stream_res.metrics,
++                        num_prompt_tokens, completion_tokens, _s_cached,
++                    )
++                except NameError:
++                    pass
+                 final_usage_data = final_usage_chunk.model_dump_json(
+                     exclude_unset=True, exclude_none=True
+                 )
+@@ -1644,6 +1682,13 @@ class OpenAIServingChat(OpenAIServing):
+             kv_transfer_params=final_res.kv_transfer_params,
+         )
+ 
++        # Inject Timings  # [patch_timings]
++        _cached = final_res.num_cached_tokens
++        response.timings = _compute_timings(
++            final_res.metrics, num_prompt_tokens, num_generated_tokens,
++            _cached,
++        )
++
+         # Log complete response if output logging is enabled
+         if self.enable_log_outputs and self.request_logger:
+             for choice in choices:
+diff --git a/vllm/entrypoints/openai/completion/protocol.py b/vllm/entrypoints/openai/completion/protocol.py
+index c785d25..85928f4 100644
+--- a/vllm/entrypoints/openai/completion/protocol.py
++++ b/vllm/entrypoints/openai/completion/protocol.py
+@@ -485,6 +485,9 @@ class CompletionResponse(OpenAIBaseModel):
+         default=None, description="KVTransfer parameters."
+     )
+ 
++    # llama.cpp-compatible per-request timings  # [patch_timings]
++    timings: dict[str, Any] | None = None
++
+ 
+ class CompletionResponseStreamChoice(OpenAIBaseModel):
+     index: int
+@@ -512,3 +515,6 @@ class CompletionStreamResponse(OpenAIBaseModel):
+     model: str
+     choices: list[CompletionResponseStreamChoice]
+     usage: UsageInfo | None = Field(default=None)
++
++    # llama.cpp-compatible per-request timings  # [patch_timings]
++    timings: dict[str, Any] | None = None
+diff --git a/vllm/entrypoints/openai/completion/serving.py b/vllm/entrypoints/openai/completion/serving.py
+index fb7f253..11a5350 100644
+--- a/vllm/entrypoints/openai/completion/serving.py
++++ b/vllm/entrypoints/openai/completion/serving.py
+@@ -48,6 +48,34 @@ if TYPE_CHECKING:
+ logger = init_logger(__name__)
+ 
+ 
++
++# [patch_timings]
++def _compute_timings(metrics, num_prompt, num_gen, num_cached=None):
++    """Compute llama.cpp-compatible timings from RequestStateStats."""
++    t = {
++        "prompt_n": num_prompt,
++        "prompt_ms": 0.0,
++        "prompt_per_second": 0.0,
++        "predicted_n": num_gen,
++        "predicted_ms": 0.0,
++        "predicted_per_second": 0.0,
++        "cache_n": num_cached if num_cached is not None else -1,
++    }
++    if metrics is None:
++        return t
++    if metrics.first_token_ts > 0 and metrics.scheduled_ts > 0:
++        ps = metrics.first_token_ts - metrics.scheduled_ts
++        if ps > 0:
++            t["prompt_ms"] = ps * 1000.0
++            t["prompt_per_second"] = num_prompt / ps
++    if metrics.last_token_ts > 0 and metrics.first_token_ts > 0:
++        ds = metrics.last_token_ts - metrics.first_token_ts
++        if ds > 0:
++            t["predicted_ms"] = ds * 1000.0
++            t["predicted_per_second"] = num_gen / ds
++    return t
++
++
+ class OpenAIServingCompletion(OpenAIServing):
+     def __init__(
+         self,
+@@ -290,6 +318,7 @@ class OpenAIServingCompletion(OpenAIServing):
+ 
+         try:
+             async for prompt_idx, res in result_generator:
++                _last_comp_res = res  # [patch_timings]
+                 prompt_token_ids = res.prompt_token_ids
+                 prompt_logprobs = res.prompt_logprobs
+ 
+@@ -434,6 +463,16 @@ class OpenAIServingCompletion(OpenAIServing):
+                     choices=[],
+                     usage=final_usage_info,
+                 )
++                # Inject Timings  # [patch_timings]
++                try:
++                    _sc_cached = _last_comp_res.num_cached_tokens
++                    final_usage_chunk.timings = _compute_timings(
++                        _last_comp_res.metrics,
++                        total_prompt_tokens, total_completion_tokens,
++                        _sc_cached,
++                    )
++                except NameError:
++                    pass
+                 final_usage_data = final_usage_chunk.model_dump_json(
+                     exclude_unset=False, exclude_none=True
+                 )
+@@ -556,7 +595,7 @@ class OpenAIServingCompletion(OpenAIServing):
+         request_metadata.final_usage_info = usage
+         if final_res_batch:
+             kv_transfer_params = final_res_batch[0].kv_transfer_params
+-        return CompletionResponse(
++        _comp_response = CompletionResponse(  # [patch_timings]
+             id=request_id,
+             created=created_time,
+             model=model_name,
+@@ -564,6 +603,14 @@ class OpenAIServingCompletion(OpenAIServing):
+             usage=usage,
+             kv_transfer_params=kv_transfer_params,
+         )
++        # Inject Timings  # [patch_timings]
++        if last_final_res is not None:
++            _comp_cached = last_final_res.num_cached_tokens
++            _comp_response.timings = _compute_timings(
++                last_final_res.metrics, num_prompt_tokens,
++                num_generated_tokens, _comp_cached,
++            )
++        return _comp_response
+ 
+     def _create_completion_logprobs(
+         self,
