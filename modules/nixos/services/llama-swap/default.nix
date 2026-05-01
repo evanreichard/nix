@@ -27,6 +27,7 @@ in
     users.users.llama-swap = {
       isSystemUser = true;
       group = "llama-swap";
+      extraGroups = [ "podman" ];
     };
 
     # Create Service

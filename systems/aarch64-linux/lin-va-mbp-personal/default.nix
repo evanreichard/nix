@@ -19,6 +19,7 @@ in
   # System Config
   reichard = {
     nix = enabled;
+    user.extraGroups = [ "dialout" ];
 
     system = {
       boot = {

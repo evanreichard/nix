@@ -357,6 +357,47 @@ in
       };
     };
 
+    "vllm-qwen3.5-27b-thinking" = {
+      name = "vLLM Qwen3.5 (27B) - Thinking";
+      macros.ctx = "196608";
+      proxy = "http://127.0.0.1:\${PORT}";
+      cmd = ''
+        ${pkgs.docker}/bin/docker run --rm --device=nvidia.com/gpu=all \
+          --name ''${MODEL_ID} \
+          -e PYTORCH_ALLOC_CONF=expandable_segments:True \
+          -v /mnt/ssd/vLLM:/root/.cache/huggingface \
+          -p ''${PORT}:8000 \
+          --ipc=host vllm/vllm-openai:latest \
+          --served-model-name ''${MODEL_ID} \
+          --model cyankiwi/Qwen3.5-27B-AWQ-4bit \
+          --max-model-len 24576 \
+          --kv-cache-dtype auto \
+          --max-num-seqs 4 \
+          --max-num-batched-tokens 4096 \
+          --enable-chunked-prefill \
+          --gpu-memory-utilization 0.95 \
+          --language-model-only \
+          --speculative-config '{"method":"mtp","num_speculative_tokens":3}' \
+          --enable-prefix-caching \
+          --enforce-eager \
+          --block-size 32 \
+          --swap-space 4 \
+          --tensor-parallel-size 1 \
+          --reasoning-parser qwen3 \
+          --enable-auto-tool-choice \
+          --default-chat-template-kwargs '{"enable_thinking": true}' \
+          --tool-call-parser qwen3_coder
+      '';
+      cmdStop = "docker stop \${MODEL_ID}";
+
+      metadata = {
+        type = [
+          "text-generation"
+          "coding"
+        ];
+      };
+    };
+
     # ---------------------------------------
     # ---------- Stable Diffussion ----------
     # ---------------------------------------
