@@ -12,6 +12,25 @@ in
     # -------------- RTX 3090 ---------------
     # ---------------------------------------
 
+    # https://huggingface.co/mradermacher/gpt-oss-20b-heretic-v2-i1-GGUF/tree/main
+    "gpt-oss-20b-thinking" = {
+      name = "GPT OSS (20B) - Thinking";
+      macros.ctx = "131072";
+      cmd = ''
+        ${llama-cpp}/bin/llama-server \
+          --port ''${PORT} \
+          -m /mnt/ssd/Models/GPT-OSS/gpt-oss-20b-heretic-v2.i1-MXFP4_MOE.gguf \
+          -c ''${ctx} \
+          --temp 1.0 \
+          --top-p 1.0 \
+          --top-k 40 \
+          -dev CUDA0
+      '';
+      metadata = {
+        type = [ "text-generation" ];
+      };
+    };
+
     # https://huggingface.co/unsloth/Qwen3.6-35B-A3B-GGUF/tree/main
     "qwen3.6-35b-thinking" = {
       name = "Qwen3.6 (35B) - Thinking";
@@ -369,42 +388,51 @@ in
       };
     };
 
-    # https://huggingface.co/unsloth/Qwen3-4B-Instruct-2507-GGUF/tree/main
-    "qwen3-4b-2507-instruct" = {
-      name = "Qwen3 2507 (4B) - Instruct";
-      macros.ctx = "98304";
+    # https://huggingface.co/unsloth/Qwen3.5-9B-GGUF/tree/main
+    "qwen3.5-9b-thinking" = {
+      name = "Qwen3.5 (9B) - Thinking";
+      macros.ctx = "131072";
       env = [ "CUDA_VISIBLE_DEVICES=1" ];
       cmd = ''
         ${llama-cpp}/bin/llama-server \
           --port ''${PORT} \
-          -m /mnt/ssd/Models/Qwen3/Qwen3-4B-Instruct-2507-Q4_K_M.gguf \
+          -m /mnt/ssd/Models/Qwen3.5/Qwen3.5-9B-IQ4_XS.gguf \
           -c ''${ctx} \
+          --temp 0.6 \
+          --top-p 0.95 \
+          --top-k 20 \
+          --min-p 0.0 \
           -fit off \
-          -ctk q8_0 \
-          -ctv q8_0 \
           -dev CUDA0
       '';
       metadata = {
-        type = [ "text-generation" ];
+        type = [
+          "text-generation"
+        ];
       };
     };
 
-    # https://huggingface.co/mradermacher/gpt-oss-20b-heretic-v2-i1-GGUF/tree/main
-    "gpt-oss-20b-thinking" = {
-      name = "GPT OSS (20B) - Thinking";
+    # https://huggingface.co/unsloth/Qwen3.5-4B-GGUF/tree/main
+    "qwen3.5-4b-thinking" = {
+      name = "Qwen3.5 (4B) - Thinking";
       macros.ctx = "131072";
+      env = [ "CUDA_VISIBLE_DEVICES=1" ];
       cmd = ''
         ${llama-cpp}/bin/llama-server \
           --port ''${PORT} \
-          -m /mnt/ssd/Models/GPT-OSS/gpt-oss-20b-heretic-v2.i1-MXFP4_MOE.gguf \
+          -m /mnt/ssd/Models/Qwen3.5/Qwen3.5-4B-IQ4_XS.gguf \
           -c ''${ctx} \
-          --temp 1.0 \
-          --top-p 1.0 \
-          --top-k 40 \
+          --temp 0.6 \
+          --top-p 0.95 \
+          --top-k 20 \
+          --min-p 0.0 \
+          -fit off \
           -dev CUDA0
       '';
       metadata = {
-        type = [ "text-generation" ];
+        type = [
+          "text-generation"
+        ];
       };
     };
 
@@ -549,7 +577,8 @@ in
 
       # --- GTX 1080 Ti Models ---
       qv = "qwen3-8b-vision";
-      q4 = "qwen3-4b-2507-instruct";
+      q4 = "qwen3.5-4b-thinking";
+      q9 = "qwen3.5-9b-thinking";
     };
 
     evict_costs = {
@@ -559,7 +588,7 @@ in
     };
 
     sets = {
-      concurrent = "(go | q36a | q36b | vlt | vtt | vlv | zi | qie | qi | cr) & (qv | q4)";
+      concurrent = "(go | q36a | q36b | vlt | vtt | vlv | zi | qie | qi | cr) & (qv | q4 | q9)";
     };
   };
 }

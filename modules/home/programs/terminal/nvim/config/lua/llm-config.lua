@@ -1,7 +1,7 @@
 local llm_endpoint = "https://llm-api.va.reichard.io"
-local llm_assistant_model = "qwen3.5-27b-thinking"
-local llm_infill_model = llm_assistant_model
-local current_fim = "copilot"
+local llm_assistant_model = "vllm-qwen3.6-27b-tools-text "
+local llm_infill_model = "qwen3.5-4b-thinking"
+local current_fim = "llama"
 
 -- Copilot Configuration
 vim.g.copilot_no_tab_map = true
