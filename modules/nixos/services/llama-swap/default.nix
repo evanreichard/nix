@@ -89,6 +89,11 @@ in
     # Create Config
     sops = {
       secrets = {
+        "llama_swap_api_keys/evan" = {
+          sopsFile = lib.snowfall.fs.get-file "secrets/common/llama-swap.yaml";
+        };
+      };
+      secrets = {
         "llama_swap_api_keys/pi" = {
           sopsFile = lib.snowfall.fs.get-file "secrets/common/llama-swap.yaml";
         };
@@ -101,6 +106,7 @@ in
           recursiveUpdate cfg.config {
             apiKeys = [
               config.sops.placeholder."llama_swap_api_keys/pi"
+              config.sops.placeholder."llama_swap_api_keys/evan"
             ];
           }
         );

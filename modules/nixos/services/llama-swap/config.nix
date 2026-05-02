@@ -97,19 +97,19 @@ in
       };
     };
 
-    # https://github.com/noonghunna/club-3090/tree/v0.20-experimental/models/qwen3.6-27b/vllm
-    # Long-text variant - v0.20 experimental single-3090 profile, text-only (no vision)
-    # TurboQuant 3-bit KV + MTP n=3 + workspace-lock sidecar.
+    # https://github.com/noonghunna/club-3090/tree/master/models/qwen3.6-27b/vllm
+    # Synced from: club-3090 ae4846f (2026-05-02) — docker-compose.long-text.yml
+    # Long-text variant - 180K context, text-only (no vision)
+    # TurboQuant 3-bit KV + MTP n=3 + Genesis v7.65 full PROD env set
     "vllm-qwen3.6-27b-long-text" = {
       name = "vLLM Qwen3.6 (27B) - Long Text";
-      macros.ctx = "214000";
+      macros.ctx = "180000";
       proxy = "http://127.0.0.1:\${PORT}";
       cmd =
         let
           vllmCmd = ''
             set -e; pip install xxhash pandas scipy -q;
             python3 -m vllm._genesis.patches.apply_all;
-            python3 /patches/patch_pn12_compile_safe_custom_op.py;
             python3 /patches/patch_workspace_lock_disable.py;
             python3 /patches/patch_tolist_cudagraph.py;
             python3 /patches/patch_timings_07351e088.py;
@@ -120,7 +120,7 @@ in
             --dtype float16
             --tensor-parallel-size 1
             --max-model-len ''${ctx}
-            --gpu-memory-utilization 0.985
+            --gpu-memory-utilization 0.95
             --max-num-seqs 1
             --max-num-batched-tokens 4128
             --kv-cache-dtype turboquant_3bit_nc
@@ -156,20 +156,64 @@ in
             -e CUDA_DEVICE_ORDER=PCI_BUS_ID \
             -e VLLM_ALLOW_LONG_MAX_MODEL_LEN=1 \
             -e VLLM_MARLIN_USE_ATOMIC_ADD=1 \
+            -e TRITON_CACHE_DIR=/root/.triton/cache \
+            -e GENESIS_ENABLE_P4=1 \
+            -e GENESIS_ENABLE_P58_ASYNC_PLACEHOLDER_FIX=1 \
+            -e GENESIS_ENABLE_P60_GDN_NGRAM_FIX=1 \
+            -e GENESIS_ENABLE_P60B_TRITON_KERNEL=1 \
+            -e GENESIS_ENABLE_P61_QWEN3_MULTI_TOOL=1 \
+            -e GENESIS_ENABLE_P61B_STREAMING_OVERLAP=1 \
+            -e GENESIS_ENABLE_P62_STRUCT_OUT_SPEC_TIMING=1 \
+            -e GENESIS_ENABLE_P64_QWEN3CODER_MTP_STREAMING=1 \
             -e GENESIS_ENABLE_P65_TURBOQUANT_SPEC_CG_DOWNGRADE=1 \
             -e GENESIS_ENABLE_P66_CUDAGRAPH_SIZE_FILTER=1 \
-            -e GENESIS_ENABLE_P64_QWEN3CODER_MTP_STREAMING=1 \
+            -e GENESIS_ENABLE_P67_TQ_MULTI_QUERY_KERNEL=1 \
+            -e GENESIS_ENABLE_P68_AUTO_FORCE_TOOL=1 \
+            -e GENESIS_ENABLE_P69_LONG_CTX_TOOL_REMINDER=1 \
+            -e GENESIS_P68_P69_LONG_CTX_THRESHOLD_CHARS=50000 \
+            -e GENESIS_ENABLE_P72_PROFILE_RUN_CAP=1 \
+            -e GENESIS_PROFILE_RUN_CAP_M=4128 \
+            -e GENESIS_ENABLE_P74_CHUNK_CLAMP=1 \
+            -e GENESIS_ENABLE_P83=1 \
+            -e GENESIS_ENABLE_P85=1 \
+            -e GENESIS_ENABLE_P87=1 \
+            -e GENESIS_ENABLE_P91=1 \
+            -e GENESIS_ENABLE_P94=1 \
+            -e GENESIS_ENABLE_P98=1 \
+            -e GENESIS_ENABLE_P99=1 \
+            -e GENESIS_ENABLE_P100=1 \
             -e GENESIS_ENABLE_P101=1 \
             -e GENESIS_ENABLE_P103=1 \
+            -e GENESIS_ENABLE_PN8_MTP_DRAFT_ONLINE_QUANT=1 \
+            -e GENESIS_ENABLE_PN9_INDEPENDENT_DRAFTER_ATTN=1 \
+            -e GENESIS_ENABLE_PN11_GDN_AB_CONTIGUOUS=1 \
             -e GENESIS_ENABLE_PN12_FFN_INTERMEDIATE_POOL=1 \
             -e GENESIS_ENABLE_PN13_CUDA_GRAPH_LAMBDA_ARITY=1 \
+            -e GENESIS_ENABLE_PN14_TQ_DECODE_OOB_CLAMP=1 \
             -e GENESIS_ENABLE_PN17_FA2_LSE_CLAMP=1 \
+            -e GENESIS_ENABLE_PN25_SILU_INDUCTOR_SAFE=1 \
+            -e GENESIS_ENABLE_PN30_DS_LAYOUT_SPEC_DECODE=1 \
+            -e GENESIS_PREALLOC_TOKEN_BUDGET=4128 \
+            -e GENESIS_BUFFER_MODE=shared \
+            -e GENESIS_ENABLE_P78_TOLIST_CAPTURE_GUARD=0 \
+            -e GENESIS_ENABLE_P81_FP8_BLOCK_SCALED_M_LE_8=0 \
+            -e GENESIS_ENABLE_P82=0 \
+            -e GENESIS_P82_THRESHOLD_SINGLE=0.3 \
             -e GENESIS_ENABLE_PN19_SCOPED_MAX_SPLIT=1 \
-            -e GENESIS_ENABLE_P98=1 \
+            -e GENESIS_ENABLE_PN22_LOCAL_ARGMAX_TP=1 \
+            -e GENESIS_ENABLE_PN26_SPARSE_V=1 \
+            -e GENESIS_PN26_SPARSE_V_BLOCK_KV=8 \
+            -e GENESIS_PN26_SPARSE_V_NUM_WARPS=4 \
+            -e GENESIS_PN26_SPARSE_V_THRESHOLD=0.01 \
+            -e GENESIS_ENABLE_P38B_COMPILE_SAFE=1 \
+            -e GENESIS_ENABLE_P15B_FA_VARLEN_CLAMP=1 \
+            -e VLLM_SSM_CONV_STATE_LAYOUT=DS \
+            -e VLLM_USE_FUSED_MOE_GROUPED_TOPK=1 \
             -v /mnt/ssd/vLLM/Models:/root/.cache/huggingface \
+            -v /mnt/ssd/vLLM/Cache/torch_compile:/root/.cache/vllm/torch_compile_cache \
+            -v /mnt/ssd/vLLM/Cache/triton:/root/.triton/cache \
             -v /mnt/ssd/vLLM/Patches/genesis/vllm/_genesis:/usr/local/lib/python3.12/dist-packages/vllm/_genesis:ro \
             -v /mnt/ssd/vLLM/Patches/patch_tolist_cudagraph.py:/patches/patch_tolist_cudagraph.py:ro \
-            -v /mnt/ssd/vLLM/Patches/patch_pn12_compile_safe_custom_op.py:/patches/patch_pn12_compile_safe_custom_op.py:ro \
             -v /mnt/ssd/vLLM/Patches/patch_workspace_lock_disable.py:/patches/patch_workspace_lock_disable.py:ro \
             -v /mnt/ssd/vLLM/Patches/patch_timings_07351e088.py:/patches/patch_timings_07351e088.py:ro \
             -p ''${PORT}:8000 \
@@ -188,20 +232,19 @@ in
     };
 
     # https://github.com/noonghunna/club-3090/tree/master/models/qwen3.6-27b/vllm
-    # Long-vision variant - 140K context with vision tower active
-    # TurboQuant 3-bit KV + MTP n=3 + PN12/P104 cliff-closure stack
+    # Synced from: club-3090 ae4846f (2026-05-02) — docker-compose.long-vision.yml
+    # Long-vision variant - 145K context with vision tower active
+    # TurboQuant 3-bit KV + MTP n=3 + Genesis v7.65 full PROD env set
     "vllm-qwen3.6-27b-long-vision" = {
       name = "vLLM Qwen3.6 (27B) - Long Vision";
-      macros.ctx = "140000";
+      macros.ctx = "145000";
       proxy = "http://127.0.0.1:\${PORT}";
       cmd =
         let
           vllmCmd = ''
             set -e; pip install xxhash pandas scipy -q;
             python3 -m vllm._genesis.patches.apply_all;
-            python3 /patches/patch_pn12_ffn_pool_anchor.py;
-            python3 /patches/patch_pn12_compile_safe_custom_op.py;
-            python3 /patches/patch_fa_max_seqlen_clamp.py;
+            python3 /patches/patch_workspace_lock_disable.py;
             python3 /patches/patch_tolist_cudagraph.py;
             python3 /patches/patch_timings_07351e088.py;
             exec vllm serve
@@ -235,7 +278,7 @@ in
             -e VLLM_WORKER_MULTIPROC_METHOD=spawn \
             -e NCCL_CUMEM_ENABLE=0 \
             -e NCCL_P2P_DISABLE=1 \
-            -e VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS=1 \
+            -e VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS=0 \
             -e VLLM_NO_USAGE_STATS=1 \
             -e PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True,max_split_size_mb:512 \
             -e VLLM_FLOAT32_MATMUL_PRECISION=high \
@@ -246,25 +289,69 @@ in
             -e CUDA_DEVICE_ORDER=PCI_BUS_ID \
             -e VLLM_ALLOW_LONG_MAX_MODEL_LEN=1 \
             -e VLLM_MARLIN_USE_ATOMIC_ADD=1 \
+            -e TRITON_CACHE_DIR=/root/.triton/cache \
+            -e GENESIS_ENABLE_P4=1 \
+            -e GENESIS_ENABLE_P58_ASYNC_PLACEHOLDER_FIX=1 \
+            -e GENESIS_ENABLE_P60_GDN_NGRAM_FIX=1 \
+            -e GENESIS_ENABLE_P60B_TRITON_KERNEL=1 \
+            -e GENESIS_ENABLE_P61_QWEN3_MULTI_TOOL=1 \
+            -e GENESIS_ENABLE_P61B_STREAMING_OVERLAP=1 \
+            -e GENESIS_ENABLE_P62_STRUCT_OUT_SPEC_TIMING=1 \
+            -e GENESIS_ENABLE_P64_QWEN3CODER_MTP_STREAMING=1 \
             -e GENESIS_ENABLE_P65_TURBOQUANT_SPEC_CG_DOWNGRADE=1 \
             -e GENESIS_ENABLE_P66_CUDAGRAPH_SIZE_FILTER=1 \
-            -e GENESIS_ENABLE_P64_QWEN3CODER_MTP_STREAMING=1 \
+            -e GENESIS_ENABLE_P67_TQ_MULTI_QUERY_KERNEL=1 \
+            -e GENESIS_ENABLE_P68_AUTO_FORCE_TOOL=1 \
+            -e GENESIS_ENABLE_P69_LONG_CTX_TOOL_REMINDER=1 \
+            -e GENESIS_P68_P69_LONG_CTX_THRESHOLD_CHARS=50000 \
+            -e GENESIS_ENABLE_P72_PROFILE_RUN_CAP=1 \
+            -e GENESIS_PROFILE_RUN_CAP_M=4128 \
+            -e GENESIS_ENABLE_P74_CHUNK_CLAMP=1 \
+            -e GENESIS_ENABLE_P83=1 \
+            -e GENESIS_ENABLE_P85=1 \
+            -e GENESIS_ENABLE_P87=1 \
+            -e GENESIS_ENABLE_P91=1 \
+            -e GENESIS_ENABLE_P94=1 \
+            -e GENESIS_ENABLE_P98=1 \
+            -e GENESIS_ENABLE_P99=1 \
+            -e GENESIS_ENABLE_P100=1 \
             -e GENESIS_ENABLE_P101=1 \
             -e GENESIS_ENABLE_P103=1 \
+            -e GENESIS_ENABLE_PN8_MTP_DRAFT_ONLINE_QUANT=1 \
+            -e GENESIS_ENABLE_PN9_INDEPENDENT_DRAFTER_ATTN=1 \
+            -e GENESIS_ENABLE_PN11_GDN_AB_CONTIGUOUS=1 \
             -e GENESIS_ENABLE_PN12_FFN_INTERMEDIATE_POOL=1 \
             -e GENESIS_ENABLE_PN13_CUDA_GRAPH_LAMBDA_ARITY=1 \
-            -e GENESIS_ENABLE_FA_MAX_SEQLEN_CLAMP=1 \
+            -e GENESIS_ENABLE_PN14_TQ_DECODE_OOB_CLAMP=1 \
             -e GENESIS_ENABLE_PN17_FA2_LSE_CLAMP=1 \
+            -e GENESIS_ENABLE_PN19_SCOPED_MAX_SPLIT=1 \
+            -e GENESIS_ENABLE_PN22_LOCAL_ARGMAX_TP=1 \
+            -e GENESIS_ENABLE_PN26_SPARSE_V=1 \
+            -e GENESIS_PN26_SPARSE_V_BLOCK_KV=8 \
+            -e GENESIS_PN26_SPARSE_V_NUM_WARPS=4 \
+            -e GENESIS_PN26_SPARSE_V_THRESHOLD=0.01 \
+            -e GENESIS_ENABLE_P38B_COMPILE_SAFE=1 \
+            -e GENESIS_ENABLE_P15B_FA_VARLEN_CLAMP=1 \
+            -e GENESIS_ENABLE_PN25_SILU_INDUCTOR_SAFE=1 \
+            -e GENESIS_ENABLE_PN30_DS_LAYOUT_SPEC_DECODE=1 \
+            -e GENESIS_PREALLOC_TOKEN_BUDGET=4128 \
+            -e GENESIS_BUFFER_MODE=shared \
+            -e GENESIS_ENABLE_P78_TOLIST_CAPTURE_GUARD=0 \
+            -e GENESIS_ENABLE_P81_FP8_BLOCK_SCALED_M_LE_8=0 \
+            -e GENESIS_ENABLE_P82=0 \
+            -e GENESIS_P82_THRESHOLD_SINGLE=0.3 \
+            -e VLLM_SSM_CONV_STATE_LAYOUT=DS \
+            -e VLLM_USE_FUSED_MOE_GROUPED_TOPK=1 \
             -v /mnt/ssd/vLLM/Models:/root/.cache/huggingface \
+            -v /mnt/ssd/vLLM/Cache/torch_compile:/root/.cache/vllm/torch_compile_cache \
+            -v /mnt/ssd/vLLM/Cache/triton:/root/.triton/cache \
             -v /mnt/ssd/vLLM/Patches/genesis/vllm/_genesis:/usr/local/lib/python3.12/dist-packages/vllm/_genesis:ro \
             -v /mnt/ssd/vLLM/Patches/patch_tolist_cudagraph.py:/patches/patch_tolist_cudagraph.py:ro \
-            -v /mnt/ssd/vLLM/Patches/patch_pn12_ffn_pool_anchor.py:/patches/patch_pn12_ffn_pool_anchor.py:ro \
-            -v /mnt/ssd/vLLM/Patches/patch_pn12_compile_safe_custom_op.py:/patches/patch_pn12_compile_safe_custom_op.py:ro \
-            -v /mnt/ssd/vLLM/Patches/patch_fa_max_seqlen_clamp.py:/patches/patch_fa_max_seqlen_clamp.py:ro \
+            -v /mnt/ssd/vLLM/Patches/patch_workspace_lock_disable.py:/patches/patch_workspace_lock_disable.py:ro \
             -v /mnt/ssd/vLLM/Patches/patch_timings_07351e088.py:/patches/patch_timings_07351e088.py:ro \
             -p ''${PORT}:8000 \
             --entrypoint /bin/bash \
-            vllm/vllm-openai:nightly-07351e0883470724dd5a7e9730ed10e01fc99d08 \
+            vllm/vllm-openai:nightly-7a1eb8ac2ec4ea69338c51dc7afd4b15010abfa8 \
             -c "${vllmCmdFlat}"
         '';
       cmdStop = "${pkgs.docker}/bin/docker stop \${MODEL_ID}";
@@ -279,9 +366,9 @@ in
     };
 
     # https://github.com/noonghunna/club-3090/tree/master/models/qwen3.6-27b/vllm
+    # Synced from: club-3090 ae4846f (2026-05-02) — docker-compose.tools-text.yml
     # Tools-text variant - 75K context, text-only (no vision)
-    # fp8_e5m2 KV + MTP n=3. This is the repo's validated long-context
-    # tool-calling profile and should be more stable than TurboQuant 128K.
+    # fp8_e5m2 KV + MTP n=3. IDE agents (Cline, Cursor, OpenCode, etc.)
     "vllm-qwen3.6-27b-tools-text" = {
       name = "vLLM Qwen3.6 (27B) - Tools Text";
       macros.ctx = "75000";
@@ -324,7 +411,7 @@ in
             -e VLLM_WORKER_MULTIPROC_METHOD=spawn \
             -e NCCL_CUMEM_ENABLE=0 \
             -e NCCL_P2P_DISABLE=1 \
-            -e VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS=1 \
+            -e VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS=0 \
             -e VLLM_NO_USAGE_STATS=1 \
             -e PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True,max_split_size_mb:512 \
             -e VLLM_FLOAT32_MATMUL_PRECISION=high \
@@ -335,15 +422,31 @@ in
             -e CUDA_DEVICE_ORDER=PCI_BUS_ID \
             -e VLLM_ALLOW_LONG_MAX_MODEL_LEN=1 \
             -e VLLM_MARLIN_USE_ATOMIC_ADD=1 \
+            -e TRITON_CACHE_DIR=/root/.triton/cache \
+            -e GENESIS_ENABLE_P58_ASYNC_PLACEHOLDER_FIX=1 \
             -e GENESIS_ENABLE_P64_QWEN3CODER_MTP_STREAMING=1 \
+            -e GENESIS_ENABLE_P66_CUDAGRAPH_SIZE_FILTER=1 \
+            -e GENESIS_ENABLE_P68_AUTO_FORCE_TOOL=1 \
+            -e GENESIS_ENABLE_P69_LONG_CTX_TOOL_REMINDER=1 \
+            -e GENESIS_P68_P69_LONG_CTX_THRESHOLD_CHARS=50000 \
+            -e GENESIS_ENABLE_P72_PROFILE_RUN_CAP=1 \
+            -e GENESIS_PROFILE_RUN_CAP_M=4128 \
+            -e GENESIS_ENABLE_P74_CHUNK_CLAMP=1 \
+            -e GENESIS_ENABLE_P94=1 \
             -e GENESIS_ENABLE_PN8_MTP_DRAFT_ONLINE_QUANT=1 \
+            -e GENESIS_ENABLE_PN13_CUDA_GRAPH_LAMBDA_ARITY=1 \
+            -e GENESIS_ENABLE_PN14_TQ_DECODE_OOB_CLAMP=1 \
+            -e GENESIS_ENABLE_PN17_FA2_LSE_CLAMP=1 \
+            -e GENESIS_ENABLE_PN19_SCOPED_MAX_SPLIT=1 \
             -v /mnt/ssd/vLLM/Models:/root/.cache/huggingface \
+            -v /mnt/ssd/vLLM/Cache/torch_compile:/root/.cache/vllm/torch_compile_cache \
+            -v /mnt/ssd/vLLM/Cache/triton:/root/.triton/cache \
             -v /mnt/ssd/vLLM/Patches/genesis/vllm/_genesis:/usr/local/lib/python3.12/dist-packages/vllm/_genesis:ro \
             -v /mnt/ssd/vLLM/Patches/patch_tolist_cudagraph.py:/patches/patch_tolist_cudagraph.py:ro \
             -v /mnt/ssd/vLLM/Patches/patch_timings_07351e088.py:/patches/patch_timings_07351e088.py:ro \
             -p ''${PORT}:8000 \
             --entrypoint /bin/bash \
-            vllm/vllm-openai:nightly-07351e0883470724dd5a7e9730ed10e01fc99d08 \
+            vllm/vllm-openai:nightly-7a1eb8ac2ec4ea69338c51dc7afd4b15010abfa8 \
             -c "${vllmCmdFlat}"
         '';
       cmdStop = "${pkgs.docker}/bin/docker stop \${MODEL_ID}";
