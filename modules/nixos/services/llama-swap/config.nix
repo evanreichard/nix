@@ -98,9 +98,9 @@ in
     };
 
     # https://github.com/noonghunna/club-3090/tree/master/models/qwen3.6-27b/vllm
-    # Synced from: club-3090 ae4846f (2026-05-02) — docker-compose.long-text.yml
+    # Synced from: club-3090 f6613c8 (2026-05-02) — docker-compose.long-text.yml
     # Long-text variant - 180K context, text-only (no vision)
-    # TurboQuant 3-bit KV + MTP n=3 + Genesis v7.65 full PROD env set
+    # TurboQuant 3-bit KV + MTP n=3 + Genesis v7.69 + Cliff 2 closure recipe
     "vllm-qwen3.6-27b-long-text" = {
       name = "vLLM Qwen3.6 (27B) - Long Text";
       macros.ctx = "180000";
@@ -110,8 +110,8 @@ in
           vllmCmd = ''
             set -e; pip install xxhash pandas scipy -q;
             python3 -m vllm._genesis.patches.apply_all;
-            python3 /patches/patch_workspace_lock_disable.py;
             python3 /patches/patch_tolist_cudagraph.py;
+            python3 /patches/patch_inputs_embeds_optional.py;
             python3 /patches/patch_timings_07351e088.py;
             exec vllm serve
             --served-model-name ''${MODEL_ID}
@@ -120,7 +120,7 @@ in
             --dtype float16
             --tensor-parallel-size 1
             --max-model-len ''${ctx}
-            --gpu-memory-utilization 0.95
+            --gpu-memory-utilization 0.93
             --max-num-seqs 1
             --max-num-batched-tokens 4128
             --kv-cache-dtype turboquant_3bit_nc
@@ -184,6 +184,11 @@ in
             -e GENESIS_ENABLE_P100=1 \
             -e GENESIS_ENABLE_P101=1 \
             -e GENESIS_ENABLE_P103=1 \
+            -e GENESIS_ENABLE_PN32_GDN_CHUNKED_PREFILL=1 \
+            -e GENESIS_PN32_GDN_CHUNK_SIZE=8192 \
+            -e GENESIS_PN32_GDN_CHUNK_THRESHOLD=16384 \
+            -e GENESIS_FLA_FWD_H_MAX_T=16384 \
+            -e GENESIS_ENABLE_PN34_WORKSPACE_LOCK_RELAX=1 \
             -e GENESIS_ENABLE_PN8_MTP_DRAFT_ONLINE_QUANT=1 \
             -e GENESIS_ENABLE_PN9_INDEPENDENT_DRAFTER_ATTN=1 \
             -e GENESIS_ENABLE_PN11_GDN_AB_CONTIGUOUS=1 \
@@ -214,7 +219,7 @@ in
             -v /mnt/ssd/vLLM/Cache/triton:/root/.triton/cache \
             -v /mnt/ssd/vLLM/Patches/genesis/vllm/_genesis:/usr/local/lib/python3.12/dist-packages/vllm/_genesis:ro \
             -v /mnt/ssd/vLLM/Patches/patch_tolist_cudagraph.py:/patches/patch_tolist_cudagraph.py:ro \
-            -v /mnt/ssd/vLLM/Patches/patch_workspace_lock_disable.py:/patches/patch_workspace_lock_disable.py:ro \
+            -v /mnt/ssd/vLLM/Patches/patch_inputs_embeds_optional.py:/patches/patch_inputs_embeds_optional.py:ro \
             -v /mnt/ssd/vLLM/Patches/patch_timings_07351e088.py:/patches/patch_timings_07351e088.py:ro \
             -p ''${PORT}:8000 \
             --entrypoint /bin/bash \
@@ -232,9 +237,9 @@ in
     };
 
     # https://github.com/noonghunna/club-3090/tree/master/models/qwen3.6-27b/vllm
-    # Synced from: club-3090 ae4846f (2026-05-02) — docker-compose.long-vision.yml
+    # Synced from: club-3090 f6613c8 (2026-05-02) — docker-compose.long-vision.yml
     # Long-vision variant - 145K context with vision tower active
-    # TurboQuant 3-bit KV + MTP n=3 + Genesis v7.65 full PROD env set
+    # TurboQuant 3-bit KV + MTP n=3 + Genesis v7.69 + Cliff 2 env vars (mem-util kept at 0.95)
     "vllm-qwen3.6-27b-long-vision" = {
       name = "vLLM Qwen3.6 (27B) - Long Vision";
       macros.ctx = "145000";
@@ -244,7 +249,6 @@ in
           vllmCmd = ''
             set -e; pip install xxhash pandas scipy -q;
             python3 -m vllm._genesis.patches.apply_all;
-            python3 /patches/patch_workspace_lock_disable.py;
             python3 /patches/patch_tolist_cudagraph.py;
             python3 /patches/patch_timings_07351e088.py;
             exec vllm serve
@@ -317,6 +321,11 @@ in
             -e GENESIS_ENABLE_P100=1 \
             -e GENESIS_ENABLE_P101=1 \
             -e GENESIS_ENABLE_P103=1 \
+            -e GENESIS_ENABLE_PN32_GDN_CHUNKED_PREFILL=1 \
+            -e GENESIS_PN32_GDN_CHUNK_SIZE=8192 \
+            -e GENESIS_PN32_GDN_CHUNK_THRESHOLD=16384 \
+            -e GENESIS_FLA_FWD_H_MAX_T=16384 \
+            -e GENESIS_ENABLE_PN34_WORKSPACE_LOCK_RELAX=1 \
             -e GENESIS_ENABLE_PN8_MTP_DRAFT_ONLINE_QUANT=1 \
             -e GENESIS_ENABLE_PN9_INDEPENDENT_DRAFTER_ATTN=1 \
             -e GENESIS_ENABLE_PN11_GDN_AB_CONTIGUOUS=1 \
@@ -347,7 +356,6 @@ in
             -v /mnt/ssd/vLLM/Cache/triton:/root/.triton/cache \
             -v /mnt/ssd/vLLM/Patches/genesis/vllm/_genesis:/usr/local/lib/python3.12/dist-packages/vllm/_genesis:ro \
             -v /mnt/ssd/vLLM/Patches/patch_tolist_cudagraph.py:/patches/patch_tolist_cudagraph.py:ro \
-            -v /mnt/ssd/vLLM/Patches/patch_workspace_lock_disable.py:/patches/patch_workspace_lock_disable.py:ro \
             -v /mnt/ssd/vLLM/Patches/patch_timings_07351e088.py:/patches/patch_timings_07351e088.py:ro \
             -p ''${PORT}:8000 \
             --entrypoint /bin/bash \

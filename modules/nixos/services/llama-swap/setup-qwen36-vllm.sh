@@ -7,7 +7,7 @@
 #
 # Idempotent — safe to re-run; skips steps already completed.
 #
-# Prerequisites: git (with git-lfs), docker, python3
+# Prerequisites: git (with git-lfs), docker
 
 set -euo pipefail
 
@@ -18,9 +18,10 @@ CACHE_DIR="/mnt/ssd/vLLM/Cache"
 GENESIS_DIR="${PATCHES_DIR}/genesis"
 
 # Pin Genesis to the validated commit (bump requires re-testing all composes)
-GENESIS_PIN="${GENESIS_PIN:-fc89395}"
+GENESIS_PIN="${GENESIS_PIN:-2db18df}"
 
 TOLIST_PATCH="${PATCHES_DIR}/patch_tolist_cudagraph.py"
+INPUTS_EMBEDS_PATCH="${PATCHES_DIR}/patch_inputs_embeds_optional.py"
 WORKSPACE_LOCK_PATCH="${PATCHES_DIR}/patch_workspace_lock_disable.py"
 PN25_REGISTER_PATCH="${PATCHES_DIR}/patch_pn25_genesis_register_fix.py"
 PN30_DST_PATCH="${PATCHES_DIR}/patch_pn30_dst_shaped_temp_fix.py"
@@ -28,11 +29,11 @@ PR40798_PATCH="${PATCHES_DIR}/patch_pr40798_workspace.py"
 TIMINGS_PATCH="${PATCHES_DIR}/patch_timings_07351e088.py"
 TIMINGS_PATCH_URL="${TIMINGS_PATCH_URL:-https://gitea.va.reichard.io/evan/nix/raw/branch/master/modules/nixos/services/llama-swap/patches/patch_timings_07351e088.py}"
 
-# Base URL for sidecar patches (club-3090 repo)
-PATCH_BASE_URL="https://raw.githubusercontent.com/noonghunna/club-3090/master/models/qwen3.6-27b/vllm/patches"
+# Base URL for sidecar patches (club-3090 repo, v7.69-cliff2-test branch)
+PATCH_BASE_URL="https://raw.githubusercontent.com/noonghunna/club-3090/v7.69-cliff2-test/models/qwen3.6-27b/vllm/patches"
 
 # ---------- Preflight Checks ----------
-for cmd in git git-lfs curl python3; do
+for cmd in git git-lfs curl; do
   if ! command -v "$cmd" &>/dev/null; then
     echo "ERROR: '$cmd' not found in PATH." >&2
     exit 1
@@ -87,46 +88,11 @@ download_patch() {
 }
 
 download_patch "${TOLIST_PATCH}"
+download_patch "${INPUTS_EMBEDS_PATCH}"
 download_patch "${WORKSPACE_LOCK_PATCH}"
 download_patch "${PN25_REGISTER_PATCH}"
 download_patch "${PN30_DST_PATCH}"
 download_patch "${PR40798_PATCH}"
-
-# ---------- Apply Setup-Time Genesis Source Patches ----------
-# These modify the Genesis checkout in-place. The Genesis tree is mounted
-# read-only into the container, so these MUST run at setup time, not boot.
-
-# The setup-time patches use hardcoded relative paths like
-# "models/qwen3.6-27b/vllm/patches/genesis/vllm/_genesis/..."
-# rooted at the club-3090 repo root. Our Genesis clone lives at
-# ${PATCHES_DIR}/genesis, so we create a temporary symlink tree
-# so the relative paths resolve correctly.
-PATCH_WORKDIR="$(mktemp -d)"
-mkdir -p "${PATCH_WORKDIR}/models/qwen3.6-27b/vllm/patches"
-ln -sfn "${GENESIS_DIR}" "${PATCH_WORKDIR}/models/qwen3.6-27b/vllm/patches/genesis"
-
-# PN25 Worker-Spawn Registration Fix
-# Registers the PN25 opaque op at module import time instead of inside
-# the compiled forward path. Required for TP=1 spawned workers.
-if [ -f "${PN25_REGISTER_PATCH}" ]; then
-  echo "Applying PN25 genesis register fix to Genesis tree..."
-  (cd "${PATCH_WORKDIR}" && python3 "${PN25_REGISTER_PATCH}") || {
-    echo "WARN: PN25 register fix did not apply cleanly. PN25 may not work in workers." >&2
-  }
-fi
-
-# PN30 DS Conv-State Dst-Shaped Temp Fix
-# Corrects DS layout corruption in PN30's speculative decode path by
-# building a destination-shaped temp instead of compacting source tail.
-if [ -f "${PN30_DST_PATCH}" ]; then
-  echo "Applying PN30 dst-shaped temp fix to Genesis tree..."
-  (cd "${PATCH_WORKDIR}" && python3 "${PN30_DST_PATCH}") || {
-    echo "WARN: PN30 dst-shaped temp fix did not apply cleanly. DS layout may not work." >&2
-  }
-fi
-
-# Clean Up Symlink Workdir
-rm -rf "${PATCH_WORKDIR}"
 
 # ---------- Download Timing Patch ----------
 tmp_timings_patch="$(mktemp)"
@@ -158,11 +124,12 @@ echo "  ├── Cache/"
 echo "  │   ├── torch_compile/                        (torch.compile cache)"
 echo "  │   └── triton/                               (Triton kernel cache)"
 echo "  └── Patches/"
-echo "      ├── genesis/                               (Genesis v7.65 @ ${GENESIS_PIN})"
-echo "      │   └── vllm/_genesis/                     (mounted into container, PN25+PN30 applied)"
+echo "      ├── genesis/                               (Genesis v7.69 @ ${GENESIS_PIN})"
+echo "      │   └── vllm/_genesis/                     (mounted into container; PN25+PN30+PN34 native)"
 echo "      ├── patch_tolist_cudagraph.py              (boot-time: cudagraph capture fix)"
-echo "      ├── patch_workspace_lock_disable.py        (boot-time: v0.20 WorkspaceManager lock workaround)"
-echo "      ├── patch_pn25_genesis_register_fix.py     (setup-time: applied to Genesis tree)"
-echo "      ├── patch_pn30_dst_shaped_temp_fix.py      (setup-time: applied to Genesis tree)"
+echo "      ├── patch_inputs_embeds_optional.py        (boot-time: vllm#35975 backport, text-only models)"
+echo "      ├── patch_workspace_lock_disable.py        (rollback: superseded by PN34 in v7.69)"
+echo "      ├── patch_pn25_genesis_register_fix.py     (rollback: folded into v7.69 natively)"
+echo "      ├── patch_pn30_dst_shaped_temp_fix.py      (rollback: folded into v7.69 natively)"
 echo "      ├── patch_pr40798_workspace.py             (PR40798 workspace fix)"
 echo "      └── patch_timings_07351e088.py             (boot-time: llama.cpp-compatible timings)"
