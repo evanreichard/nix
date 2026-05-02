@@ -5,7 +5,9 @@
 , ...
 }:
 let
-  inherit (lib) mkIf mkEnableOption recursiveUpdate;
+  inherit (lib) mkIf mkEnableOption recursiveUpdate listToAttrs;
+
+  apiKeys = [ "evan" "pi" "aethera" ];
   cfg = config.${namespace}.services.llama-swap;
 
   llama-swap = pkgs.reichard.llama-swap;
@@ -88,26 +90,19 @@ in
 
     # Create Config
     sops = {
-      secrets = {
-        "llama_swap_api_keys/evan" = {
+      secrets = listToAttrs (map (name: {
+        name = "llama_swap_api_keys/${name}";
+        value = {
           sopsFile = lib.snowfall.fs.get-file "secrets/common/llama-swap.yaml";
         };
-      };
-      secrets = {
-        "llama_swap_api_keys/pi" = {
-          sopsFile = lib.snowfall.fs.get-file "secrets/common/llama-swap.yaml";
-        };
-      };
+      }) apiKeys);
       templates."llama-swap.json" = {
         owner = "llama-swap";
         group = "llama-swap";
         mode = "0400";
         content = builtins.toJSON (
           recursiveUpdate cfg.config {
-            apiKeys = [
-              config.sops.placeholder."llama_swap_api_keys/pi"
-              config.sops.placeholder."llama_swap_api_keys/evan"
-            ];
+            apiKeys = map (name: config.sops.placeholder."llama_swap_api_keys/${name}") apiKeys;
           }
         );
       };
