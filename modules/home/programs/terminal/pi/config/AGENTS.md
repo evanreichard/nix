@@ -34,6 +34,23 @@ bash(command="cat > file.txt << 'EOF'\ncontent\nEOF")
 write(path="file.txt", content="content")
 ```
 
+## Reading Files
+
+Prefer a **search → targeted read** pattern to minimize context usage:
+
+1. **Search** with `grep -n` / `rg -n` to find relevant line numbers.
+2. **Read** only the needed range using `read(path, offset, limit)` or `sed -n 'X,Yp'`.
+
+```bash
+# Find the relevant lines
+bash(command="rg -n 'functionName' src/", timeout=10)
+
+# Read just that region (e.g. lines 42-70)
+read(path="src/foo.go", offset=42, limit=29)
+```
+
+Full-file reads are fine when genuinely needed (small files, needing full picture), but avoid them as the default reflex.
+
 ## Principles
 
 1. **KISS / YAGNI** - Keep solutions simple and straightforward. Don't introduce abstractions, generics, or indirection unless there is a concrete, immediate need. Prefer obvious code over clever code.
