@@ -1,4 +1,5 @@
 { namespace
+, config
 , pkgs
 , lib
 , ...
@@ -6,6 +7,7 @@
 let
   inherit (lib.${namespace}) enabled;
 
+  nvidia-smi = "${config.hardware.nvidia.package.bin}/bin/nvidia-smi";
   llama-cpp = pkgs.reichard.llama-cpp;
   stable-diffusion-cpp = pkgs.reichard.stable-diffusion-cpp.override {
     cudaSupport = true;
@@ -44,6 +46,27 @@ in
 
   networking.firewall = {
     allowedTCPPorts = [ 8081 ];
+  };
+
+  # NVIDIA GPU Power Limit
+  systemd.services = {
+    nvidia-persistence-mode = {
+      description = "Enable NVIDIA GPU Persistence Mode";
+      after = [ "nvidia-modules-load.service" ];
+      wantedBy = [ "multi-user.target" ];
+      serviceConfig.Type = "oneshot";
+      serviceConfig.RemainAfterExit = true;
+      script = "${nvidia-smi} -pm 1";
+    };
+
+    nvidia-power-limit = {
+      description = "Set NVIDIA GPU Power Limit";
+      after = [ "nvidia-persistence-mode.service" ];
+      wantedBy = [ "multi-user.target" ];
+      serviceConfig.Type = "oneshot";
+      serviceConfig.RemainAfterExit = true;
+      script = "${nvidia-smi} -i 0 -pl 250";
+    };
   };
 
   # System Config
