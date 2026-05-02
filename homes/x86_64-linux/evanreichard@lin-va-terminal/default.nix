@@ -1,6 +1,7 @@
 { lib
 , config
 , namespace
+, osConfig
 , ...
 }:
 let
@@ -35,6 +36,13 @@ in
         pi = enabled;
         tmux = enabled;
       };
+    };
+  };
+
+  # Kubernetes Secrets
+  sops.secrets = lib.mkIf osConfig.${namespace}.security.sops.enable {
+    rke2_kubeconfig = {
+      path = "${config.home.homeDirectory}/.kube/lin-va-kube";
     };
   };
 }
