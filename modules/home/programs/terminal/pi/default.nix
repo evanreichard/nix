@@ -2,6 +2,7 @@
 , pkgs
 , config
 , namespace
+, osConfig
 , ...
 }:
 let
@@ -35,18 +36,7 @@ in
 
     # Define Pi Configuration
     home.file = {
-      ".pi/agent/models.json" = {
-        text = builtins.toJSON {
-          providers = {
-            "llama-swap" = {
-              baseUrl = "https://llm-api.va.reichard.io/v1";
-              api = "openai-completions";
-              apiKey = "none";
-              models = helpers.toPiModels llamaSwapConfig;
-            };
-          };
-        };
-      };
+
       ".pi/agent/AGENTS.md" = {
         source = ./config/AGENTS.md;
       };
@@ -61,6 +51,27 @@ in
       ".pi/agent/extensions" = {
         source = ./config/extensions;
         recursive = true;
+      };
+    };
+
+    # Pi Models Config - Inject llama-swap API key from sops into models.json
+    # so pi can authenticate against the llm-api endpoint.
+    sops = lib.mkIf osConfig.${namespace}.security.sops.enable {
+      secrets."llama_swap_api_keys/pi" = {
+        sopsFile = lib.snowfall.fs.get-file "secrets/common/llama-swap.yaml";
+      };
+      templates."pi-models.json" = {
+        path = "${config.home.homeDirectory}/.pi/agent/models.json";
+        content = builtins.toJSON {
+          providers = {
+            "llama-swap" = {
+              baseUrl = "https://llm-api.va.reichard.io/v1";
+              api = "openai-completions";
+              apiKey = config.sops.placeholder."llama_swap_api_keys/pi";
+              models = helpers.toPiModels llamaSwapConfig;
+            };
+          };
+        };
       };
     };
 

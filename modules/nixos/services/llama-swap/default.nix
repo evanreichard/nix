@@ -88,19 +88,22 @@ in
 
     # Create Config
     sops = {
-      secrets.synthetic_apikey = {
-        sopsFile = lib.snowfall.fs.get-file "secrets/common/systems.yaml";
+      secrets = {
+        "llama_swap_api_keys/pi" = {
+          sopsFile = lib.snowfall.fs.get-file "secrets/common/llama-swap.yaml";
+        };
       };
       templates."llama-swap.json" = {
         owner = "llama-swap";
         group = "llama-swap";
         mode = "0400";
-        content = builtins.toJSON cfg.config;
-        # content = builtins.toJSON (
-        #   recursiveUpdate cfg.config {
-        #     peers.synthetic.apiKey = config.sops.placeholder.synthetic_apikey;
-        #   }
-        # );
+        content = builtins.toJSON (
+          recursiveUpdate cfg.config {
+            apiKeys = [
+              config.sops.placeholder."llama_swap_api_keys/pi"
+            ];
+          }
+        );
       };
     };
 

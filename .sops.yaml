@@ -27,6 +27,17 @@ creation_rules:
           - *system_lin-va-desktop
           - *system_lin-va-thinkpad
           - *system_lin-va-terminal
+  - path_regex: secrets/common/llama-swap.yaml
+    key_groups:
+      - age:
+          - *admin_reichard
+          - *system_lin-va-desktop
+          - *user_lin-va-mbp-personal
+          - *user_lin-va-mbp-work-vm
+          - *user_lin-va-terminal
+          - *user_lin-va-thinkpad
+          - *user_mac-va-mbp-personal
+          - *user_mac-va-mbp-work
   - path_regex: secrets/common/evanreichard.yaml
     key_groups:
       - age:
