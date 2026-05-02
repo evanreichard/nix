@@ -397,6 +397,7 @@ in
         ${llama-cpp}/bin/llama-server \
           --port ''${PORT} \
           -m /mnt/ssd/Models/Qwen3.5/Qwen3.5-9B-IQ4_XS.gguf \
+          --mmproj /mnt/ssd/Models/Qwen3.5/Qwen3.5-9B-IQ4_XS_mmproj-F16.gguf \
           -c ''${ctx} \
           --temp 0.6 \
           --top-p 0.95 \
@@ -408,6 +409,8 @@ in
       metadata = {
         type = [
           "text-generation"
+          "coding"
+          "vision"
         ];
       };
     };
