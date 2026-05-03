@@ -1,155 +1,112 @@
 ---
 name: web-glimpse
-description: 'Search the web, inspect pages, extract article content, download rendered site content, or capture screenshots using the `glimpse` headless browser tool. Use when the user asks to search the web, look something up online, fetch a browser-rendered page, download/read a website, inspect dynamic content, or see raw browser results. Does not replace curl for simple HTTP/API requests.'
+description: 'Search the web, read pages, extract content, run JavaScript, or capture screenshots using the `glimpse` headless browser tool. Use when the user asks to search the web, look something up online, read/fetch a page, inspect dynamic content, or capture visual state. Does not replace curl for simple HTTP/API requests.'
 ---
 
-# Web Search And Browser Fetching With Glimpse
+# Web Browsing With Glimpse
 
-## Overview
+`glimpse` runs headless Firefox via WebDriver. Use it for web search, reading rendered pages, running JavaScript, and screenshots. Prefer `curl` for simple APIs, static files, and direct downloads.
 
-Use `glimpse` when a task needs web search or browser-rendered website access. It runs Firefox through WebDriver in headless mode by default, so it can observe pages after JavaScript runs and return agent-friendly raw results.
-
-This skill is for:
-
-- Searching the web for current information
-- Opening pages in a real browser and reading rendered content
-- Extracting article-like content as Markdown/text/JSON
-- Inspecting DOM state with custom JavaScript
-- Saving screenshots for visual/debugging work
-- Downloading rendered page content when `curl` would miss JavaScript-generated content
-
-This skill is **not** a blanket replacement for `curl`. Prefer `curl` for simple APIs, static files, health checks, headers, and direct downloads where a browser is unnecessary.
-
-## Tool Summary
-
-```bash
-glimpse <command> <url> [options]
-```
-
-Commands:
+## Commands
 
 | Command | Purpose |
 | ------- | ------- |
-| `search <query>` | Search using the configured provider, usually Kagi, and return JSON results |
-| `snapshot <url>` | Return a JSON snapshot containing title, visible text, headings, links, buttons, inputs, and forms |
-| `reader <url>` | Extract Firefox Reader View content as Markdown, HTML, text, or JSON |
-| `exec <url>` | Execute JavaScript on a page and return the top-level JS result |
-| `screenshot <url>` | Save a PNG screenshot of the rendered page |
+| `reader <url>` | Extract page content as Markdown (Reader View → raw fallback) |
+| `exec <url>` | Run JavaScript on a page, return the result |
+| `screenshot <url>` | Save a PNG screenshot |
+| `search <query>` | Search the web (Kagi) and return results |
+| `serve` | Start a persistent browser for faster repeat commands |
 
-Common options:
+## Persistent Server
 
-| Option | Purpose |
-| ------ | ------- |
-| `--timeout=<ms>` | Maximum wait time in milliseconds; increase for slow or JS-heavy pages |
-| `--wait-until=<state>` | Wait for `none`, `interactive`, or `complete` readiness |
-| `--wait-js=<code>` | Poll JavaScript until it returns a truthy value |
-| `--js=<code>` | Execute inline JavaScript before command logic, or return it for `exec` |
-| `--script=<file>` | Execute JavaScript from a file |
-| `--output=<file>` | Write reader output or screenshots to a file |
-| `--no-headless` | Show Firefox instead of running headless when visual debugging is useful |
-
-## Usage Patterns
-
-### Search The Web
-
-Use `search` first when the user asks for current information, docs, release notes, articles, or general web research.
+For multi-command sessions, start a persistent browser server first. All subsequent commands auto-discover it via Unix socket — no extra flags needed.
 
 ```bash
-glimpse search "query terms" --timeout=15000
+# Start persistent server (keeps geckodriver + Firefox alive)
+glimpse serve &
+
+# All commands now reuse the running browser (~300ms vs ~2-3s each)
+glimpse reader https://example.com
+glimpse reader https://other.com
+glimpse exec https://example.com --js='return document.title'
+
+# Check server status
+glimpse serve --status
+
+# Stop when done
+glimpse serve --stop
 ```
 
-Search returns JSON results with `title`, `url`, and `description`. After searching, open the most relevant authoritative result(s) with `snapshot` or `reader` before answering. Do not rely only on search snippets for factual claims unless the user explicitly asks for a quick search summary.
+State (cookies, localStorage) persists between commands — this is intentional for sticky sessions. Without a running server, commands work normally with ad-hoc browser startup.
 
-### Read A Page Snapshot
-
-Use `snapshot` for a broad, raw view of the rendered page.
+## Quick Reference
 
 ```bash
-glimpse snapshot https://example.com --wait-until=complete --timeout=15000
-```
+# Read a page (tries Reader View, falls back to raw Turndown)
+glimpse reader https://example.com --timeout=15
 
-The JSON result includes visible text plus structured headings, links, forms, buttons, and inputs. This is usually the best first command for documentation pages, landing pages, dashboards, and pages that are not article-like.
+# Read without Reader View (raw HTML → Markdown via Turndown)
+glimpse reader https://example.com --no-reader --timeout=15
 
-### Extract Article Content
+# Get structured JSON instead of Markdown (includes method: "reader"|"raw")
+glimpse reader https://example.com --format=json
 
-Use `reader` for blog posts, news articles, documentation pages, and other long-form content.
+# Save extracted content to a file
+glimpse reader https://example.com --output=page.md
 
-```bash
-glimpse reader https://example.com/article --format=markdown --timeout=20000
-```
+# Run JavaScript and return a value
+glimpse exec https://example.com --js='return document.title'
 
-If Reader View fails with `No readable article content found`, fall back to `snapshot` or `exec`.
-
-Useful formats:
-
-```bash
-glimpse reader https://example.com/article --format=markdown
-glimpse reader https://example.com/article --format=text
-glimpse reader https://example.com/article --format=json
-```
-
-To save extracted content:
-
-```bash
-glimpse reader https://example.com/article --format=markdown --output=article.md
-```
-
-### Inspect Dynamic Content With JavaScript
-
-Use `exec` when you need a targeted extraction or need to inspect content generated by JavaScript.
-
-```bash
+# Extract specific data with JavaScript
 glimpse exec https://example.com --wait-until=complete --js='return {
   title: document.title,
-  text: document.body.innerText.slice(0, 4000),
-  links: Array.from(document.links).map(a => ({ text: a.innerText, href: a.href }))
+  text: document.body.innerText.slice(0, 4000)
 }'
+
+# Wait for dynamic content before extracting
+glimpse reader https://example.com \
+  --wait-js='return document.querySelector(".content")?.innerText?.length > 100' \
+  --timeout=30
+
+# Capture a screenshot
+glimpse screenshot https://example.com --output=page.png
+
+# Search the web
+glimpse search "query terms" --timeout=15
+
+# Search and get JSON instead of Markdown
+glimpse search "query terms" --format=json
 ```
 
-Use `--wait-js` when a SPA needs time for a selector or app state to appear:
+## Common Options
 
-```bash
-glimpse snapshot https://example.com/app \
-  --wait-js='return document.querySelector("main") && document.body.innerText.length > 500' \
-  --timeout=30000
-```
+| Option | Default | Purpose |
+| ------ | ------- | ------- |
+| `--timeout=<s>` | `10` | Max wait time in seconds; increase for slow/JS-heavy pages |
+| `--wait-until=<state>` | `none` | Wait for `none`, `interactive`, or `complete` |
+| `--wait-js=<code>` | — | Poll JS expression until truthy |
+| `--js=<code>` | — | Run inline JS before command logic |
+| `--script=<file>` | — | Run JS file before command logic |
+| `--no-headless` | — | Show the browser window |
+| `--format=<fmt>` | varies | Output format (reader: `markdown`/`html`/`text`/`json`; search: `markdown`/`json`) |
+| `--output=<file>` | — | Write output to file (reader, screenshot) |
+| `--no-reader` | — | Skip Reader View, use raw page extraction |
 
-### Capture Screenshots
+## Workflow
 
-Use screenshots when layout, visual state, charts, or rendering bugs matter.
-
-```bash
-glimpse screenshot https://example.com --wait-until=complete --output=example.png
-```
-
-You can adjust the page before capture:
-
-```bash
-glimpse screenshot https://example.com \
-  --js='document.body.style.zoom = "80%"' \
-  --output=example.png
-```
-
-## Recommended Workflow
-
-1. **Choose The Lightest Useful Tool** — Use `curl` for simple static/API requests. Use `glimpse` when search, JavaScript, rendered content, Reader View, forms, or screenshots are useful.
-2. **Search Before Browsing** — For open-ended questions, run `glimpse search` and select authoritative sources.
-3. **Verify With Page Content** — Open candidate sources with `snapshot`, `reader`, or targeted `exec` before drawing conclusions.
-4. **Use Timeouts Deliberately** — Start around `15000` ms. Increase to `30000` ms for slow, JavaScript-heavy, or anti-bot-delayed pages.
-5. **Prefer Structured Results** — Use `snapshot` or `exec` to extract links/headings/text as JSON rather than scraping terminal output by hand.
-6. **Save Artifacts When Asked** — Use `--output` for reader exports or screenshots. If creating local files, report the saved path.
+1. **Search first** when the user asks an open-ended question. Pick authoritative results to read.
+2. **Read pages with `reader`** — it tries Firefox Reader View for clean article extraction, then falls back to converting the raw page HTML to Markdown via Turndown. Most pages work without extra options.
+3. **Add `--wait-until=complete`** for JS-heavy pages, SPAs, or pages that load content dynamically.
+4. **Use `exec`** when you need targeted data extraction via JavaScript rather than full page content.
+5. **Use `screenshot`** when visual layout, charts, or rendering state matters.
+6. **Increase timeouts** — start at `15`, go to `30` for slow sites. The default `10` is often too tight for real-world pages.
+7. **Cite URLs** when summarizing web research. Distinguish search snippets from verified page content.
 
 ## Error Handling
 
-- `USAGE_ERROR`: Check command ordering. Most commands are `glimpse <command> <url>`, while search is `glimpse search "query"`.
-- `TIMEOUT`: Increase `--timeout`, add `--wait-until=complete`, or use a more specific `--wait-js`.
-- `No readable article content found`: Reader View could not detect article content; use `snapshot` or `exec`.
-- Empty or thin content: Try `--wait-until=complete`, a page-specific `--wait-js`, or inspect with `exec`.
-- Search authentication/provider issues: Glimpse is normally configured with Kagi via `~/.config/glimpse/config.json`; report auth/provider errors if they occur.
-
-## Answering Guidelines
-
-- Cite or mention the URLs you inspected when summarizing web research.
-- Distinguish search snippets from content verified by opening a page.
-- If sites disagree, say so and prefer official documentation, release notes, primary sources, or reputable references.
-- Do not claim a page was downloaded or rendered unless you actually ran `glimpse` and saw successful output.
+| Error | Fix |
+| ----- | --- |
+| `TIMEOUT` | Increase `--timeout` (in seconds), add `--wait-until=complete`, or use `--wait-js` |
+| `USAGE_ERROR` | Check arg order: `glimpse <command> <url>`, search is `glimpse search "query"` |
+| Thin/empty content | Try `--wait-until=complete`, `--no-reader`, or targeted `exec` |
+| Search auth errors | Kagi token is configured via `~/.config/glimpse/config.json` or `KAGI_TOKEN` env |
