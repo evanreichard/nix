@@ -18,6 +18,7 @@ let
   # writing other fields (current model, etc.) without us clobbering them.
   piPackages = [
     "https://gitea.va.reichard.io/evan/pi-lsp.git@main"
+    "https://gitea.va.reichard.io/evan/pi-statusline.git@main"
   ];
 
   piPackagesJson = pkgs.writeText "pi-packages.json" (builtins.toJSON piPackages);
@@ -33,13 +34,21 @@ let
     }
   ];
 
-  piAuthJqRawfiles = lib.concatStringsSep " \\\n          " (map
-    (auth: ''--rawfile ${auth.jqVar} "${config.sops.secrets.${auth.secretName}.path}"'')
-    piAuthApiKeys);
+  piAuthJqRawfiles = lib.concatStringsSep " \\\n          " (
+    map
+      (
+        auth: ''--rawfile ${auth.jqVar} "${config.sops.secrets.${auth.secretName}.path}"''
+      )
+      piAuthApiKeys
+  );
 
-  piAuthJqFilter = lib.concatStringsSep " | " (map
-    (auth: ''.["${auth.provider}"] = { type: "api_key", key: ($'' + auth.jqVar + '' | rtrimstr("\n")) }'')
-    piAuthApiKeys);
+  piAuthJqFilter = lib.concatStringsSep " | " (
+    map
+      (
+        auth: ''.["${auth.provider}"] = { type: "api_key", key: ($'' + auth.jqVar + ''| rtrimstr("\n")) }''
+      )
+      piAuthApiKeys
+  );
 
   piAuthMergeScript = pkgs.writeShellScript "pi-auth-merge" ''
     set -euo pipefail
@@ -51,7 +60,11 @@ let
       rm "$PI_AUTH"
     fi
 
-    for secret in ${lib.concatStringsSep " " (map (auth: ''"${config.sops.secrets.${auth.secretName}.path}"'') piAuthApiKeys)}; do
+    for secret in ${
+      lib.concatStringsSep " " (
+        map (auth: ''"${config.sops.secrets.${auth.secretName}.path}"'') piAuthApiKeys
+      )
+    }; do
       if [ ! -e "$secret" ]; then
         echo "Skipping pi auth merge; missing sops secret: $secret" >&2
         exit 0
@@ -105,12 +118,15 @@ in
         "llama_swap_api_keys/pi" = {
           sopsFile = lib.snowfall.fs.get-file "secrets/common/llama-swap.yaml";
         };
-      } // lib.listToAttrs (map
-        (auth: {
-          name = auth.secretName;
-          value.sopsFile = auth.sopsFile;
-        })
-        piAuthApiKeys);
+      }
+      // lib.listToAttrs (
+        map
+          (auth: {
+            name = auth.secretName;
+            value.sopsFile = auth.sopsFile;
+          })
+          piAuthApiKeys
+      );
       templates."pi-models.json" = {
         path = "${config.home.homeDirectory}/.pi/agent/models.json";
         content = builtins.toJSON {
