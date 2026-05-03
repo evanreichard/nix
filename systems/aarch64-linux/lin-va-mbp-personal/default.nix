@@ -15,6 +15,7 @@ in
   time.timeZone = "America/New_York";
 
   programs.firejail.enable = true;
+  programs.nix-ld.enable = true;
 
   # System Config
   reichard = {
