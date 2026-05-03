@@ -9,12 +9,12 @@
 
 buildNpmPackage rec {
   pname = "glimpse";
-  version = "unstable-2026-04-27";
+  version = "unstable-2026-05-02";
 
   src = fetchgit {
     url = "https://gitea.va.reichard.io/evan/glimpse.git";
-    rev = "6b3ec32b3ab7a82eb937cc850d217413ec752483";
-    hash = "sha256-o4SPiZqsARwDmVpybcYMjyGRdAfDxMTuldWblbMpoCQ=";
+    rev = "e3d7c28820ed9bd838e96f2419de946685ab8d23";
+    hash = "sha256-LtrwD7mkh3wUXr2do3IeKiljHgpxCL8drZrJBI32Bu0=";
   };
 
   npmDepsHash = "sha256-ycAjPZZqI3ZMIUubJbWy8G6X6LaXDcgdZGswikfkQj8=";
