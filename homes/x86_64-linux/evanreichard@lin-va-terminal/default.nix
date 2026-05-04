@@ -28,6 +28,7 @@ in
       terminal = {
         bash = enabled;
         btop = enabled;
+        conduit = enabled;
         direnv = enabled;
         git = enabled;
         k9s = enabled;
