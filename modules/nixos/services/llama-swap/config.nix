@@ -175,7 +175,6 @@ in
             -e GENESIS_PROFILE_RUN_CAP_M=4128 \
             -e GENESIS_ENABLE_P74_CHUNK_CLAMP=1 \
             -e GENESIS_ENABLE_P83=1 \
-            -e GENESIS_ENABLE_P85=1 \
             -e GENESIS_ENABLE_P87=1 \
             -e GENESIS_ENABLE_P91=1 \
             -e GENESIS_ENABLE_P94=1 \
@@ -312,7 +311,6 @@ in
             -e GENESIS_PROFILE_RUN_CAP_M=4128 \
             -e GENESIS_ENABLE_P74_CHUNK_CLAMP=1 \
             -e GENESIS_ENABLE_P83=1 \
-            -e GENESIS_ENABLE_P85=1 \
             -e GENESIS_ENABLE_P87=1 \
             -e GENESIS_ENABLE_P91=1 \
             -e GENESIS_ENABLE_P94=1 \
