@@ -1,9 +1,9 @@
-{ lib
-, pkgs
-, config
-, namespace
-, osConfig
-, ...
+{
+  lib,
+  pkgs,
+  config,
+  namespace,
+  ...
 }:
 let
   inherit (lib) mkIf;
@@ -35,19 +35,15 @@ let
   ];
 
   piAuthJqRawfiles = lib.concatStringsSep " \\\n          " (
-    map
-      (
-        auth: ''--rawfile ${auth.jqVar} "${config.sops.secrets.${auth.secretName}.path}"''
-      )
-      piAuthApiKeys
+    map (
+      auth: ''--rawfile ${auth.jqVar} "${config.sops.secrets.${auth.secretName}.path}"''
+    ) piAuthApiKeys
   );
 
   piAuthJqFilter = lib.concatStringsSep " | " (
-    map
-      (
-        auth: ''.["${auth.provider}"] = { type: "api_key", key: ($'' + auth.jqVar + ''| rtrimstr("\n")) }''
-      )
-      piAuthApiKeys
+    map (
+      auth: ''.["${auth.provider}"] = { type: "api_key", key: ($'' + auth.jqVar + ''| rtrimstr("\n")) }''
+    ) piAuthApiKeys
   );
 
   piAuthMergeScript = pkgs.writeShellScript "pi-auth-merge" ''
@@ -113,19 +109,17 @@ in
 
     # Pi Models Config - Inject llama-swap API key from sops into models.json
     # so pi can authenticate against the llm-api endpoint.
-    sops = lib.mkIf osConfig.${namespace}.security.sops.enable {
+    sops = lib.mkIf config.${namespace}.security.sops.enable {
       secrets = {
         "llama_swap_api_keys/pi" = {
           sopsFile = lib.snowfall.fs.get-file "secrets/common/llama-swap.yaml";
         };
       }
       // lib.listToAttrs (
-        map
-          (auth: {
-            name = auth.secretName;
-            value.sopsFile = auth.sopsFile;
-          })
-          piAuthApiKeys
+        map (auth: {
+          name = auth.secretName;
+          value.sopsFile = auth.sopsFile;
+        }) piAuthApiKeys
       );
       templates."pi-models.json" = {
         path = "${config.home.homeDirectory}/.pi/agent/models.json";
@@ -159,7 +153,7 @@ in
     # Merge Api Key Auth Into Mutable auth.json - Pi needs auth.json to stay
     # writable, so merge sops-managed API keys instead of symlinking the whole
     # file. Existing provider auth entries are preserved.
-    home.activation.piAuthMerge = lib.mkIf osConfig.${namespace}.security.sops.enable (
+    home.activation.piAuthMerge = lib.mkIf config.${namespace}.security.sops.enable (
       config.lib.dag.entryAfter [ "sops-nix" "writeBoundary" ] ''
         ${piAuthMergeScript}
       ''
@@ -168,7 +162,7 @@ in
     # Run Pi Auth Merge After Sops - During NixOS system activation, sops-nix
     # can be restarted asynchronously and secrets may not exist yet. This user
     # service retries the merge in the normal user systemd graph after sops-nix.
-    systemd.user.services.pi-auth-merge = lib.mkIf osConfig.${namespace}.security.sops.enable {
+    systemd.user.services.pi-auth-merge = lib.mkIf config.${namespace}.security.sops.enable {
       Unit = {
         Description = "Merge sops-managed Pi auth entries";
         After = [ "sops-nix.service" ];
