@@ -5,32 +5,27 @@
 # source patches to the Genesis tree, and fetches all boot-time sidecar
 # patches into place under /mnt/ssd/vLLM/.
 #
-# Idempotent — safe to re-run; skips steps already completed.
+# Idempotent - safe to re-run; skips steps already completed.
 #
 # Prerequisites: git (with git-lfs), docker
 
 set -euo pipefail
 
+# Model Directories
 MODEL_DIR="/mnt/ssd/vLLM/Models"
 MODEL_SUBDIR="qwen3.6-27b-autoround-int4"
 PATCHES_DIR="/mnt/ssd/vLLM/Patches"
 CACHE_DIR="/mnt/ssd/vLLM/Cache"
 GENESIS_DIR="${PATCHES_DIR}/genesis"
+GENESIS_PIN="${GENESIS_PIN:-7b9fd319}"
 
-# Pin Genesis to the validated commit (bump requires re-testing all composes)
-GENESIS_PIN="${GENESIS_PIN:-2db18df}"
-
-TOLIST_PATCH="${PATCHES_DIR}/patch_tolist_cudagraph.py"
+# 3090 Patches
+BASE_3090_PATCH_URL="https://raw.githubusercontent.com/noonghunna/club-3090/v7.69-cliff2-test/models/qwen3.6-27b/vllm/patches"
 INPUTS_EMBEDS_PATCH="${PATCHES_DIR}/patch_inputs_embeds_optional.py"
-WORKSPACE_LOCK_PATCH="${PATCHES_DIR}/patch_workspace_lock_disable.py"
-PN25_REGISTER_PATCH="${PATCHES_DIR}/patch_pn25_genesis_register_fix.py"
-PN30_DST_PATCH="${PATCHES_DIR}/patch_pn30_dst_shaped_temp_fix.py"
-PR40798_PATCH="${PATCHES_DIR}/patch_pr40798_workspace.py"
+
+# Timings Patch
 TIMINGS_PATCH="${PATCHES_DIR}/patch_timings_07351e088.py"
 TIMINGS_PATCH_URL="${TIMINGS_PATCH_URL:-https://gitea.va.reichard.io/evan/nix/raw/branch/master/modules/nixos/services/llama-swap/patches/patch_timings_07351e088.py}"
-
-# Base URL for sidecar patches (club-3090 repo, v7.69-cliff2-test branch)
-PATCH_BASE_URL="https://raw.githubusercontent.com/noonghunna/club-3090/v7.69-cliff2-test/models/qwen3.6-27b/vllm/patches"
 
 # ---------- Preflight Checks ----------
 for cmd in git git-lfs curl; do
@@ -56,7 +51,7 @@ fi
 
 # ---------- Clone / Pin Genesis Patches ----------
 if [ -d "${GENESIS_DIR}/.git" ]; then
-  echo "Genesis already cloned — fetching + checking out ${GENESIS_PIN} ..."
+  echo "Genesis already cloned - fetching + checking out ${GENESIS_PIN} ..."
   (cd "${GENESIS_DIR}" && git fetch origin && git checkout "${GENESIS_PIN}" 2>&1 | tail -3)
 else
   echo "Cloning Genesis patches at ${GENESIS_PIN} ..."
@@ -64,7 +59,7 @@ else
   (cd "${GENESIS_DIR}" && git checkout "${GENESIS_PIN}")
 fi
 
-# Sanity Check — v7.14+ layout
+# Sanity Check
 if [[ ! -d "${GENESIS_DIR}/vllm/_genesis" ]]; then
   echo "ERROR: genesis tree at ${GENESIS_PIN} missing vllm/_genesis package." >&2
   echo "       Re-run with GENESIS_PIN=<other-ref> to try a different version." >&2
@@ -73,7 +68,6 @@ fi
 echo "Genesis pinned to ${GENESIS_PIN} ($(cd "${GENESIS_DIR}" && git rev-parse --short HEAD))"
 
 # ---------- Download Sidecar Patches ----------
-# Fetched from club-3090 repo so this script is self-contained.
 download_patch() {
   local dest="$1"
   local filename
@@ -82,17 +76,12 @@ download_patch() {
     echo "Patch ${filename} already present, skipping."
   else
     echo "Downloading ${filename}..."
-    curl -fsSL "${PATCH_BASE_URL}/${filename}" -o "${dest}"
+    curl -fsSL "${BASE_3090_PATCH_URL}/${filename}" -o "${dest}"
     echo "Patch ${filename} written."
   fi
 }
 
-download_patch "${TOLIST_PATCH}"
 download_patch "${INPUTS_EMBEDS_PATCH}"
-download_patch "${WORKSPACE_LOCK_PATCH}"
-download_patch "${PN25_REGISTER_PATCH}"
-download_patch "${PN30_DST_PATCH}"
-download_patch "${PR40798_PATCH}"
 
 # ---------- Download Timing Patch ----------
 tmp_timings_patch="$(mktemp)"
@@ -113,8 +102,8 @@ fi
 echo ""
 echo "=== Setup Complete ==="
 echo "  Model:   ${MODEL_DIR}/${MODEL_SUBDIR}"
-echo "  Genesis: ${GENESIS_DIR} (pinned: ${GENESIS_PIN})"
 echo "  Cache:   ${CACHE_DIR}/{torch_compile,triton}"
+echo "  Genesis: ${GENESIS_DIR} (pinned: ${GENESIS_PIN})"
 echo ""
 echo "Expected layout:"
 echo "  /mnt/ssd/vLLM/"
@@ -124,12 +113,7 @@ echo "  ├── Cache/"
 echo "  │   ├── torch_compile/                        (torch.compile cache)"
 echo "  │   └── triton/                               (Triton kernel cache)"
 echo "  └── Patches/"
-echo "      ├── genesis/                               (Genesis v7.69 @ ${GENESIS_PIN})"
-echo "      │   └── vllm/_genesis/                     (mounted into container; PN25+PN30+PN34 native)"
-echo "      ├── patch_tolist_cudagraph.py              (boot-time: cudagraph capture fix)"
+echo "      ├── genesis/                               (Genesis @ ${GENESIS_PIN})"
+echo "      │   └── vllm/_genesis/                     (mounted into container)"
 echo "      ├── patch_inputs_embeds_optional.py        (boot-time: vllm#35975 backport, text-only models)"
-echo "      ├── patch_workspace_lock_disable.py        (rollback: superseded by PN34 in v7.69)"
-echo "      ├── patch_pn25_genesis_register_fix.py     (rollback: folded into v7.69 natively)"
-echo "      ├── patch_pn30_dst_shaped_temp_fix.py      (rollback: folded into v7.69 natively)"
-echo "      ├── patch_pr40798_workspace.py             (PR40798 workspace fix)"
 echo "      └── patch_timings_07351e088.py             (boot-time: llama.cpp-compatible timings)"
