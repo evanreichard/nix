@@ -6,6 +6,8 @@ in
   system.stateVersion = "25.11";
   time.timeZone = "America/New_York";
 
+  programs.nix-ld.enable = true;
+
   reichard = {
     nix = enabled;
 
