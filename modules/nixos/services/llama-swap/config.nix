@@ -97,8 +97,40 @@ in
       };
     };
 
+    # https://huggingface.co/localweights/Qwen3.6-27B-MTP-IQ4_XS-GGUF/tree/main
+    "qwen3.6-27b-mtp-thinking" = {
+      name = "Qwen3.6 (27B) - Thinking (MTP)";
+      macros.ctx = "150000";
+      #
+      cmd = ''
+        ${llama-cpp}/bin/llama-server \
+          --port ''${PORT} \
+          -m /mnt/ssd/Models/Qwen3.6/Qwen3.6-27B-MTP-IQ4_XS.gguf \
+          -c ''${ctx} \
+          --parallel 1 \
+          --temp 0.6 \
+          --top-p 0.95 \
+          --top-k 20 \
+          --min-p 0.00 \
+          --presence-penalty 0.0 \
+          -ctk q8_0 \
+          -ctv q8_0 \
+          --spec-type mtp \
+          --spec-draft-n-max 5 \
+          -dev CUDA0 \
+          -fit off \
+          --chat-template-kwargs "{\"preserve_thinking\": true}"
+      '';
+      metadata = {
+        type = [
+          "text-generation"
+          "coding"
+        ];
+      };
+    };
+
     # https://github.com/noonghunna/club-3090/tree/master/models/qwen3.6-27b/vllm
-    # Synced from: club-3090 f6613c8 (2026-05-02) — docker-compose.long-text.yml
+    # Synced from: club-3090 f6613c8 (2026-05-02) - docker-compose.long-text.yml
     # Long-text variant - 180K context, text-only (no vision)
     # TurboQuant 3-bit KV + MTP n=3 + Genesis v7.69 + Cliff 2 closure recipe
     "vllm-qwen3.6-27b-long-text" = {
@@ -234,7 +266,7 @@ in
     };
 
     # https://github.com/noonghunna/club-3090/tree/master/models/qwen3.6-27b/vllm
-    # Synced from: club-3090 f6613c8 (2026-05-02) — docker-compose.long-vision.yml
+    # Synced from: club-3090 f6613c8 (2026-05-02) - docker-compose.long-vision.yml
     # Long-vision variant - 145K context with vision tower active
     # TurboQuant 3-bit KV + MTP n=3 + Genesis v7.69 + Cliff 2 env vars (mem-util kept at 0.95)
     "vllm-qwen3.6-27b-long-vision" = {
@@ -369,7 +401,7 @@ in
     };
 
     # https://github.com/noonghunna/club-3090/tree/master/models/qwen3.6-27b/vllm
-    # Synced from: club-3090 ae4846f (2026-05-02) — docker-compose.tools-text.yml
+    # Synced from: club-3090 ae4846f (2026-05-02) - docker-compose.tools-text.yml
     # Tools-text variant - 75K context, text-only (no vision)
     # fp8_e5m2 KV + MTP n=3. IDE agents (Cline, Cursor, OpenCode, etc.)
     "vllm-qwen3.6-27b-tools-text" = {
@@ -678,6 +710,7 @@ in
       go = "gpt-oss-20b-thinking";
       q36a = "qwen3.6-35b-thinking";
       q36b = "qwen3.6-27b-thinking";
+      q36bmtp = "qwen3.6-27b-mtp-thinking";
       zi = "z-image-turbo";
       qie = "qwen-image-edit-2511";
       qi = "qwen-image-2512";
@@ -689,14 +722,8 @@ in
       q9 = "qwen3.5-9b-thinking";
     };
 
-    evict_costs = {
-      vlt = 50;
-      vtt = 50;
-      vlv = 50;
-    };
-
     sets = {
-      concurrent = "(go | q36a | q36b | vlt | vtt | vlv | zi | qie | qi | cr) & (qv | q4 | q9)";
+      concurrent = "(go | q36a | q36b | q36bmtp | vlt | vtt | vlv | zi | qie | qi | cr) & (qv | q4 | q9)";
     };
   };
 }

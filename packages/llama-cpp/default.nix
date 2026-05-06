@@ -7,12 +7,12 @@
   vulkanSupport = true;
 }).overrideAttrs
   (oldAttrs: rec {
-    version = "9009";
+    version = "9045";
     src = pkgs.fetchFromGitHub {
       owner = "ggml-org";
       repo = "llama.cpp";
       tag = "b${version}";
-      hash = "sha256-rDnO+NIjXYtMqxOeYvecQsB7KgohVUuMV4jG6L0b4S4=";
+      hash = "sha256-fdHGxJaMx/VG7twXdWvHdkThAOSFJTbjAnpRxsNx5l0=";
       leaveDotGit = true;
       postFetch = ''
         git -C "$out" rev-parse --short HEAD > $out/COMMIT
@@ -36,4 +36,14 @@
       export NIX_ENFORCE_NO_NATIVE=0
       ${oldAttrs.preConfigure or ""}
     '';
+
+    # Apply Patches
+    patchFlags = [ "-p1" ];
+    patches = (oldAttrs.patches or [ ]) ++ [
+      (pkgs.fetchpatch {
+        name = "mtp.patch";
+        url = "https://github.com/ggml-org/llama.cpp/pull/22673.patch";
+        hash = "sha256-jM4X+jy7JhOAn2v/U9mmWM/507DKaW8d/dhR78HZWFQ=";
+      })
+    ];
   })
