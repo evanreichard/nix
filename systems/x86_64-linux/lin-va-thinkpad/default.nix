@@ -17,6 +17,8 @@ in
     ];
   };
 
+  programs.nix-ld.enable = true;
+
   hardware = {
     enableRedistributableFirmware = true;
     bluetooth.enable = true;
