@@ -30,6 +30,10 @@
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    handy = {
+      url = "github:cjpais/Handy";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     darwin = {
       url = "github:nix-darwin/nix-darwin/nix-darwin-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -65,6 +69,7 @@
 
       homes.modules = with inputs; [
         sops-nix.homeManagerModules.sops
+        handy.homeManagerModules.default
         ./modules/home/common
       ];
 
