@@ -16,16 +16,16 @@
 
 buildNpmPackage rec {
   pname = "pi-coding-agent";
-  version = "0.73.0";
+  version = "0.73.1";
 
   src = fetchFromGitHub {
-    owner = "badlogic";
+    owner = "earendil-works";
     repo = "pi-mono";
     rev = "v${version}";
-    hash = "sha256-oE4zMH5KEH185Vdp0CE221sa9rJJw35jFLlfhTa3Sg4=";
+    hash = "sha256-ZcqMWghMACzEUswLujwClPF1pbwjTKzTbcYW86ZvjL4=";
   };
 
-  npmDepsHash = "sha256-rBlAzAnP9aif1tZ984AO4HftIJsDgLQ+02J3td4jcRg=";
+  npmDepsHash = "sha256-tneAcwtTIfkcqQ8/Ch1Xa6OiOkTjJNYbH8wfhNneT/g=";
 
   nativeBuildInputs = [ pkg-config makeWrapper ];
 
@@ -80,9 +80,9 @@ buildNpmPackage rec {
 
   meta = {
     description = "Coding agent CLI with read, bash, edit, write tools and session management";
-    homepage = "https://github.com/badlogic/pi-mono";
-    downloadPage = "https://www.npmjs.com/package/@mariozechner/pi-coding-agent";
-    changelog = "https://github.com/badlogic/pi-mono/blob/main/packages/coding-agent/CHANGELOG.md";
+    homepage = "https://github.com/earendil-works/pi-mono";
+    downloadPage = "https://www.npmjs.com/package/@earendil-works/pi-coding-agent";
+    changelog = "https://github.com/earendil-works/pi-mono/blob/main/packages/coding-agent/CHANGELOG.md";
     license = lib.licenses.mit;
     maintainers = with lib.maintainers; [ evanreichard ];
     mainProgram = "pi";
