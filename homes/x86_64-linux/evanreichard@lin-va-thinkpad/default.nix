@@ -11,11 +11,6 @@ in
 {
   home.stateVersion = "25.11";
 
-  # Handy Speech-To-Text
-  # Imported from the Handy flake as a standard Home Manager module.
-  # Keep it outside the reichard namespace because upstream owns the option.
-  services.handy.enable = true;
-
   reichard = {
     user = {
       enable = true;
