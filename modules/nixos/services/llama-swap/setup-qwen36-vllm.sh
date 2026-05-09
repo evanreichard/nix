@@ -23,6 +23,10 @@ GENESIS_PIN="${GENESIS_PIN:-7b9fd319}"
 BASE_3090_PATCH_URL="https://raw.githubusercontent.com/noonghunna/club-3090/v7.69-cliff2-test/models/qwen3.6-27b/vllm/patches"
 INPUTS_EMBEDS_PATCH="${PATCHES_DIR}/patch_inputs_embeds_optional.py"
 
+# Tool Parser Patch
+TOOL_PARSER_PATCH="${PATCHES_DIR}/qwen3coder_tool_parser_deferred_commit.py"
+TOOL_PARSER_PATCH_URL="${TOOL_PARSER_PATCH_URL:-https://raw.githubusercontent.com/noonghunna/club-3090/refs/heads/master/models/qwen3.6-27b/vllm/patches/local/qwen3coder_tool_parser_deferred_commit.py}"
+
 # Timings Patch
 TIMINGS_PATCH="${PATCHES_DIR}/patch_timings_07351e088.py"
 TIMINGS_PATCH_URL="${TIMINGS_PATCH_URL:-https://gitea.va.reichard.io/evan/nix/raw/branch/master/modules/nixos/services/llama-swap/patches/patch_timings_07351e088.py}"
@@ -83,20 +87,31 @@ download_patch() {
 
 download_patch "${INPUTS_EMBEDS_PATCH}"
 
-# ---------- Download Timing Patch ----------
-tmp_timings_patch="$(mktemp)"
-trap 'rm -f "${tmp_timings_patch}"' EXIT
+# ---------- Download URL Patch ----------
+install_url_patch() {
+  local name="$1"
+  local url="$2"
+  local dest="$3"
+  local tmp_patch
+  tmp_patch="$(mktemp)"
 
-echo "Downloading patch_timings_07351e088.py from this repo..."
-curl -fsSL "${TIMINGS_PATCH_URL}" -o "${tmp_timings_patch}"
+  echo "Downloading ${name}..."
+  curl -fsSL "${url}" -o "${tmp_patch}"
 
-if [ -f "${TIMINGS_PATCH}" ] && cmp -s "${tmp_timings_patch}" "${TIMINGS_PATCH}"; then
-  echo "Timing patch already current at ${TIMINGS_PATCH}, skipping."
-else
-  echo "Installing timing patch to ${TIMINGS_PATCH}..."
-  install -m 0644 "${tmp_timings_patch}" "${TIMINGS_PATCH}"
-  echo "Timing patch installed."
-fi
+  if [ -f "${dest}" ] && cmp -s "${tmp_patch}" "${dest}"; then
+    echo "${name} already current at ${dest}, skipping."
+  else
+    echo "Installing ${name} to ${dest}..."
+    install -m 0644 "${tmp_patch}" "${dest}"
+    echo "${name} installed."
+  fi
+
+  rm -f "${tmp_patch}"
+}
+
+# ---------- Download Boot-Time Patches ----------
+install_url_patch "qwen3coder_tool_parser_deferred_commit.py" "${TOOL_PARSER_PATCH_URL}" "${TOOL_PARSER_PATCH}"
+install_url_patch "patch_timings_07351e088.py" "${TIMINGS_PATCH_URL}" "${TIMINGS_PATCH}"
 
 # ---------- Summary ----------
 echo ""
@@ -116,4 +131,5 @@ echo "  └── Patches/"
 echo "      ├── genesis/                               (Genesis @ ${GENESIS_PIN})"
 echo "      │   └── vllm/_genesis/                     (mounted into container)"
 echo "      ├── patch_inputs_embeds_optional.py        (boot-time: vllm#35975 backport, text-only models)"
+echo "      ├── qwen3coder_tool_parser_deferred_commit.py (boot-time: qwen3coder SSE deferred commit fix)"
 echo "      └── patch_timings_07351e088.py             (boot-time: llama.cpp-compatible timings)"

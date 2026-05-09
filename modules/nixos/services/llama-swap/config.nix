@@ -129,7 +129,7 @@ in
     };
 
     # https://github.com/noonghunna/club-3090/tree/master/models/qwen3.6-27b/vllm
-    # Synced from: club-3090 f6613c8 (2026-05-02) - docker-compose.long-text.yml
+    # Synced from: club-3090 e1137d6 (2026-05-09) - single/long-text.yml
     # Long-text variant - 180K context, text-only (no vision)
     # TurboQuant 3-bit KV + MTP n=3 + Genesis v7.69 + Cliff 2 closure recipe
     "vllm-qwen3.6-27b-long-text" = {
@@ -141,8 +141,9 @@ in
           vllmCmd = ''
             set -e; pip install xxhash pandas scipy -q;
             python3 -m vllm._genesis.patches.apply_all;
+            python3 /patches/qwen3coder_tool_parser_deferred_commit.py;
             python3 /patches/patch_timings_07351e088.py;
-            exec vllm serve
+            exec vllm serve ''${VLLM_ENFORCE_EAGER:+--enforce-eager}
             --served-model-name ''${MODEL_ID}
             --model /root/.cache/huggingface/qwen3.6-27b-autoround-int4
             --quantization auto_round
@@ -188,7 +189,6 @@ in
             -e GENESIS_ENABLE_P61_QWEN3_MULTI_TOOL=1 \
             -e GENESIS_ENABLE_P62_STRUCT_OUT_SPEC_TIMING=1 \
             -e GENESIS_ENABLE_P64_QWEN3CODER_MTP_STREAMING=1 \
-            -e GENESIS_ENABLE_P65_TURBOQUANT_SPEC_CG_DOWNGRADE=1 \
             -e GENESIS_ENABLE_P66_CUDAGRAPH_SIZE_FILTER=1 \
             -e GENESIS_ENABLE_P67_TQ_MULTI_QUERY_KERNEL=1 \
             -e GENESIS_ENABLE_P68_AUTO_FORCE_TOOL=1 \
@@ -214,6 +214,7 @@ in
             -e GENESIS_ENABLE_PN25_SILU_INDUCTOR_SAFE=1 \
             -e GENESIS_ENABLE_PN26_SPARSE_V=1 \
             -e GENESIS_ENABLE_PN30_DS_LAYOUT_SPEC_DECODE=1 \
+            -e GENESIS_ENABLE_PN31_FA_VARLEN_PERSISTENT_OUT=1 \
             -e GENESIS_ENABLE_PN32_GDN_CHUNKED_PREFILL=1 \
             -e GENESIS_ENABLE_PN34_WORKSPACE_LOCK_RELAX=1 \
             -e GENESIS_ENABLE_PN59_STREAMING_GDN=1 \
@@ -244,10 +245,12 @@ in
             -e VLLM_USE_FLASHINFER_SAMPLER=1 \
             -e VLLM_USE_FUSED_MOE_GROUPED_TOPK=1 \
             -e VLLM_WORKER_MULTIPROC_METHOD=spawn \
+            -e VLLM_ENFORCE_EAGER \
             -v /mnt/ssd/vLLM/Models:/root/.cache/huggingface \
             -v /mnt/ssd/vLLM/Cache/torch_compile:/root/.cache/vllm/torch_compile_cache \
             -v /mnt/ssd/vLLM/Cache/triton:/root/.triton/cache \
             -v /mnt/ssd/vLLM/Patches/genesis/vllm/_genesis:/usr/local/lib/python3.12/dist-packages/vllm/_genesis:ro \
+            -v /mnt/ssd/vLLM/Patches/qwen3coder_tool_parser_deferred_commit.py:/patches/qwen3coder_tool_parser_deferred_commit.py:ro \
             -v /mnt/ssd/vLLM/Patches/patch_timings_07351e088.py:/patches/patch_timings_07351e088.py:ro \
             -p ''${PORT}:8000 \
             --entrypoint /bin/bash \
@@ -265,7 +268,7 @@ in
     };
 
     # https://github.com/noonghunna/club-3090/tree/master/models/qwen3.6-27b/vllm
-    # Synced from: club-3090 f6613c8 (2026-05-02) - docker-compose.long-vision.yml
+    # Synced from: club-3090 e1137d6 (2026-05-09) - single/long-vision.yml
     # Long-vision variant - 145K context with vision tower active
     # TurboQuant 3-bit KV + MTP n=3 + Genesis v7.69 + Cliff 2 env vars (mem-util kept at 0.95)
     "vllm-qwen3.6-27b-long-vision" = {
@@ -277,8 +280,9 @@ in
           vllmCmd = ''
             set -e; pip install xxhash pandas scipy -q;
             python3 -m vllm._genesis.patches.apply_all;
+            python3 /patches/qwen3coder_tool_parser_deferred_commit.py;
             python3 /patches/patch_timings_07351e088.py;
-            exec vllm serve
+            exec vllm serve ''${VLLM_ENFORCE_EAGER:+--enforce-eager}
             --served-model-name ''${MODEL_ID}
             --model /root/.cache/huggingface/qwen3.6-27b-autoround-int4
             --quantization auto_round
@@ -323,7 +327,6 @@ in
             -e GENESIS_ENABLE_P61_QWEN3_MULTI_TOOL=1 \
             -e GENESIS_ENABLE_P62_STRUCT_OUT_SPEC_TIMING=1 \
             -e GENESIS_ENABLE_P64_QWEN3CODER_MTP_STREAMING=1 \
-            -e GENESIS_ENABLE_P65_TURBOQUANT_SPEC_CG_DOWNGRADE=1 \
             -e GENESIS_ENABLE_P66_CUDAGRAPH_SIZE_FILTER=1 \
             -e GENESIS_ENABLE_P67_TQ_MULTI_QUERY_KERNEL=1 \
             -e GENESIS_ENABLE_P68_AUTO_FORCE_TOOL=1 \
@@ -349,19 +352,15 @@ in
             -e GENESIS_ENABLE_PN25_SILU_INDUCTOR_SAFE=1 \
             -e GENESIS_ENABLE_PN26_SPARSE_V=1 \
             -e GENESIS_ENABLE_PN30_DS_LAYOUT_SPEC_DECODE=1 \
-            -e GENESIS_ENABLE_PN32_GDN_CHUNKED_PREFILL=1 \
             -e GENESIS_ENABLE_PN34_WORKSPACE_LOCK_RELAX=1 \
             -e GENESIS_ENABLE_PN59_STREAMING_GDN=1 \
             -e GENESIS_ENABLE_PN8_MTP_DRAFT_ONLINE_QUANT=1 \
             -e GENESIS_ENABLE_PN9_INDEPENDENT_DRAFTER_ATTN=1 \
-            -e GENESIS_FLA_FWD_H_MAX_T=16384 \
             -e GENESIS_P68_P69_LONG_CTX_THRESHOLD_CHARS=50000 \
             -e GENESIS_P82_THRESHOLD_SINGLE=0.3 \
             -e GENESIS_PN26_SPARSE_V_BLOCK_KV=8 \
             -e GENESIS_PN26_SPARSE_V_NUM_WARPS=4 \
             -e GENESIS_PN26_SPARSE_V_THRESHOLD=0.01 \
-            -e GENESIS_PN32_GDN_CHUNK_SIZE=8192 \
-            -e GENESIS_PN32_GDN_CHUNK_THRESHOLD=16384 \
             -e GENESIS_PREALLOC_TOKEN_BUDGET=4128 \
             -e GENESIS_PROFILE_RUN_CAP_M=4128 \
             -e NCCL_CUMEM_ENABLE=0 \
@@ -378,10 +377,12 @@ in
             -e VLLM_USE_FLASHINFER_SAMPLER=1 \
             -e VLLM_USE_FUSED_MOE_GROUPED_TOPK=1 \
             -e VLLM_WORKER_MULTIPROC_METHOD=spawn \
+            -e VLLM_ENFORCE_EAGER \
             -v /mnt/ssd/vLLM/Models:/root/.cache/huggingface \
             -v /mnt/ssd/vLLM/Cache/torch_compile:/root/.cache/vllm/torch_compile_cache \
             -v /mnt/ssd/vLLM/Cache/triton:/root/.triton/cache \
             -v /mnt/ssd/vLLM/Patches/genesis/vllm/_genesis:/usr/local/lib/python3.12/dist-packages/vllm/_genesis:ro \
+            -v /mnt/ssd/vLLM/Patches/qwen3coder_tool_parser_deferred_commit.py:/patches/qwen3coder_tool_parser_deferred_commit.py:ro \
             -v /mnt/ssd/vLLM/Patches/patch_timings_07351e088.py:/patches/patch_timings_07351e088.py:ro \
             -p ''${PORT}:8000 \
             --entrypoint /bin/bash \
@@ -412,8 +413,9 @@ in
           vllmCmd = ''
             set -e; pip install xxhash pandas scipy -q;
             python3 -m vllm._genesis.patches.apply_all;
+            python3 /patches/qwen3coder_tool_parser_deferred_commit.py;
             python3 /patches/patch_timings_07351e088.py;
-            exec vllm serve
+            exec vllm serve ''${VLLM_ENFORCE_EAGER:+--enforce-eager}
             --served-model-name ''${MODEL_ID}
             --model /root/.cache/huggingface/qwen3.6-27b-autoround-int4
             --quantization auto_round
@@ -472,10 +474,12 @@ in
             -e VLLM_NO_USAGE_STATS=1 \
             -e VLLM_USE_FLASHINFER_SAMPLER=1 \
             -e VLLM_WORKER_MULTIPROC_METHOD=spawn \
+            -e VLLM_ENFORCE_EAGER \
             -v /mnt/ssd/vLLM/Models:/root/.cache/huggingface \
             -v /mnt/ssd/vLLM/Cache/torch_compile:/root/.cache/vllm/torch_compile_cache \
             -v /mnt/ssd/vLLM/Cache/triton:/root/.triton/cache \
             -v /mnt/ssd/vLLM/Patches/genesis/vllm/_genesis:/usr/local/lib/python3.12/dist-packages/vllm/_genesis:ro \
+            -v /mnt/ssd/vLLM/Patches/qwen3coder_tool_parser_deferred_commit.py:/patches/qwen3coder_tool_parser_deferred_commit.py:ro \
             -v /mnt/ssd/vLLM/Patches/patch_timings_07351e088.py:/patches/patch_timings_07351e088.py:ro \
             -p ''${PORT}:8000 \
             --entrypoint /bin/bash \
