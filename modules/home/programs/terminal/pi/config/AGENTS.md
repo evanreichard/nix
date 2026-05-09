@@ -1,67 +1,43 @@
 # AI Agent Guidelines
 
-## Important Rules
+Be cognizant of context use; this file is loaded for all LLMs. Keep guidance concise and high-signal.
 
-1. **Timeout for bash tool**: The `bash` tool MUST have a timeout specified. Without a timeout, the tool will hang indefinitely and cause the task to fail.
+## Critical Rules
 
-2. **File writing**: Do NOT use `cat` with heredocs to write files. Use the `write` tool instead (or `edit` for modifications).
+1. **Bash timeouts**: Every `bash` tool call MUST specify a timeout.
+   ```bash
+   bash(command="some command", timeout=30)
+   ```
 
-3. **Ephemeral files**: Put temporary scripts, plans, notes, and other scratch artifacts in `_scratch/`. It is gitignored, and reusable exploration/testing scripts should be iterated there instead of recreated repeatedly.
+2. **File writing**: Do NOT use `cat` with heredocs to write files. Use `write` for new/rewritten files and `edit` for targeted modifications.
 
-## Example of Correct Usage
+3. **Scratch files**: Put temporary scripts, plans, notes, and reusable exploration artifacts in `_scratch/`. It is gitignored.
 
-### Incorrect (will hang):
+4. **Missing commands**: If a tool is not installed, prefer `nix run` instead of installing it.
+   ```bash
+   nix run nixpkgs#python3 -- script.py
+   ```
 
-```bash
-bash(command="some long-running command")
-```
+## Context Discipline
 
-### Correct (with timeout):
+Prefer a **search → targeted read** pattern:
 
-```bash
-bash(command="some command", timeout=30)
-```
+1. Search with `rg -n` / `grep -n` to find relevant line numbers.
+2. Read only the needed range with `read(path, offset, limit)`.
 
-### Incorrect (file writing):
-
-```bash
-bash(command="cat > file.txt << 'EOF'\ncontent\nEOF")
-```
-
-### Correct (file writing):
-
-```bash
-write(path="file.txt", content="content")
-```
-
-## Reading Files
-
-Prefer a **search → targeted read** pattern to minimize context usage:
-
-1. **Search** with `grep -n` / `rg -n` to find relevant line numbers.
-2. **Read** only the needed range using `read(path, offset, limit)` or `sed -n 'X,Yp'`.
-
-```bash
-# Find the relevant lines
-bash(command="rg -n 'functionName' src/", timeout=10)
-
-# Read just that region (e.g. lines 42-70)
-read(path="src/foo.go", offset=42, limit=29)
-```
-
-Full-file reads are fine when genuinely needed (small files, needing full picture), but avoid them as the default reflex.
+Full-file reads are fine when genuinely needed, but avoid them as the default reflex.
 
 ## Principles
 
-1. **KISS / YAGNI** - Keep solutions simple and straightforward. Don't introduce abstractions, generics, or indirection unless there is a concrete, immediate need. Prefer obvious code over clever code.
+1. **KISS / YAGNI**: Keep solutions simple. Avoid abstractions, generics, or indirection unless there is a concrete need.
 
-2. **Maintain AGENTS.md** - If the project has an `AGENTS.md`, keep it up to date as conventions or architecture evolve. However, follow the **BLUF** (Bottom Line Up Front) principle: keep it concise, actionable, and context-size conscious. Don't overload it with information that belongs in code comments or external docs.
+2. **Maintain AGENTS.md**: Keep project guidance up to date, but BLUF: concise, actionable, and context-size conscious.
 
 ## Style
 
 ### Comment Style
 
-A logical "block" of code (doesn't have to be a scope, but a cohesive group of statements responsible for something) should have a comment above it with a short "title". The title must be in **Title Case**. For example:
+A logical block of code (not necessarily a language scope) should have a short Title Case comment above it:
 
 ```go
 // Map Component Results
@@ -70,12 +46,10 @@ for _, comp := range components {
 }
 ```
 
-If the block is more complicated or non-obvious, explain _why_ it does what it does after the title:
+If the block is more complicated or non-obvious, explain _why_ after the title:
 
 ```go
-// Map Component Results - This is needed because downstream consumers
-// expect a name-keyed lookup. Without it, the renderer would fall back
-// to O(n) scans on every frame.
+// Map Component Results - Downstream consumers expect a name-keyed lookup.
 for _, comp := range components {
     results[comp.Name] = comp.Result
 }
