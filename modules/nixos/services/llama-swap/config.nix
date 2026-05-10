@@ -128,6 +128,39 @@ in
       };
     };
 
+    # https://huggingface.co/unsloth/gemma-4-26B-A4B-it-GGUF/tree/main
+    "gemma-4-26b-vision" = {
+      name = "Gemma 4 (26B) - Vision";
+      macros.ctx = "196608";
+      # 262144
+      cmd = ''
+        ${llama-cpp}/bin/llama-server \
+          --port ''${PORT} \
+          -m /mnt/ssd/Models/Gemma/gemma-4-26B-A4B-it-UD-Q4_K_XL.gguf \
+          --mmproj /mnt/ssd/Models/Gemma/mmproj-BF16_gemma-4-26B-A4B-it-UD-Q4_K_XL.gguf \
+          -c ''${ctx} \
+          --parallel 1 \
+          --spec-type ngram-mod \
+          --spec-ngram-mod-n-match 24 \
+          --spec-ngram-mod-n-min 48 \
+          --spec-ngram-mod-n-max 64 \
+          --temp 1.0 \
+          --top-k 64 \
+          --top-p 0.95 \
+          --no-warmup \
+          --jinja \
+          -fit off \
+          -dev CUDA0
+      '';
+      #           --no-mmproj-offload \
+      metadata = {
+        type = [
+          "text-generation"
+          "vision"
+        ];
+      };
+    };
+
     # https://github.com/noonghunna/club-3090/tree/master/models/qwen3.6-27b/vllm
     # Upstream: club-3090 83bf73d (2026-05-10) - single/long-text.yml
     # Long-text variant - 180K context, text-only (no vision)
@@ -714,6 +747,7 @@ in
       vtt = "vllm-qwen3.6-27b-tools-text";
       vlv = "vllm-qwen3.6-27b-long-vision";
       go = "gpt-oss-20b-thinking";
+      g4 = "gemma-4-26b-vision";
       q36a = "qwen3.6-35b-thinking";
       q36b = "qwen3.6-27b-thinking";
       q36bmtp = "qwen3.6-27b-mtp-thinking";
@@ -729,7 +763,7 @@ in
     };
 
     sets = {
-      concurrent = "(go | q36a | q36b | q36bmtp | vlt | vtt | vlv | zi | qie | qi | cr) & (qv | q4 | q9)";
+      concurrent = "(go | g4 | q36a | q36b | q36bmtp | vlt | vtt | vlv | zi | qie | qi | cr) & (qv | q4 | q9)";
     };
   };
 }
