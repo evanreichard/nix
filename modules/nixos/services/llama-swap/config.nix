@@ -129,7 +129,7 @@ in
     };
 
     # https://github.com/noonghunna/club-3090/tree/master/models/qwen3.6-27b/vllm
-    # Synced from: club-3090 e1137d6 (2026-05-09) - single/long-text.yml
+    # Upstream: club-3090 83bf73d (2026-05-10) - single/long-text.yml
     # Long-text variant - 180K context, text-only (no vision)
     # TurboQuant 3-bit KV + MTP n=3 + Genesis v7.69 + Cliff 2 closure recipe
     "vllm-qwen3.6-27b-long-text" = {
@@ -157,6 +157,7 @@ in
             --language-model-only
             --trust-remote-code
             --reasoning-parser qwen3
+            --default-chat-template-kwargs '{"enable_thinking": false}'
             --enable-auto-tool-choice
             --tool-call-parser qwen3_coder
             --enable-prefix-caching
@@ -268,7 +269,7 @@ in
     };
 
     # https://github.com/noonghunna/club-3090/tree/master/models/qwen3.6-27b/vllm
-    # Synced from: club-3090 e1137d6 (2026-05-09) - single/long-vision.yml
+    # Upstream: club-3090 83bf73d (2026-05-10) - single/long-vision.yml
     # Long-vision variant - 145K context with vision tower active
     # TurboQuant 3-bit KV + MTP n=3 + Genesis v7.69 + Cliff 2 env vars (mem-util kept at 0.95)
     "vllm-qwen3.6-27b-long-vision" = {
@@ -295,6 +296,7 @@ in
             --kv-cache-dtype turboquant_3bit_nc
             --trust-remote-code
             --reasoning-parser qwen3
+            --default-chat-template-kwargs '{"enable_thinking": false}'
             --enable-auto-tool-choice
             --tool-call-parser qwen3_coder
             --enable-prefix-caching
@@ -401,7 +403,7 @@ in
     };
 
     # https://github.com/noonghunna/club-3090/tree/master/models/qwen3.6-27b/vllm
-    # Synced from: club-3090 ae4846f (2026-05-02) - docker-compose.tools-text.yml
+    # Upstream: club-3090 83bf73d (2026-05-10) - single/tools-text.yml
     # Tools-text variant - 75K context, text-only (no vision)
     # fp8_e5m2 KV + MTP n=3. IDE agents (Cline, Cursor, OpenCode, etc.)
     "vllm-qwen3.6-27b-tools-text" = {
@@ -429,6 +431,7 @@ in
             --language-model-only
             --trust-remote-code
             --reasoning-parser qwen3
+            --default-chat-template-kwargs '{"enable_thinking": false}'
             --enable-auto-tool-choice
             --tool-call-parser qwen3_coder
             --enable-prefix-caching
