@@ -1,5 +1,5 @@
 """
-Disk-edit patch for vLLM nightly-07351e0883470724dd5a7e9730ed10e01fc99d08:
+Disk-edit patch for vLLM nightly-1acd67a795ebccdf9b9db7697ae9082058301657:
 inject llama.cpp-compatible `timings` into chat/completion API responses.
 
 Adds `timings` to:
@@ -13,7 +13,7 @@ The `timings` object matches llama.cpp fields consumed by llama-swap:
   predicted_n, predicted_ms, predicted_per_second, cache_n
 
 Usage, before `exec vllm serve`:
-  python3 /patches/patch_timings.py
+  python3 /patches/patch_timings_1acd67a.py
 """
 
 import logging
@@ -85,70 +85,8 @@ def _write(path, content):
 
 def _replace_once(content, old, new, label):
     count = content.count(old)
-    if count == 1:
-        return content.replace(old, new, 1)
-
-    # vLLM v0.20 added system_fingerprint to response constructors. Preserve
-    # compatibility with the original dev205 anchors by retrying with that
-    # field inserted when the old anchor is not present.
-    variants = [
-        (
-            old.replace(
-                "                    usage=final_usage,\n                )",
-                "                    usage=final_usage,\n                    system_fingerprint=self.system_fingerprint,\n                )",
-            ),
-            new.replace(
-                "                    usage=final_usage,\n                )",
-                "                    usage=final_usage,\n                    system_fingerprint=self.system_fingerprint,\n                )",
-            ),
-        ),
-        (
-            old.replace(
-                "            usage=usage,\n            prompt_logprobs=",
-                "            usage=usage,\n            system_fingerprint=self.system_fingerprint,\n            prompt_logprobs=",
-            ),
-            new.replace(
-                "            usage=usage,\n            prompt_logprobs=",
-                "            usage=usage,\n            system_fingerprint=self.system_fingerprint,\n            prompt_logprobs=",
-            ),
-        ),
-        (
-            old.replace(
-                "                    usage=final_usage_info,\n                )",
-                "                    usage=final_usage_info,\n                    system_fingerprint=self.system_fingerprint,\n                )",
-            ),
-            new.replace(
-                "                    usage=final_usage_info,\n                )",
-                "                    usage=final_usage_info,\n                    system_fingerprint=self.system_fingerprint,\n                )",
-            ),
-        ),
-        (
-            old.replace(
-                "            usage=usage,\n            kv_transfer_params=kv_transfer_params,",
-                "            usage=usage,\n            system_fingerprint=self.system_fingerprint,\n            kv_transfer_params=kv_transfer_params,",
-            ),
-            new.replace(
-                "            usage=usage,\n            kv_transfer_params=kv_transfer_params,",
-                "            usage=usage,\n            system_fingerprint=self.system_fingerprint,\n            kv_transfer_params=kv_transfer_params,",
-            ),
-        ),
-    ]
-    matches = [(variant_old, variant_new) for variant_old, variant_new in variants if content.count(variant_old) == 1]
-    if len(matches) == 1:
-        variant_old, variant_new = matches[0]
-        return content.replace(variant_old, variant_new, 1)
-
-    variant_counts = [content.count(variant_old) for variant_old, _ in variants]
-    raise RuntimeError(f"{label}: anchor matched {count} times; v0.20 variants matched {variant_counts}")
-
-
-def _replace_once_any(content, replacements, label):
-    """Replace exactly one of several version-specific anchors."""
-    matches = [(old, new) for old, new in replacements if content.count(old) == 1]
-    if len(matches) != 1:
-        counts = [content.count(old) for old, _ in replacements]
-        raise RuntimeError(f"{label}: versioned anchors matched {counts}")
-    old, new = matches[0]
+    if count != 1:
+        raise RuntimeError(f"{label}: anchor matched {count} times")
     return content.replace(old, new, 1)
 
 
@@ -231,19 +169,19 @@ def _patch_chat_serving(vllm_dir):
             label,
         )
 
-        # Streaming Final Usage Chunk - pinned image has no system_fingerprint arg.
+        # Streaming Final Usage Chunk
         content = _replace_once(
             content,
-            '''                final_usage_chunk = ChatCompletionStreamResponse(\n                    id=request_id,\n                    object=chunk_object_type,\n                    created=created_time,\n                    choices=[],\n                    model=model_name,\n                    usage=final_usage,\n                )\n''',
-            f'''                final_usage_chunk = ChatCompletionStreamResponse(\n                    id=request_id,\n                    object=chunk_object_type,\n                    created=created_time,\n                    choices=[],\n                    model=model_name,\n                    usage=final_usage,\n                )\n                # Inject Timings  {PATCH_TAG}\n                try:\n                    _s_cached = _last_stream_res.num_cached_tokens\n                    final_usage_chunk.timings = _compute_timings(\n                        _last_stream_res.metrics,\n                        num_prompt_tokens, completion_tokens, _s_cached,\n                    )\n                except NameError:\n                    pass\n''',
+            '''                final_usage_chunk = ChatCompletionStreamResponse(\n                    id=request_id,\n                    object=chunk_object_type,\n                    created=created_time,\n                    choices=[],\n                    model=model_name,\n                    usage=final_usage,\n                    system_fingerprint=self.system_fingerprint,\n                )\n''',
+            f'''                final_usage_chunk = ChatCompletionStreamResponse(\n                    id=request_id,\n                    object=chunk_object_type,\n                    created=created_time,\n                    choices=[],\n                    model=model_name,\n                    usage=final_usage,\n                    system_fingerprint=self.system_fingerprint,\n                )\n                # Inject Timings  {PATCH_TAG}\n                try:\n                    _s_cached = _last_stream_res.num_cached_tokens\n                    final_usage_chunk.timings = _compute_timings(\n                        _last_stream_res.metrics,\n                        num_prompt_tokens, completion_tokens, _s_cached,\n                    )\n                except NameError:\n                    pass\n''',
             label,
         )
 
-        # Non-Streaming Response - pinned image has no system_fingerprint arg.
+        # Non-Streaming Response
         content = _replace_once(
             content,
-            '''        response = ChatCompletionResponse(\n            id=request_id,\n            created=created_time,\n            model=model_name,\n            choices=choices,\n            usage=usage,\n            prompt_logprobs=clamp_prompt_logprobs(final_res.prompt_logprobs),\n            prompt_token_ids=(\n                final_res.prompt_token_ids if request.return_token_ids else None\n            ),\n            kv_transfer_params=final_res.kv_transfer_params,\n        )\n''',
-            f'''        response = ChatCompletionResponse(\n            id=request_id,\n            created=created_time,\n            model=model_name,\n            choices=choices,\n            usage=usage,\n            prompt_logprobs=clamp_prompt_logprobs(final_res.prompt_logprobs),\n            prompt_token_ids=(\n                final_res.prompt_token_ids if request.return_token_ids else None\n            ),\n            kv_transfer_params=final_res.kv_transfer_params,\n        )\n\n        # Inject Timings  {PATCH_TAG}\n        _cached = final_res.num_cached_tokens\n        response.timings = _compute_timings(\n            final_res.metrics, num_prompt_tokens, num_generated_tokens,\n            _cached,\n        )\n''',
+            '''        response = ChatCompletionResponse(\n            id=request_id,\n            created=created_time,\n            model=model_name,\n            choices=choices,\n            usage=usage,\n            system_fingerprint=self.system_fingerprint,\n            prompt_logprobs=clamp_prompt_logprobs(final_res.prompt_logprobs),\n            prompt_token_ids=(\n                final_res.prompt_token_ids if request.return_token_ids else None\n            ),\n            kv_transfer_params=final_res.kv_transfer_params,\n            prompt_routed_experts=prompt_routed_experts,\n        )\n''',
+            f'''        response = ChatCompletionResponse(\n            id=request_id,\n            created=created_time,\n            model=model_name,\n            choices=choices,\n            usage=usage,\n            system_fingerprint=self.system_fingerprint,\n            prompt_logprobs=clamp_prompt_logprobs(final_res.prompt_logprobs),\n            prompt_token_ids=(\n                final_res.prompt_token_ids if request.return_token_ids else None\n            ),\n            kv_transfer_params=final_res.kv_transfer_params,\n            prompt_routed_experts=prompt_routed_experts,\n        )\n\n        # Inject Timings  {PATCH_TAG}\n        _cached = final_res.num_cached_tokens\n        response.timings = _compute_timings(\n            final_res.metrics, num_prompt_tokens, num_generated_tokens,\n            _cached,\n        )\n''',
             label,
         )
     except RuntimeError as e:
@@ -284,19 +222,19 @@ def _patch_completion_serving(vllm_dir):
             label,
         )
 
-        # Streaming Final Usage Chunk - pinned image has no system_fingerprint arg.
+        # Streaming Final Usage Chunk
         content = _replace_once(
             content,
-            '''                final_usage_chunk = CompletionStreamResponse(\n                    id=request_id,\n                    created=created_time,\n                    model=model_name,\n                    choices=[],\n                    usage=final_usage_info,\n                )\n''',
-            f'''                final_usage_chunk = CompletionStreamResponse(\n                    id=request_id,\n                    created=created_time,\n                    model=model_name,\n                    choices=[],\n                    usage=final_usage_info,\n                )\n                # Inject Timings  {PATCH_TAG}\n                try:\n                    _sc_cached = _last_comp_res.num_cached_tokens\n                    final_usage_chunk.timings = _compute_timings(\n                        _last_comp_res.metrics,\n                        total_prompt_tokens, total_completion_tokens,\n                        _sc_cached,\n                    )\n                except NameError:\n                    pass\n''',
+            '''                final_usage_chunk = CompletionStreamResponse(\n                    id=request_id,\n                    created=created_time,\n                    model=model_name,\n                    choices=[],\n                    usage=final_usage_info,\n                    system_fingerprint=self.system_fingerprint,\n                )\n''',
+            f'''                final_usage_chunk = CompletionStreamResponse(\n                    id=request_id,\n                    created=created_time,\n                    model=model_name,\n                    choices=[],\n                    usage=final_usage_info,\n                    system_fingerprint=self.system_fingerprint,\n                )\n                # Inject Timings  {PATCH_TAG}\n                try:\n                    _sc_cached = _last_comp_res.num_cached_tokens\n                    final_usage_chunk.timings = _compute_timings(\n                        _last_comp_res.metrics,\n                        total_prompt_tokens, total_completion_tokens,\n                        _sc_cached,\n                    )\n                except NameError:\n                    pass\n''',
             label,
         )
 
-        # Non-Streaming Response - pinned image has no system_fingerprint arg.
+        # Non-Streaming Response
         content = _replace_once(
             content,
-            '''        return CompletionResponse(\n            id=request_id,\n            created=created_time,\n            model=model_name,\n            choices=choices,\n            usage=usage,\n            kv_transfer_params=kv_transfer_params,\n        )\n''',
-            f'''        _comp_response = CompletionResponse(  {PATCH_TAG}\n            id=request_id,\n            created=created_time,\n            model=model_name,\n            choices=choices,\n            usage=usage,\n            kv_transfer_params=kv_transfer_params,\n        )\n        # Inject Timings  {PATCH_TAG}\n        if last_final_res is not None:\n            _comp_cached = last_final_res.num_cached_tokens\n            _comp_response.timings = _compute_timings(\n                last_final_res.metrics, num_prompt_tokens,\n                num_generated_tokens, _comp_cached,\n            )\n        return _comp_response\n''',
+            '''        return CompletionResponse(\n            id=request_id,\n            created=created_time,\n            model=model_name,\n            choices=choices,\n            usage=usage,\n            system_fingerprint=self.system_fingerprint,\n            kv_transfer_params=kv_transfer_params,\n            prompt_routed_experts=prompt_routed_experts,\n        )\n''',
+            f'''        _comp_response = CompletionResponse(  {PATCH_TAG}\n            id=request_id,\n            created=created_time,\n            model=model_name,\n            choices=choices,\n            usage=usage,\n            system_fingerprint=self.system_fingerprint,\n            kv_transfer_params=kv_transfer_params,\n            prompt_routed_experts=prompt_routed_experts,\n        )\n        # Inject Timings  {PATCH_TAG}\n        if last_final_res is not None:\n            _comp_cached = last_final_res.num_cached_tokens\n            _comp_response.timings = _compute_timings(\n                last_final_res.metrics, num_prompt_tokens,\n                num_generated_tokens, _comp_cached,\n            )\n        return _comp_response\n''',
             label,
         )
     except RuntimeError as e:

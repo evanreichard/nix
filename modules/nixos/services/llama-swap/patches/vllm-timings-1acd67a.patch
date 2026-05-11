@@ -1,8 +1,8 @@
 diff --git a/vllm/entrypoints/openai/chat_completion/protocol.py b/vllm/entrypoints/openai/chat_completion/protocol.py
-index aacac38..074ca45 100644
+index 742f9cc..ade939f 100644
 --- a/vllm/entrypoints/openai/chat_completion/protocol.py
 +++ b/vllm/entrypoints/openai/chat_completion/protocol.py
-@@ -111,6 +111,9 @@ class ChatCompletionResponse(OpenAIBaseModel):
+@@ -115,6 +115,9 @@ class ChatCompletionResponse(OpenAIBaseModel):
          default=None, description="KVTransfer parameters."
      )
  
@@ -12,7 +12,7 @@ index aacac38..074ca45 100644
  
  class ChatCompletionResponseStreamChoice(OpenAIBaseModel):
      index: int
-@@ -132,6 +135,9 @@ class ChatCompletionStreamResponse(OpenAIBaseModel):
+@@ -139,6 +142,9 @@ class ChatCompletionStreamResponse(OpenAIBaseModel):
      # not part of the OpenAI spec but for tracing the tokens
      prompt_token_ids: list[int] | None = None
  
@@ -23,10 +23,10 @@ index aacac38..074ca45 100644
  class ChatCompletionToolsParam(OpenAIBaseModel):
      type: Literal["function"] = "function"
 diff --git a/vllm/entrypoints/openai/chat_completion/serving.py b/vllm/entrypoints/openai/chat_completion/serving.py
-index 12dc2cd..c15fb6d 100644
+index 1026e0a..a9c5708 100644
 --- a/vllm/entrypoints/openai/chat_completion/serving.py
 +++ b/vllm/entrypoints/openai/chat_completion/serving.py
-@@ -83,6 +83,34 @@ if TYPE_CHECKING:
+@@ -79,6 +79,34 @@ if TYPE_CHECKING:
  logger = init_logger(__name__)
  
  
@@ -61,7 +61,7 @@ index 12dc2cd..c15fb6d 100644
  class OpenAIServingChat(OpenAIServing):
      def __init__(
          self,
-@@ -633,6 +661,7 @@ class OpenAIServingChat(OpenAIServing):
+@@ -485,6 +513,7 @@ class OpenAIServingChat(OpenAIServing):
  
          try:
              async for res in result_generator:
@@ -69,9 +69,9 @@ index 12dc2cd..c15fb6d 100644
                  if res.prompt_token_ids is not None:
                      num_prompt_tokens = len(res.prompt_token_ids)
                      if res.encoder_prompt_token_ids is not None:
-@@ -1230,6 +1259,15 @@ class OpenAIServingChat(OpenAIServing):
-                     model=model_name,
+@@ -947,6 +976,15 @@ class OpenAIServingChat(OpenAIServing):
                      usage=final_usage,
+                     system_fingerprint=self.system_fingerprint,
                  )
 +                # Inject Timings  # [patch_timings]
 +                try:
@@ -85,8 +85,8 @@ index 12dc2cd..c15fb6d 100644
                  final_usage_data = final_usage_chunk.model_dump_json(
                      exclude_unset=True, exclude_none=True
                  )
-@@ -1644,6 +1682,13 @@ class OpenAIServingChat(OpenAIServing):
-             kv_transfer_params=final_res.kv_transfer_params,
+@@ -1377,6 +1415,13 @@ class OpenAIServingChat(OpenAIServing):
+             prompt_routed_experts=prompt_routed_experts,
          )
  
 +        # Inject Timings  # [patch_timings]
@@ -100,10 +100,10 @@ index 12dc2cd..c15fb6d 100644
          if self.enable_log_outputs and self.request_logger:
              for choice in choices:
 diff --git a/vllm/entrypoints/openai/completion/protocol.py b/vllm/entrypoints/openai/completion/protocol.py
-index c785d25..85928f4 100644
+index 7bb3c8d..8487e93 100644
 --- a/vllm/entrypoints/openai/completion/protocol.py
 +++ b/vllm/entrypoints/openai/completion/protocol.py
-@@ -485,6 +485,9 @@ class CompletionResponse(OpenAIBaseModel):
+@@ -489,6 +489,9 @@ class CompletionResponse(OpenAIBaseModel):
          default=None, description="KVTransfer parameters."
      )
  
@@ -113,15 +113,18 @@ index c785d25..85928f4 100644
  
  class CompletionResponseStreamChoice(OpenAIBaseModel):
      index: int
-@@ -512,3 +515,6 @@ class CompletionStreamResponse(OpenAIBaseModel):
+@@ -516,6 +519,9 @@ class CompletionStreamResponse(OpenAIBaseModel):
      model: str
      choices: list[CompletionResponseStreamChoice]
      usage: UsageInfo | None = Field(default=None)
 +
 +    # llama.cpp-compatible per-request timings  # [patch_timings]
 +    timings: dict[str, Any] | None = None
+     # Set only on the final chunk of a stream to mirror non-streaming responses
+     # without the per-chunk serialization overhead.
+     system_fingerprint: str | None = None
 diff --git a/vllm/entrypoints/openai/completion/serving.py b/vllm/entrypoints/openai/completion/serving.py
-index fb7f253..11a5350 100644
+index ee4ca9f..8b27011 100644
 --- a/vllm/entrypoints/openai/completion/serving.py
 +++ b/vllm/entrypoints/openai/completion/serving.py
 @@ -48,6 +48,34 @@ if TYPE_CHECKING:
@@ -159,7 +162,7 @@ index fb7f253..11a5350 100644
  class OpenAIServingCompletion(OpenAIServing):
      def __init__(
          self,
-@@ -290,6 +318,7 @@ class OpenAIServingCompletion(OpenAIServing):
+@@ -291,6 +319,7 @@ class OpenAIServingCompletion(OpenAIServing):
  
          try:
              async for prompt_idx, res in result_generator:
@@ -167,9 +170,9 @@ index fb7f253..11a5350 100644
                  prompt_token_ids = res.prompt_token_ids
                  prompt_logprobs = res.prompt_logprobs
  
-@@ -434,6 +463,16 @@ class OpenAIServingCompletion(OpenAIServing):
-                     choices=[],
+@@ -445,6 +474,16 @@ class OpenAIServingCompletion(OpenAIServing):
                      usage=final_usage_info,
+                     system_fingerprint=self.system_fingerprint,
                  )
 +                # Inject Timings  # [patch_timings]
 +                try:
@@ -184,18 +187,18 @@ index fb7f253..11a5350 100644
                  final_usage_data = final_usage_chunk.model_dump_json(
                      exclude_unset=False, exclude_none=True
                  )
-@@ -556,7 +595,7 @@ class OpenAIServingCompletion(OpenAIServing):
-         request_metadata.final_usage_info = usage
-         if final_res_batch:
-             kv_transfer_params = final_res_batch[0].kv_transfer_params
+@@ -577,7 +616,7 @@ class OpenAIServingCompletion(OpenAIServing):
+             if pre is not None:
+                 prompt_routed_experts = pre.tolist()
+ 
 -        return CompletionResponse(
 +        _comp_response = CompletionResponse(  # [patch_timings]
              id=request_id,
              created=created_time,
              model=model_name,
-@@ -564,6 +603,14 @@ class OpenAIServingCompletion(OpenAIServing):
-             usage=usage,
+@@ -587,6 +626,14 @@ class OpenAIServingCompletion(OpenAIServing):
              kv_transfer_params=kv_transfer_params,
+             prompt_routed_experts=prompt_routed_experts,
          )
 +        # Inject Timings  # [patch_timings]
 +        if last_final_res is not None:

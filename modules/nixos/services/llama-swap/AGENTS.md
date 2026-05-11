@@ -28,7 +28,7 @@ The upstream compose files live at https://github.com/noonghunna/club-3090 under
    - Genesis env vars — the full set grows frequently; add new ones, remove deprecated ones
    - Sidecar patches — old patches get absorbed into Genesis; drop them from entrypoint + volume mounts
    - Docker image tag — update when the compose files move to a new nightly
-4. **Keep `patch_timings_07351e088.py`** — this is our own patch, not from club-3090. Always retain it in the entrypoint and volume mounts.
+4. **Keep `patch_timings_1acd67a.py`** — this is our own patch, not from club-3090. Always retain it in the entrypoint and volume mounts.
 5. **Update the `Synced from:` comment** on each config block with the new commit hash and date.
 6. **Update `setup-qwen36-vllm.sh`** if the upstream `patches/` directory changed (new patches added, old ones removed). The setup script downloads sidecar patches and creates cache directories.
 7. **Verify syntax**: `nix-instantiate --parse config.nix`

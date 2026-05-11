@@ -1,10 +1,6 @@
 #!/usr/bin/env bash
 # Setup script for vLLM Qwen3.6-27B on a single 3090.
 #
-# Downloads the model, clones Genesis patches (pinned), applies setup-time
-# source patches to the Genesis tree, and fetches all boot-time sidecar
-# patches into place under /mnt/ssd/vLLM/.
-#
 # Idempotent - safe to re-run; skips steps already completed.
 #
 # Prerequisites: git (with git-lfs), docker
@@ -19,17 +15,9 @@ CACHE_DIR="/mnt/ssd/vLLM/Cache"
 GENESIS_DIR="${PATCHES_DIR}/genesis"
 GENESIS_PIN="${GENESIS_PIN:-7b9fd319}"
 
-# 3090 Patches
-BASE_3090_PATCH_URL="https://raw.githubusercontent.com/noonghunna/club-3090/v7.69-cliff2-test/models/qwen3.6-27b/vllm/patches"
-INPUTS_EMBEDS_PATCH="${PATCHES_DIR}/patch_inputs_embeds_optional.py"
-
-# Tool Parser Patch
-TOOL_PARSER_PATCH="${PATCHES_DIR}/qwen3coder_tool_parser_deferred_commit.py"
-TOOL_PARSER_PATCH_URL="${TOOL_PARSER_PATCH_URL:-https://raw.githubusercontent.com/noonghunna/club-3090/refs/heads/master/models/qwen3.6-27b/vllm/patches/local/qwen3coder_tool_parser_deferred_commit.py}"
-
 # Timings Patch
-TIMINGS_PATCH="${PATCHES_DIR}/patch_timings_07351e088.py"
-TIMINGS_PATCH_URL="${TIMINGS_PATCH_URL:-https://gitea.va.reichard.io/evan/nix/raw/branch/master/modules/nixos/services/llama-swap/patches/patch_timings_07351e088.py}"
+TIMINGS_PATCH="${PATCHES_DIR}/patch_timings_1acd67a.py"
+TIMINGS_PATCH_URL="${TIMINGS_PATCH_URL:-https://gitea.va.reichard.io/evan/nix/raw/branch/master/modules/nixos/services/llama-swap/patches/patch_timings_1acd67a.py}"
 
 # ---------- Preflight Checks ----------
 for cmd in git git-lfs curl; do
@@ -71,22 +59,6 @@ if [[ ! -d "${GENESIS_DIR}/vllm/_genesis" ]]; then
 fi
 echo "Genesis pinned to ${GENESIS_PIN} ($(cd "${GENESIS_DIR}" && git rev-parse --short HEAD))"
 
-# ---------- Download Sidecar Patches ----------
-download_patch() {
-  local dest="$1"
-  local filename
-  filename="$(basename "$dest")"
-  if [ -f "${dest}" ]; then
-    echo "Patch ${filename} already present, skipping."
-  else
-    echo "Downloading ${filename}..."
-    curl -fsSL "${BASE_3090_PATCH_URL}/${filename}" -o "${dest}"
-    echo "Patch ${filename} written."
-  fi
-}
-
-download_patch "${INPUTS_EMBEDS_PATCH}"
-
 # ---------- Download URL Patch ----------
 install_url_patch() {
   local name="$1"
@@ -110,8 +82,7 @@ install_url_patch() {
 }
 
 # ---------- Download Boot-Time Patches ----------
-install_url_patch "qwen3coder_tool_parser_deferred_commit.py" "${TOOL_PARSER_PATCH_URL}" "${TOOL_PARSER_PATCH}"
-install_url_patch "patch_timings_07351e088.py" "${TIMINGS_PATCH_URL}" "${TIMINGS_PATCH}"
+install_url_patch "patch_timings_1acd67a.py" "${TIMINGS_PATCH_URL}" "${TIMINGS_PATCH}"
 
 # ---------- Summary ----------
 echo ""
@@ -130,6 +101,4 @@ echo "  │   └── triton/                               (Triton kernel cac
 echo "  └── Patches/"
 echo "      ├── genesis/                               (Genesis @ ${GENESIS_PIN})"
 echo "      │   └── vllm/_genesis/                     (mounted into container)"
-echo "      ├── patch_inputs_embeds_optional.py        (boot-time: vllm#35975 backport, text-only models)"
-echo "      ├── qwen3coder_tool_parser_deferred_commit.py (boot-time: qwen3coder SSE deferred commit fix)"
-echo "      └── patch_timings_07351e088.py             (boot-time: llama.cpp-compatible timings)"
+echo "      └── patch_timings_1acd67a.py              (boot-time: llama.cpp-compatible timings)"

@@ -174,8 +174,7 @@ in
           vllmCmd = ''
             set -e; pip install xxhash pandas scipy -q;
             python3 -m vllm._genesis.patches.apply_all;
-            python3 /patches/qwen3coder_tool_parser_deferred_commit.py;
-            python3 /patches/patch_timings_07351e088.py;
+            python3 /patches/patch_timings_1acd67a.py;
             exec vllm serve ''${VLLM_ENFORCE_EAGER:+--enforce-eager}
             --served-model-name ''${MODEL_ID}
             --model /root/.cache/huggingface/qwen3.6-27b-autoround-int4
@@ -269,7 +268,6 @@ in
             -e NCCL_P2P_DISABLE=1 \
             -e OMP_NUM_THREADS=1 \
             -e PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True,max_split_size_mb:512 \
-            -e TRITON_CACHE_DIR=/root/.triton/cache \
             -e VLLM_ALLOW_LONG_MAX_MODEL_LEN=1 \
             -e VLLM_FLOAT32_MATMUL_PRECISION=high \
             -e VLLM_MARLIN_USE_ATOMIC_ADD=1 \
@@ -281,16 +279,20 @@ in
             -e VLLM_WORKER_MULTIPROC_METHOD=spawn \
             -e VLLM_ENFORCE_EAGER \
             -v /mnt/ssd/vLLM/Models:/root/.cache/huggingface \
-            -v /mnt/ssd/vLLM/Cache/torch_compile:/root/.cache/vllm/torch_compile_cache \
-            -v /mnt/ssd/vLLM/Cache/triton:/root/.triton/cache \
             -v /mnt/ssd/vLLM/Patches/genesis/vllm/_genesis:/usr/local/lib/python3.12/dist-packages/vllm/_genesis:ro \
-            -v /mnt/ssd/vLLM/Patches/qwen3coder_tool_parser_deferred_commit.py:/patches/qwen3coder_tool_parser_deferred_commit.py:ro \
-            -v /mnt/ssd/vLLM/Patches/patch_timings_07351e088.py:/patches/patch_timings_07351e088.py:ro \
+            -v /mnt/ssd/vLLM/Patches/patch_timings_1acd67a.py:/patches/patch_timings_1acd67a.py:ro \
             -p ''${PORT}:8000 \
             --entrypoint /bin/bash \
-            vllm/vllm-openai:nightly-01d4d1ad375dc5854779c593eee093bcebb0cada \
+            vllm/vllm-openai:nightly-1acd67a795ebccdf9b9db7697ae9082058301657 \
             -c "${vllmCmdFlat}"
         '';
+
+      # Cache Bug - On resume from cache, VRAM usage is higher than just generating in real time.
+
+      # -e TRITON_CACHE_DIR=/root/.triton/cache \
+      # -v /mnt/ssd/vLLM/Cache/torch_compile:/root/.cache/vllm/torch_compile_cache \
+      # -v /mnt/ssd/vLLM/Cache/triton:/root/.triton/cache \
+
       cmdStop = "${pkgs.docker}/bin/docker stop \${MODEL_ID}";
 
       metadata = {
@@ -314,8 +316,7 @@ in
           vllmCmd = ''
             set -e; pip install xxhash pandas scipy -q;
             python3 -m vllm._genesis.patches.apply_all;
-            python3 /patches/qwen3coder_tool_parser_deferred_commit.py;
-            python3 /patches/patch_timings_07351e088.py;
+            python3 /patches/patch_timings_1acd67a.py;
             exec vllm serve ''${VLLM_ENFORCE_EAGER:+--enforce-eager}
             --served-model-name ''${MODEL_ID}
             --model /root/.cache/huggingface/qwen3.6-27b-autoround-int4
@@ -402,7 +403,6 @@ in
             -e NCCL_P2P_DISABLE=1 \
             -e OMP_NUM_THREADS=1 \
             -e PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True,max_split_size_mb:512 \
-            -e TRITON_CACHE_DIR=/root/.triton/cache \
             -e VLLM_ALLOW_LONG_MAX_MODEL_LEN=1 \
             -e VLLM_FLOAT32_MATMUL_PRECISION=high \
             -e VLLM_MARLIN_USE_ATOMIC_ADD=1 \
@@ -414,16 +414,20 @@ in
             -e VLLM_WORKER_MULTIPROC_METHOD=spawn \
             -e VLLM_ENFORCE_EAGER \
             -v /mnt/ssd/vLLM/Models:/root/.cache/huggingface \
-            -v /mnt/ssd/vLLM/Cache/torch_compile:/root/.cache/vllm/torch_compile_cache \
-            -v /mnt/ssd/vLLM/Cache/triton:/root/.triton/cache \
             -v /mnt/ssd/vLLM/Patches/genesis/vllm/_genesis:/usr/local/lib/python3.12/dist-packages/vllm/_genesis:ro \
-            -v /mnt/ssd/vLLM/Patches/qwen3coder_tool_parser_deferred_commit.py:/patches/qwen3coder_tool_parser_deferred_commit.py:ro \
-            -v /mnt/ssd/vLLM/Patches/patch_timings_07351e088.py:/patches/patch_timings_07351e088.py:ro \
+            -v /mnt/ssd/vLLM/Patches/patch_timings_1acd67a.py:/patches/patch_timings_1acd67a.py:ro \
             -p ''${PORT}:8000 \
             --entrypoint /bin/bash \
-            vllm/vllm-openai:nightly-01d4d1ad375dc5854779c593eee093bcebb0cada \
+            vllm/vllm-openai:nightly-1acd67a795ebccdf9b9db7697ae9082058301657 \
             -c "${vllmCmdFlat}"
         '';
+
+      # Cache Bug - On resume from cache, VRAM usage is higher than just generating in real time.
+
+      # -e TRITON_CACHE_DIR=/root/.triton/cache \
+      # -v /mnt/ssd/vLLM/Cache/torch_compile:/root/.cache/vllm/torch_compile_cache \
+      # -v /mnt/ssd/vLLM/Cache/triton:/root/.triton/cache \
+
       cmdStop = "${pkgs.docker}/bin/docker stop \${MODEL_ID}";
 
       metadata = {
@@ -448,8 +452,7 @@ in
           vllmCmd = ''
             set -e; pip install xxhash pandas scipy -q;
             python3 -m vllm._genesis.patches.apply_all;
-            python3 /patches/qwen3coder_tool_parser_deferred_commit.py;
-            python3 /patches/patch_timings_07351e088.py;
+            python3 /patches/patch_timings_1acd67a.py;
             exec vllm serve ''${VLLM_ENFORCE_EAGER:+--enforce-eager}
             --served-model-name ''${MODEL_ID}
             --model /root/.cache/huggingface/qwen3.6-27b-autoround-int4
@@ -502,7 +505,6 @@ in
             -e NCCL_P2P_DISABLE=1 \
             -e OMP_NUM_THREADS=1 \
             -e PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True,max_split_size_mb:512 \
-            -e TRITON_CACHE_DIR=/root/.triton/cache \
             -e VLLM_ALLOW_LONG_MAX_MODEL_LEN=1 \
             -e VLLM_FLOAT32_MATMUL_PRECISION=high \
             -e VLLM_MARLIN_USE_ATOMIC_ADD=1 \
@@ -512,16 +514,20 @@ in
             -e VLLM_WORKER_MULTIPROC_METHOD=spawn \
             -e VLLM_ENFORCE_EAGER \
             -v /mnt/ssd/vLLM/Models:/root/.cache/huggingface \
-            -v /mnt/ssd/vLLM/Cache/torch_compile:/root/.cache/vllm/torch_compile_cache \
-            -v /mnt/ssd/vLLM/Cache/triton:/root/.triton/cache \
             -v /mnt/ssd/vLLM/Patches/genesis/vllm/_genesis:/usr/local/lib/python3.12/dist-packages/vllm/_genesis:ro \
-            -v /mnt/ssd/vLLM/Patches/qwen3coder_tool_parser_deferred_commit.py:/patches/qwen3coder_tool_parser_deferred_commit.py:ro \
-            -v /mnt/ssd/vLLM/Patches/patch_timings_07351e088.py:/patches/patch_timings_07351e088.py:ro \
+            -v /mnt/ssd/vLLM/Patches/patch_timings_1acd67a.py:/patches/patch_timings_1acd67a.py:ro \
             -p ''${PORT}:8000 \
             --entrypoint /bin/bash \
-            vllm/vllm-openai:nightly-01d4d1ad375dc5854779c593eee093bcebb0cada \
+            vllm/vllm-openai:nightly-1acd67a795ebccdf9b9db7697ae9082058301657 \
             -c "${vllmCmdFlat}"
         '';
+
+      # Cache Bug - On resume from cache, VRAM usage is higher than just generating in real time.
+
+      # -e TRITON_CACHE_DIR=/root/.triton/cache \
+      # -v /mnt/ssd/vLLM/Cache/torch_compile:/root/.cache/vllm/torch_compile_cache \
+      # -v /mnt/ssd/vLLM/Cache/triton:/root/.triton/cache \
+
       cmdStop = "${pkgs.docker}/bin/docker stop \${MODEL_ID}";
 
       metadata = {
