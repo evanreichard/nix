@@ -189,7 +189,6 @@ in
             --language-model-only
             --trust-remote-code
             --reasoning-parser qwen3
-            --default-chat-template-kwargs '{"enable_thinking": false}'
             --enable-auto-tool-choice
             --tool-call-parser qwen3_coder
             --enable-prefix-caching
@@ -330,7 +329,6 @@ in
             --kv-cache-dtype turboquant_3bit_nc
             --trust-remote-code
             --reasoning-parser qwen3
-            --default-chat-template-kwargs '{"enable_thinking": false}'
             --enable-auto-tool-choice
             --tool-call-parser qwen3_coder
             --enable-prefix-caching
@@ -467,7 +465,6 @@ in
             --language-model-only
             --trust-remote-code
             --reasoning-parser qwen3
-            --default-chat-template-kwargs '{"enable_thinking": false}'
             --enable-auto-tool-choice
             --tool-call-parser qwen3_coder
             --enable-prefix-caching
