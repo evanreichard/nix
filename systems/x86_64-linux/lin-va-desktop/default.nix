@@ -65,7 +65,7 @@ in
       wantedBy = [ "multi-user.target" ];
       serviceConfig.Type = "oneshot";
       serviceConfig.RemainAfterExit = true;
-      script = "${nvidia-smi} -i 0 -pl 250";
+      script = "${nvidia-smi} -i 0 -pl 290";
     };
   };
 
