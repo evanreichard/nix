@@ -7,12 +7,12 @@
   vulkanSupport = true;
 }).overrideAttrs
   (oldAttrs: rec {
-    version = "9045";
+    version = "9048";
     src = pkgs.fetchFromGitHub {
       owner = "ggml-org";
       repo = "llama.cpp";
       tag = "b${version}";
-      hash = "sha256-fdHGxJaMx/VG7twXdWvHdkThAOSFJTbjAnpRxsNx5l0=";
+      hash = "sha256-lYtX0hLReCnFw1+xOKefly+WunuoN89ZFEFl5mK5pQ4=";
       leaveDotGit = true;
       postFetch = ''
         git -C "$out" rev-parse --short HEAD > $out/COMMIT
@@ -43,7 +43,7 @@
       (pkgs.fetchpatch {
         name = "mtp.patch";
         url = "https://github.com/ggml-org/llama.cpp/pull/22673.patch";
-        hash = "sha256-jM4X+jy7JhOAn2v/U9mmWM/507DKaW8d/dhR78HZWFQ=";
+        hash = "sha256-HqpchhOpxuw5mY4a/OCWGDr2Y32rC4FeOHuhaVt+mvY=";
       })
     ];
   })

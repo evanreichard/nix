@@ -57,54 +57,14 @@ in
       };
     };
 
-    # https://huggingface.co/unsloth/Qwen3.6-27B-GGUF/tree/main
-    "qwen3.6-27b-thinking" = {
-      name = "Qwen3.6 (27B) - Thinking";
-      macros.ctx = "196608";
-      cmd = ''
-        ${llama-cpp}/bin/llama-server \
-          --port ''${PORT} \
-          -m /mnt/ssd/Models/Qwen3.6/Qwen3.6-27B-IQ4_XS.gguf \
-          -c ''${ctx} \
-          --parallel 2 \
-          --temp 0.6 \
-          --top-p 0.95 \
-          --top-k 20 \
-          --min-p 0.00 \
-          --presence-penalty 1.5 \
-          -ctk q8_0 \
-          -ctv q8_0 \
-          --keep 3000 \
-          --batch-size 4096 \
-          --ubatch-size 1024 \
-          --spec-type ngram-mod \
-          --spec-ngram-mod-n-match 24 \
-          --spec-draft-n-min 16 \
-          --spec-draft-n-max 64 \
-          -dev CUDA0 \
-          -fit off \
-          --chat-template-kwargs "{\"preserve_thinking\": true}"
-      '';
-      # --chat-template-kwargs "{\"enable_thinking\": false}"
-      # --spec-draft-n-min 16 \
-      # --spec-draft-n-max 32 \
-      metadata = {
-        type = [
-          "text-generation"
-          "coding"
-        ];
-      };
-    };
-
-    # https://huggingface.co/localweights/Qwen3.6-27B-MTP-IQ4_XS-GGUF/tree/main
-    "qwen3.6-27b-mtp-thinking" = {
-      name = "Qwen3.6 (27B) - Thinking (MTP)";
+    # https://huggingface.co/unsloth/Qwen3.6-27B-GGUF-MTP/tree/main
+    "qwen3.6-27b-udq4-thinking" = {
+      name = "Qwen3.6 (27B) - Thinking (UD-Q4)";
       macros.ctx = "150000";
-      #
       cmd = ''
         ${llama-cpp}/bin/llama-server \
           --port ''${PORT} \
-          -m /mnt/ssd/Models/Qwen3.6/Qwen3.6-27B-MTP-IQ4_XS.gguf \
+          -m /mnt/ssd/Models/Qwen3.6/Qwen3.6-27B-UD-Q4_K_XL.gguf \
           -c ''${ctx} \
           --parallel 1 \
           --temp 0.6 \
@@ -115,7 +75,7 @@ in
           -ctk q8_0 \
           -ctv q8_0 \
           --spec-type mtp \
-          --spec-draft-n-max 5 \
+          --spec-draft-n-max 3 \
           -dev CUDA0 \
           -fit off \
           --chat-template-kwargs "{\"preserve_thinking\": true}"
@@ -132,7 +92,6 @@ in
     "gemma-4-26b-vision" = {
       name = "Gemma 4 (26B) - Vision";
       macros.ctx = "196608";
-      # 262144
       cmd = ''
         ${llama-cpp}/bin/llama-server \
           --port ''${PORT} \
@@ -152,7 +111,6 @@ in
           -fit off \
           -dev CUDA0
       '';
-      #           --no-mmproj-offload \
       metadata = {
         type = [
           "text-generation"
@@ -648,6 +606,38 @@ in
       };
     };
 
+    # https://huggingface.co/unsloth/Qwen3.6-27B-GGUF-MTP/tree/main
+    "qwen3.6-27b-udq6-thinking" = {
+      name = "Qwen3.6 (27B) - Thinking (UD-Q6)";
+      macros.ctx = "225000";
+      cmd = ''
+        ${llama-cpp}/bin/llama-server \
+          --port ''${PORT} \
+          -m /mnt/ssd/Models/Qwen3.6/Qwen3.6-27B-UD-Q6_K_XL.gguf \
+          -c ''${ctx} \
+          --parallel 1 \
+          --temp 0.6 \
+          --top-p 0.95 \
+          --top-k 20 \
+          --min-p 0.00 \
+          --presence-penalty 0.0 \
+          -ctk q8_0 \
+          -ctv q8_0 \
+          --spec-type mtp \
+          --spec-draft-n-max 3 \
+          -dev CUDA0,CUDA1 \
+          -ts 75,25 \
+          -fit off \
+          --chat-template-kwargs "{\"preserve_thinking\": true}"
+      '';
+      metadata = {
+        type = [
+          "text-generation"
+          "coding"
+        ];
+      };
+    };
+
     # ---------------------------------------
     # ---------- Stable Diffussion ----------
     # ---------------------------------------
@@ -752,8 +742,7 @@ in
       go = "gpt-oss-20b-thinking";
       g4 = "gemma-4-26b-vision";
       q36a = "qwen3.6-35b-thinking";
-      q36b = "qwen3.6-27b-thinking";
-      q36bmtp = "qwen3.6-27b-mtp-thinking";
+      q36b = "qwen3.6-27b-udq4-thinking";
       zi = "z-image-turbo";
       qie = "qwen-image-edit-2511";
       qi = "qwen-image-2512";
@@ -766,7 +755,7 @@ in
     };
 
     sets = {
-      concurrent = "(go | g4 | q36a | q36b | q36bmtp | vlt | vtt | vlv | zi | qie | qi | cr) & (qv | q4 | q9)";
+      concurrent = "(go | g4 | q36a | q36b | vlt | vtt | vlv | zi | qie | qi | cr) & (qv | q4 | q9)";
     };
   };
 }
