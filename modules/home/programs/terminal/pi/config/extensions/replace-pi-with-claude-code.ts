@@ -8,11 +8,10 @@ export default function replacePiWithClaudeCodeExtension(pi: ExtensionAPI) {
       return undefined;
     }
 
-    // Replace "pi" With "claude code" - Exclude Literal ".pi" (e.g. Paths)
-    // And "pi-coding-agent" (Package Name)
+    // Replace "pi" With "claude code"
     const transformedSystemPrompt = event.systemPrompt.replace(
-      /(?<!\.)pi(?!-coding-agent)/gi,
-      "claude code",
+      /(^|\s)pi(?![\w-])/gi,
+      "$1claude code",
     );
 
     if (transformedSystemPrompt === event.systemPrompt) {
