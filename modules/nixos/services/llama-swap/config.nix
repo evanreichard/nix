@@ -60,7 +60,7 @@ in
     # https://huggingface.co/unsloth/Qwen3.6-27B-GGUF-MTP/tree/main
     "qwen3.6-27b-udq4-thinking" = {
       name = "Qwen3.6 (27B) - Thinking (UD-Q4)";
-      macros.ctx = "150000";
+      macros.ctx = "140000";
       cmd = ''
         ${llama-cpp}/bin/llama-server \
           --port ''${PORT} \
@@ -609,7 +609,7 @@ in
     # https://huggingface.co/unsloth/Qwen3.6-27B-GGUF-MTP/tree/main
     "qwen3.6-27b-udq6-thinking" = {
       name = "Qwen3.6 (27B) - Thinking (UD-Q6)";
-      macros.ctx = "225000";
+      macros.ctx = "196608";
       cmd = ''
         ${llama-cpp}/bin/llama-server \
           --port ''${PORT} \
