@@ -93,12 +93,15 @@ in
 
     # Define Pi Configuration
     home.file = {
-
       ".pi/agent/AGENTS.md" = {
         source = ./config/AGENTS.md;
       };
       ".pi/agent/skills" = {
         source = ./config/skills;
+        recursive = true;
+      };
+      ".pi/agent/subagents" = {
+        source = ./config/subagents;
         recursive = true;
       };
       ".pi/agent/prompts" = {
