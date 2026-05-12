@@ -11,6 +11,7 @@ set -euo pipefail
 MODEL_DIR="/mnt/ssd/vLLM/Models"
 MODEL_SUBDIR="qwen3.6-27b-autoround-int4"
 PATCHES_DIR="/mnt/ssd/vLLM/Patches"
+TEMPLATES_DIR="/mnt/ssd/vLLM/Templates"
 CACHE_DIR="/mnt/ssd/vLLM/Cache"
 GENESIS_DIR="${PATCHES_DIR}/genesis"
 GENESIS_PIN="${GENESIS_PIN:-7b9fd319}"
@@ -18,6 +19,10 @@ GENESIS_PIN="${GENESIS_PIN:-7b9fd319}"
 # Timings Patch
 TIMINGS_PATCH="${PATCHES_DIR}/patch_timings_1acd67a.py"
 TIMINGS_PATCH_URL="${TIMINGS_PATCH_URL:-https://gitea.va.reichard.io/evan/nix/raw/branch/master/modules/nixos/services/llama-swap/patches/patch_timings_1acd67a.py}"
+
+# Template
+TEMPLATE="${TEMPLATES_DIR}/chat_template-v11.jinja"
+TEMPLATE_URL="https://huggingface.co/froggeric/Qwen-Fixed-Chat-Templates/resolve/main/qwen3.6/chat_template-v11.jinja"
 
 # ---------- Preflight Checks ----------
 for cmd in git git-lfs curl; do
@@ -29,7 +34,7 @@ done
 
 # ---------- Create Directories ----------
 echo "Creating directories..."
-mkdir -p "${MODEL_DIR}" "${PATCHES_DIR}" "${CACHE_DIR}/torch_compile" "${CACHE_DIR}/triton"
+mkdir -p "${TEMPLATES_DIR}" "${MODEL_DIR}" "${PATCHES_DIR}" "${CACHE_DIR}/torch_compile" "${CACHE_DIR}/triton"
 
 # ---------- Download Model ----------
 if [ -d "${MODEL_DIR}/${MODEL_SUBDIR}/.git" ]; then
@@ -60,7 +65,7 @@ fi
 echo "Genesis pinned to ${GENESIS_PIN} ($(cd "${GENESIS_DIR}" && git rev-parse --short HEAD))"
 
 # ---------- Download URL Patch ----------
-install_url_patch() {
+install_via_url() {
   local name="$1"
   local url="$2"
   local dest="$3"
@@ -81,8 +86,9 @@ install_url_patch() {
   rm -f "${tmp_patch}"
 }
 
-# ---------- Download Boot-Time Patches ----------
-install_url_patch "patch_timings_1acd67a.py" "${TIMINGS_PATCH_URL}" "${TIMINGS_PATCH}"
+# ---------- Download Assets ----------
+install_via_url "patch_timings_1acd67a.py" "${TIMINGS_PATCH_URL}" "${TIMINGS_PATCH}"
+install_via_url "chat_template-v11.jinja" "${TEMPLATE_URL}" "${TEMPLATE}"
 
 # ---------- Summary ----------
 echo ""
@@ -94,11 +100,13 @@ echo ""
 echo "Expected layout:"
 echo "  /mnt/ssd/vLLM/"
 echo "  ├── Models/"
-echo "  │   └── qwen3.6-27b-autoround-int4/          (model weights)"
+echo "  │   └── qwen3.6-27b-autoround-int4/           (model weights)"
+echo "  ├── Templates/"
+echo "  │   └── chat_template-v11.jinja               (chat template)"
 echo "  ├── Cache/"
 echo "  │   ├── torch_compile/                        (torch.compile cache)"
 echo "  │   └── triton/                               (Triton kernel cache)"
 echo "  └── Patches/"
-echo "      ├── genesis/                               (Genesis @ ${GENESIS_PIN})"
-echo "      │   └── vllm/_genesis/                     (mounted into container)"
+echo "      ├── genesis/                              (Genesis @ ${GENESIS_PIN})"
+echo "      │   └── vllm/_genesis/                    (mounted into container)"
 echo "      └── patch_timings_1acd67a.py              (boot-time: llama.cpp-compatible timings)"

@@ -1,6 +1,7 @@
 { pkgs }:
 let
   llama-cpp = pkgs.reichard.llama-cpp;
+  ik-llama-cpp = pkgs.reichard.ik-llama-cpp;
   stable-diffusion-cpp = pkgs.reichard.stable-diffusion-cpp.override {
     cudaSupport = true;
   };
@@ -79,6 +80,36 @@ in
           -dev CUDA0 \
           -fit off \
           --chat-template-kwargs "{\"preserve_thinking\": true}"
+      '';
+      metadata = {
+        type = [
+          "text-generation"
+          "coding"
+        ];
+      };
+    };
+
+    # https://huggingface.co/ubergarm/Qwen3.6-27B-GGUF/tree/main
+    "ik-qwen3.6-27b-iq4ks-thinking" = {
+      name = "Qwen3.6 (27B) - Thinking (ik IQ4_KS)";
+      macros.ctx = "131072";
+      env = [ "CUDA_VISIBLE_DEVICES=0" ];
+      cmd = ''
+        ${ik-llama-cpp}/bin/llama-server \
+          --port ''${PORT} \
+          --model /mnt/ssd/Models/Qwen3.6/Qwen3.6-27B-MTP-IQ4_KS.gguf \
+          -c ''${ctx} \
+          -ctk f16 -ctv q8_0 \
+          -mtp --draft-max 4 --draft-p-min 0.70 \
+          --merge-qkv \
+          -muge \
+          -ngl 99 \
+          --threads 1 \
+          --parallel 1 \
+          --jinja \
+          --no-mmap \
+          --ctx-checkpoints 32 \
+          -cram 32768
       '';
       metadata = {
         type = [
@@ -425,6 +456,7 @@ in
             --reasoning-parser qwen3
             --enable-auto-tool-choice
             --tool-call-parser qwen3_coder
+            --chat-template /templates/chat_template.jinja
             --enable-prefix-caching
             --enable-chunked-prefill
             --speculative-config '{\"method\":\"mtp\",\"num_speculative_tokens\":3}'
@@ -471,6 +503,7 @@ in
             -v /mnt/ssd/vLLM/Models:/root/.cache/huggingface \
             -v /mnt/ssd/vLLM/Patches/genesis/vllm/_genesis:/usr/local/lib/python3.12/dist-packages/vllm/_genesis:ro \
             -v /mnt/ssd/vLLM/Patches/patch_timings_1acd67a.py:/patches/patch_timings_1acd67a.py:ro \
+            -v /mnt/ssd/vLLM/Templates/chat_template-v11.jinja:/templates/chat_template.jinja \
             -p ''${PORT}:8000 \
             --entrypoint /bin/bash \
             vllm/vllm-openai:nightly-1acd67a795ebccdf9b9db7697ae9082058301657 \
@@ -743,6 +776,7 @@ in
       g4 = "gemma-4-26b-vision";
       q36a = "qwen3.6-35b-thinking";
       q36b = "qwen3.6-27b-udq4-thinking";
+      iq36 = "ik-qwen3.6-27b-iq4ks-thinking";
       zi = "z-image-turbo";
       qie = "qwen-image-edit-2511";
       qi = "qwen-image-2512";
@@ -755,7 +789,7 @@ in
     };
 
     sets = {
-      concurrent = "(go | g4 | q36a | q36b | vlt | vtt | vlv | zi | qie | qi | cr) & (qv | q4 | q9)";
+      concurrent = "(go | g4 | q36a | q36b | iq36 | vlt | vtt | vlv | zi | qie | qi | cr) & (qv | q4 | q9)";
     };
   };
 }

@@ -9,6 +9,7 @@ let
 
   nvidia-smi = "${config.hardware.nvidia.package.bin}/bin/nvidia-smi";
   llama-cpp = pkgs.reichard.llama-cpp;
+  ik-llama-cpp = pkgs.reichard.ik-llama-cpp;
   stable-diffusion-cpp = pkgs.reichard.stable-diffusion-cpp.override {
     cudaSupport = true;
   };
@@ -129,6 +130,7 @@ in
 
     # Local Packages
     llama-cpp
+    ik-llama-cpp
     stable-diffusion-cpp
   ];
 }
