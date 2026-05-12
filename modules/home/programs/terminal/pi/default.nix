@@ -1,9 +1,8 @@
-{
-  lib,
-  pkgs,
-  config,
-  namespace,
-  ...
+{ lib
+, pkgs
+, config
+, namespace
+, ...
 }:
 let
   inherit (lib) mkIf;
@@ -18,6 +17,7 @@ let
   # writing other fields (current model, etc.) without us clobbering them.
   piPackages = [
     "https://gitea.va.reichard.io/evan/pi-lsp.git@main"
+    "https://gitea.va.reichard.io/evan/pi-subagents.git@main"
     "https://gitea.va.reichard.io/evan/pi-statusline.git@main"
   ];
 
@@ -35,15 +35,19 @@ let
   ];
 
   piAuthJqRawfiles = lib.concatStringsSep " \\\n          " (
-    map (
-      auth: ''--rawfile ${auth.jqVar} "${config.sops.secrets.${auth.secretName}.path}"''
-    ) piAuthApiKeys
+    map
+      (
+        auth: ''--rawfile ${auth.jqVar} "${config.sops.secrets.${auth.secretName}.path}"''
+      )
+      piAuthApiKeys
   );
 
   piAuthJqFilter = lib.concatStringsSep " | " (
-    map (
-      auth: ''.["${auth.provider}"] = { type: "api_key", key: ($'' + auth.jqVar + ''| rtrimstr("\n")) }''
-    ) piAuthApiKeys
+    map
+      (
+        auth: ''.["${auth.provider}"] = { type: "api_key", key: ($'' + auth.jqVar + ''| rtrimstr("\n")) }''
+      )
+      piAuthApiKeys
   );
 
   piAuthMergeScript = pkgs.writeShellScript "pi-auth-merge" ''
@@ -116,10 +120,12 @@ in
         };
       }
       // lib.listToAttrs (
-        map (auth: {
-          name = auth.secretName;
-          value.sopsFile = auth.sopsFile;
-        }) piAuthApiKeys
+        map
+          (auth: {
+            name = auth.secretName;
+            value.sopsFile = auth.sopsFile;
+          })
+          piAuthApiKeys
       );
       templates."pi-models.json" = {
         path = "${config.home.homeDirectory}/.pi/agent/models.json";
