@@ -33,7 +33,7 @@ Full-file reads are fine when genuinely needed, but avoid them as the default re
 
 2. **Maintain AGENTS.md**: Keep project guidance up to date, but BLUF: concise, actionable, and context-size conscious.
 
-3. **Knowledge Capture**: At task end, if you discovered non-obvious conventions, pitfalls, or repeatable workflows that would have saved time, briefly recommend adding them to AGENTS.md or a skill. Say whether each belongs in project-level context, global agent context, or a task-specific skill. Skip this when there is nothing meaningful.
+3. **Knowledge Capture Check**: Before the final response, ask whether the task revealed a non-obvious convention, pitfall, repeatable workflow, or missing helper. If yes, briefly recommend exactly where to capture it: package/project AGENTS.md, global AGENTS.md, a skill, or a helper script. Skip this note when there is nothing meaningful.
 
 ## Style
 

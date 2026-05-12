@@ -16,18 +16,23 @@
 
 buildNpmPackage rec {
   pname = "pi-coding-agent";
-  version = "0.73.1";
+  version = "0.74.0";
 
   src = fetchFromGitHub {
     owner = "earendil-works";
     repo = "pi-mono";
     rev = "v${version}";
-    hash = "sha256-ZcqMWghMACzEUswLujwClPF1pbwjTKzTbcYW86ZvjL4=";
+    hash = "sha256-wEiqOezD8w08vyuenh3Kk+YCYBbQoEq67wATDEKy5XM=";
   };
 
-  npmDepsHash = "sha256-tneAcwtTIfkcqQ8/Ch1Xa6OiOkTjJNYbH8wfhNneT/g=";
+  npmDepsHash = "sha256-ZcJ6k3gOpO6vOgukn2L0AcQsj5M+behltEx12u2Zu7Y=";
 
   nativeBuildInputs = [ pkg-config makeWrapper ];
+
+  # Restore NPM Metadata - v0.74.0 lockfile omits resolved/integrity entries needed by buildNpmPackage.
+  prePatch = ''
+    cp ${./package-lock.json} package-lock.json
+  '';
 
   buildInputs = [
     pixman
