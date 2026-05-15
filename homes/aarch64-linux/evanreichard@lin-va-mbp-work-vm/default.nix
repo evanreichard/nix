@@ -30,6 +30,7 @@ in
           enable = true;
           customFastFetchLogo = ./prophet.txt;
         };
+        conduit = enabled;
         btop = enabled;
         claude-code = enabled;
         direnv = enabled;
