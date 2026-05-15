@@ -12,7 +12,7 @@ If the user provides only a **package name** (no version), look up the latest ve
 ## Hard Rules — Read First
 
 1. **Never run `nix build .#<pkg>`** or `.#packages.<system>.<pkg>`. That compiles the package. Only realise **FOD sub-attributes** (`.src`, `.goModules`, `.npmDeps`, `.cargoDeps`) — those are pure downloads, not builds.
-2. **Never** use `nix-prefetch-git`, `nix-prefetch-url`, `nix hash path`, `git clone` + manual hashing, `builtins.fetchGit`, or any other ad-hoc method to compute hashes. They produce hashes in formats that don't match what `fetchgit`/`fetchFromGitHub`/etc. expect, and you will waste time chasing mismatches.
+2. **Never** use `nix-prefetch-git`, `nix-prefetch-github`, `nix-prefetch-url`, `nix hash path`, `nix hash file` (on a raw patch/tarball), `git clone` + manual hashing, `builtins.fetchGit`, or any other ad-hoc method to compute hashes. They produce hashes in formats that don't match what `fetchgit`/`fetchFromGitHub`/`fetchpatch` expect (notably: `fetchFromGitHub { leaveDotGit = true; }` is non-deterministic across machines, and `fetchpatch` normalizes patches — strips `index abc..def`, `From <sha>`, signatures — so its hash ≠ `nix hash file` of the raw `.patch`).
 3. There are exactly **two** correct ways to get a hash, both listed below. If neither fits, stop and ask the user — don't improvise.
 
 ## The Only Two Methods
@@ -29,15 +29,25 @@ Copy the `hash = "sha256-..."` line from the output into the package's `src` blo
 
 ### Method B — FOD mismatch trick (for everything else)
 
-For `vendorHash`, `npmDepsHash`, `cargoHash`, `cargoLock.outputHashes.<crate>`, or any `src` using a custom fetcher (`leaveDotGit`, `postFetch`, `fetchSubmodules`, etc. — applies to `llama-cpp` and `llama-swap`), realise the **specific FOD sub-attribute** and read the `got:` line from the error.
+For `vendorHash`, `npmDepsHash`, `cargoHash`, `cargoLock.outputHashes.<crate>`, `fetchpatch` hashes, or any `src` using a custom fetcher (`leaveDotGit`, `postFetch`, `fetchSubmodules`, etc. — applies to `llama-cpp` and `llama-swap`), realise the **specific FOD sub-attribute** and read the `got:` line from the error.
 
 ```bash
 nix build .#<name>.src --no-link 2>&1 | tee /tmp/hash.log         # for src
 nix build .#<name>.goModules --no-link 2>&1 | tee /tmp/hash.log   # for vendorHash
 nix build .#<name>.npmDeps --no-link 2>&1 | tee /tmp/hash.log     # for npmDepsHash
 nix build .#<name>.cargoDeps --no-link 2>&1 | tee /tmp/hash.log   # for cargoHash
+nix build .#<name> --no-link 2>&1 | tee /tmp/hash.log             # for fetchpatch / other input FODs (see note)
 grep -E '^[[:space:]]*got:' /tmp/hash.log | tail -1 | awk '{print $2}'
 ```
+
+**`fetchpatch` note:** patches don't have a dedicated sub-attribute, so you must target the package itself. This is safe *only* when the patch hash is wrong (e.g. `lib.fakeHash`) — Nix realizes the patch FOD before compilation starts, so a hash mismatch aborts with `0 built (1 failed)` and zero compile work. If you accidentally fix all FODs correctly, `nix build .#<name>` will start compiling. To guard against this: always start patch hashes as `lib.fakeHash`, run the build, copy `got:`, paste, and only then re-verify with `.src` / sub-attribute builds (never re-run `.#<name>` to confirm).
+
+**GitHub PR patches — `.patch` vs `.diff`:** When fetching a patch from a GitHub pull request, prefer the `.diff` endpoint over `.patch`.
+
+- `https://github.com/<owner>/<repo>/pull/<N>.patch` — a `git format-patch` **mbox** containing each commit in the PR separately. `git apply` (which `fetchpatch` and the Nix `patchPhase` use) does **not** replay commit history; it applies hunks against the working tree. PRs that create a file in one commit and delete/rename it in a later commit will fail with errors like `The next patch would delete the file X, which does not exist`.
+- `https://github.com/<owner>/<repo>/pull/<N>.diff` — a **squashed** unified diff of the PR's net change. Applies cleanly against any base the PR is mergeable against.
+
+Default to `.diff`. Only fall back to `.patch` if you specifically need authorship metadata (rare for Nix patching). If a previously-working `.patch` URL suddenly fails to apply, switching to `.diff` is the first thing to try.
 
 Setting the hash to `lib.fakeHash` (preferred when `lib` is in scope), `sha256-AAAA...` (44 A's), or leaving the old one in place all work — the build will fail at the FOD with `got: sha256-...` which is the correct value.
 

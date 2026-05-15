@@ -75,7 +75,7 @@ in
           --presence-penalty 0.0 \
           -ctk q8_0 \
           -ctv q8_0 \
-          --spec-type mtp \
+          --spec-type draft-mtp \
           --spec-draft-n-max 3 \
           -dev CUDA0 \
           -fit off \
@@ -146,6 +146,51 @@ in
         type = [
           "text-generation"
           "vision"
+        ];
+      };
+    };
+
+    # https://huggingface.co/Lorbus/Qwen3.6-27B-int4-AutoRound
+    # Vanilla single-GPU vLLM config pinned to CUDA0 with 50K context.
+    "qwen3.6-27b-vllm-50k" = {
+      name = "Qwen 3.6 27B INT4 AutoRound (vLLM - Single GPU - 50K ctx)";
+      checkEndpoint = "/v1/models";
+      macros.ctx = "50000";
+      proxy = "http://127.0.0.1:\${PORT}";
+      cmd = ''
+        ${pkgs.docker}/bin/docker run --rm --device=nvidia.com/gpu=all \
+          --name ''${MODEL_ID} \
+          -e CUDA_DEVICE_ORDER=PCI_BUS_ID \
+          -e CUDA_VISIBLE_DEVICES=0 \
+          -e VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS=0 \
+          -v /mnt/ssd/vLLM/Models:/root/.cache/huggingface \
+          -p ''${PORT}:8000 \
+          vllm/vllm-openai:latest \
+          /root/.cache/huggingface/qwen3.6-27b-autoround-int4 \
+          --served-model-name ''${MODEL_ID} \
+          --quantization auto_round \
+          --dtype float16 \
+          --tensor-parallel-size 1 \
+          --gpu-memory-utilization 0.97 \
+          --max-model-len ''${ctx} \
+          --max-num-seqs 1 \
+          --max-num-batched-tokens 4128 \
+          --kv-cache-dtype fp8_e5m2 \
+          --enable-chunked-prefill \
+          --enable-prefix-caching \
+          --speculative-config '{"method":"mtp","num_speculative_tokens":3}' \
+          --enable-auto-tool-choice \
+          --tool-call-parser qwen3_coder \
+          --trust-remote-code \
+          --default-chat-template-kwargs '{"enable_thinking": false}' \
+          --host 0.0.0.0 \
+          --port 8000
+      '';
+      cmdStop = "${pkgs.docker}/bin/docker stop \${MODEL_ID}";
+      metadata = {
+        type = [
+          "text-generation"
+          "coding"
         ];
       };
     };
@@ -656,7 +701,7 @@ in
           --presence-penalty 0.0 \
           -ctk q8_0 \
           -ctv q8_0 \
-          --spec-type mtp \
+          --spec-type draft-mtp \
           --spec-draft-n-max 3 \
           -dev CUDA0,CUDA1 \
           -ts 75,25 \
@@ -772,6 +817,7 @@ in
       vlt = "vllm-qwen3.6-27b-long-text";
       vtt = "vllm-qwen3.6-27b-tools-text";
       vlv = "vllm-qwen3.6-27b-long-vision";
+      v50 = "qwen3.6-27b-vllm-50k";
       go = "gpt-oss-20b-thinking";
       g4 = "gemma-4-26b-vision";
       q36a = "qwen3.6-35b-thinking";
@@ -789,7 +835,7 @@ in
     };
 
     sets = {
-      concurrent = "(go | g4 | q36a | q36b | iq36 | vlt | vtt | vlv | zi | qie | qi | cr) & (qv | q4 | q9)";
+      concurrent = "(go | g4 | q36a | q36b | iq36 | vlt | vtt | vlv | v50 | zi | qie | qi | cr) & (qv | q4 | q9)";
     };
   };
 }
