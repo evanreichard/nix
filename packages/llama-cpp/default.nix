@@ -1,12 +1,12 @@
 { pkgs }:
 let
-  version = "9180";
+  version = "9196";
 
   src = pkgs.fetchFromGitHub {
     owner = "ggml-org";
     repo = "llama.cpp";
     tag = "b${version}";
-    hash = "sha256-DyJE7h7g9RjybSep4k66gvhYI2I2lHGaTJv1gPK4I6c=";
+    hash = "sha256-JOxA7cOoAlQ7It6ogb3Kj2z725b96fkd8jzlvlep3ZU=";
     leaveDotGit = true;
     postFetch = ''
       git -C "$out" rev-parse --short HEAD > $out/COMMIT
