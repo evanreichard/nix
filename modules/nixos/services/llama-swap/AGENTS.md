@@ -1,8 +1,12 @@
 # llama-swap Module — Agent Guide
 
+## Model ID Convention
+
+Use `<family>-<size>[-backend/variant][-context][-vl]-<placement>`. Omit `thinking` from IDs, use `vl` for vision-language models, and keep placement as the final suffix (`cuda0`, `cuda1`, or `dual`). Keep quantization and richer behavior details in the display `name` unless they are needed to distinguish two active configs for the same family/placement.
+
 ## Syncing vLLM Configs from club-3090
 
-The three vLLM model configs in `config.nix` (`vllm-qwen3.6-27b-long-text`, `vllm-qwen3.6-27b-long-vision`, `vllm-qwen3.6-27b-tools-text`) are derived from the club-3090 repo's Docker Compose files. Each config block has a `Synced from:` comment with the commit hash it was last aligned to.
+The three vLLM model configs in `config.nix` (`qwen3.6-27b-vllm-180k-cuda0`, `qwen3.6-27b-vllm-145k-vl-cuda0`, `qwen3.6-27b-vllm-75k-cuda0`) are derived from the club-3090 repo's Docker Compose files. Each config block has a `Synced from:` comment with the commit hash it was last aligned to.
 
 ### Source Files
 
@@ -10,9 +14,9 @@ The upstream compose files live at https://github.com/noonghunna/club-3090 under
 
 | config.nix model ID               | Compose file                        |
 |------------------------------------|-------------------------------------|
-| `vllm-qwen3.6-27b-long-text`      | `docker-compose.long-text.yml`      |
-| `vllm-qwen3.6-27b-long-vision`    | `docker-compose.long-vision.yml`    |
-| `vllm-qwen3.6-27b-tools-text`     | `docker-compose.tools-text.yml`     |
+| `qwen3.6-27b-vllm-180k-cuda0`    | `docker-compose.long-text.yml`      |
+| `qwen3.6-27b-vllm-145k-vl-cuda0` | `docker-compose.long-vision.yml`    |
+| `qwen3.6-27b-vllm-75k-cuda0`     | `docker-compose.tools-text.yml`     |
 
 ### Sync Process
 

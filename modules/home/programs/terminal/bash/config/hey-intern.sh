@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-MODEL="vllm-qwen3.6-27b-long-text"
+MODEL="qwen3.6-27b-vllm-180k-cuda0"
 SYSTEM_PROMPT="You are a shell command expert. Given a natural language query, generate a single shell command that accomplishes the task."
 
 # Colors

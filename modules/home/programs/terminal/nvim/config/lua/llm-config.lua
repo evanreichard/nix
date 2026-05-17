@@ -1,6 +1,6 @@
 local llm_endpoint = "https://llm-api.va.reichard.io"
-local llm_assistant_model = "vllm-qwen3.6-27b-tools-text "
-local llm_infill_model = "qwen3.5-4b-thinking"
+local llm_assistant_model = "qwen3.6-27b-vllm-75k-cuda0"
+local llm_infill_model = "qwen3.5-4b-cuda1"
 local current_fim = "llama"
 
 -- Copilot Configuration
