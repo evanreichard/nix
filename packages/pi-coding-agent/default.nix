@@ -16,20 +16,20 @@
 
 buildNpmPackage rec {
   pname = "pi-coding-agent";
-  version = "0.74.0";
+  version = "0.75.0";
 
   src = fetchFromGitHub {
     owner = "earendil-works";
     repo = "pi-mono";
     rev = "v${version}";
-    hash = "sha256-wEiqOezD8w08vyuenh3Kk+YCYBbQoEq67wATDEKy5XM=";
+    hash = "sha256-Cd4vHb8aRc8nSST5srVeZXuynLS2xYzj+gnKhuBe8Pc=";
   };
 
-  npmDepsHash = "sha256-ZcJ6k3gOpO6vOgukn2L0AcQsj5M+behltEx12u2Zu7Y=";
+  npmDepsHash = "sha256-7mZ0eKVEVoN9u1JGwQ29o4ZpDJjSaXqc7puM6YciBOE=";
 
   nativeBuildInputs = [ pkg-config makeWrapper ];
 
-  # Restore NPM Metadata - v0.74.0 lockfile omits resolved/integrity entries needed by buildNpmPackage.
+  # Restore NPM Metadata - v0.75.0 lockfile omits resolved/integrity entries needed by buildNpmPackage.
   prePatch = ''
     cp ${./package-lock.json} package-lock.json
   '';
@@ -46,7 +46,7 @@ buildNpmPackage rec {
   # Skip generate-models in ai package (models.generated.ts already in repo)
   preBuild = ''
     substituteInPlace packages/ai/package.json \
-      --replace-fail '"build": "npm run generate-models && tsgo -p tsconfig.build.json"' \
+      --replace-fail '"build": "npm run generate-models && npm run generate-image-models && tsgo -p tsconfig.build.json"' \
                      '"build": "tsgo -p tsconfig.build.json"'
   '';
 
