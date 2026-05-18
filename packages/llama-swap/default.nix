@@ -13,13 +13,13 @@ let
 in
 buildGo126Module (finalAttrs: {
   pname = "llama-swap";
-  version = "208";
+  version = "216";
 
   src = fetchFromGitHub {
     owner = "mostlygeek";
     repo = "llama-swap";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-E+BqqQcCLlW/DWvjwC66ClV6yuQ5x7cAMkLPJkS3x5M=";
+    hash = "sha256-PHSY4z2h406xL+EcIYyrzr4s28txO7SCsWm8hrXf+2U=";
     # populate values that require us to use git. By doing this in postFetch we
     # can delete .git afterwards and maintain better reproducibility of the src.
     leaveDotGit = true;
@@ -32,10 +32,10 @@ buildGo126Module (finalAttrs: {
     '';
   };
 
-  vendorHash = "sha256-tOOZgugiVcICYg9HyeTolyAg+YZWtxSJTvAuwfMazHQ=";
+  vendorHash = "sha256-QysQ7YdwJcLTziwL25j73n3tQVvzVQIFxN4GkTU8JZg=";
 
   passthru.ui = callPackage ./ui.nix { llama-swap = finalAttrs.finalPackage; };
-  passthru.npmDepsHash = "sha256-6D4F58sSBkr7FKKO34gDhnZ9uN/SfsyYn1xJjYsMeq4=";
+  passthru.npmDepsHash = "sha256-NJqEJ+XTdpPFtJJxP4CGu+JDUW7lKDcFgsixQJ3SXtQ=";
 
   nativeBuildInputs = [
     versionCheckHook
