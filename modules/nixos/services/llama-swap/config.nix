@@ -41,7 +41,7 @@ in
           --port ''${PORT} \
           -m /mnt/ssd/Models/Qwen3.6/Qwen3.6-35B-A3B-UD-Q4_K_M.gguf \
           -c ''${ctx} \
-          --parallel 1 \
+          -np 2 -kvu \
           --temp 0.6 \
           --top-p 0.95 \
           --top-k 20 \
@@ -66,13 +66,13 @@ in
     # https://huggingface.co/unsloth/Qwen3.6-27B-GGUF-MTP/tree/main
     "qwen3.6-27b-cuda0" = {
       name = "Qwen3.6 27B (CUDA0, UD-Q4)";
-      macros.ctx = "150000";
+      macros.ctx = "140000";
       cmd = ''
         ${llama-cpp}/bin/llama-server \
           --port ''${PORT} \
           -m /mnt/ssd/Models/Qwen3.6/Qwen3.6-27B-UD-Q4_K_XL.gguf \
           -c ''${ctx} \
-          --parallel 1 \
+          -np 2 -kvu \
           --temp 0.6 \
           --top-p 0.95 \
           --top-k 20 \
@@ -634,7 +634,7 @@ in
           --port ''${PORT} \
           -m /mnt/ssd/Models/Qwen3.6/Qwen3.6-27B-UD-Q6_K_XL.gguf \
           -c ''${ctx} \
-          --parallel 1 \
+          -np 4 -kvu \
           --temp 0.6 \
           --top-p 0.95 \
           --top-k 20 \
@@ -666,7 +666,7 @@ in
           --port ''${PORT} \
           -m /mnt/ssd/Models/Qwen3.6/Qwen3.6-35B-A3B-UD-Q6_K.gguf \
           -c ''${ctx} \
-          --parallel 2 \
+          -np 4 -kvu \
           --temp 0.6 \
           --top-p 0.95 \
           --top-k 20 \
