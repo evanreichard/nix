@@ -63,6 +63,28 @@ in
       };
     };
 
+    # https://huggingface.co/ubergarm/Qwen3.6-27B-GGUF/tree/main
+    "qwen3.6-27b-ik-cuda0" = {
+      name = "Qwen3.6 (27B) (CUDA0, IQ4_KS)";
+      macros.ctx = "156000";
+      env = [ "CUDA_VISIBLE_DEVICES=0" ];
+      cmd = ''
+        ${ik-llama-cpp}/bin/llama-server \
+          --port ''${PORT} \
+          -m /mnt/ssd/Models/Qwen3.6/Qwen3.6-27B-MTP-IQ4_KS.gguf \
+          -c ''${ctx} -ctk q8_0 -ctv q8_0 -ngl 99 \
+          -mtp --draft-max 4 --draft-p-min 0.75 \
+          -muge -mqkv -cram 32768 --ctx-checkpoints 32 \
+          --jinja --chat-template-kwargs '{"preserve_thinking":true}'
+      '';
+      metadata = {
+        type = [
+          "text-generation"
+          "coding"
+        ];
+      };
+    };
+
     # https://huggingface.co/unsloth/Qwen3.6-27B-GGUF-MTP/tree/main
     "qwen3.6-27b-cuda0" = {
       name = "Qwen3.6 27B (CUDA0, UD-Q4)";
@@ -798,6 +820,7 @@ in
       g4 = "gemma-4-26b-vl-cuda0";
       q36a = "qwen3.6-35b-cuda0";
       q36b = "qwen3.6-27b-cuda0";
+      q36ik = "qwen3.6-27b-ik-cuda0";
       zi = "z-image-turbo-cuda0";
       qie = "qwen-image-edit-2511-cuda0";
       qi = "qwen-image-2512-cuda0";
@@ -809,7 +832,7 @@ in
     };
 
     sets = {
-      concurrent = "(go | g4 | q36a | q36b | v180 | v145 | v75 | v50 | zi | qie | qi | cr) & (q4 | q9)";
+      concurrent = "(go | g4 | q36a | q36b | q36ik | v180 | v145 | v75 | v50 | zi | qie | qi | cr) & (q4 | q9)";
     };
   };
 }
