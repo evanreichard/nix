@@ -37,7 +37,6 @@ in
       description = "Model swapping for LLaMA C++ Server (or any local OpenAPI compatible server)";
       after = [ "network.target" ];
       wantedBy = [ "multi-user.target" ];
-
       serviceConfig = {
         Type = "exec";
         ExecStart = "${lib.getExe llama-swap} --listen :8080 --config ${
@@ -97,6 +96,7 @@ in
         };
       }) apiKeys);
       templates."llama-swap.json" = {
+        restartUnits = [ "llama-swap.service" ];
         owner = "llama-swap";
         group = "llama-swap";
         mode = "0400";
