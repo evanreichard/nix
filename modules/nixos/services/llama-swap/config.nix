@@ -650,7 +650,7 @@ in
     # https://huggingface.co/unsloth/Qwen3.6-27B-GGUF-MTP/tree/main
     "qwen3.6-27b-dual" = {
       name = "Qwen3.6 27B (Dual GPU, UD-Q6)";
-      macros.ctx = "196608";
+      macros.ctx = "180000";
       cmd = ''
         ${llama-cpp}/bin/llama-server \
           --port ''${PORT} \
