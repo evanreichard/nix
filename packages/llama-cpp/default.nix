@@ -1,12 +1,15 @@
 { pkgs }:
 let
-  version = "9196";
+  # Version MUST be an integer string.
+  # For tagged releases use the tag number (e.g. "9222").
+  # For HEAD builds use YYYYMMDD (e.g. "20260519").
+  version = "20260519";
 
   src = pkgs.fetchFromGitHub {
     owner = "ggml-org";
     repo = "llama.cpp";
-    tag = "b${version}";
-    hash = "sha256-JOxA7cOoAlQ7It6ogb3Kj2z725b96fkd8jzlvlep3ZU=";
+    rev = "b28a2f372a4a470a90ad10f93654e5dc33e78949";
+    hash = "sha256-SXOpTS3q5Vaik76fg2WQ1mmwAk9+KSMdLe4AErQQlOA=";
     leaveDotGit = true;
     postFetch = ''
       git -C "$out" rev-parse --short HEAD > $out/COMMIT
@@ -27,7 +30,7 @@ let
     name = "llama-webui-${version}-npm-deps";
     inherit src;
     sourceRoot = "${src.name}/tools/ui";
-    hash = "sha256-WaEePrEZ7O/7deP2KJhe0AwiSKYA8HOqETmMHUkmBe0=";
+    hash = "sha256-Iyg8FpcTKf2UYHuK7mA3cTAqVaLcQPcS0YCa5Qf01Gc=";
   };
 
   webui = pkgs.buildNpmPackage {

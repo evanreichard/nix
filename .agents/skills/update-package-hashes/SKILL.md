@@ -49,7 +49,7 @@ grep -E '^[[:space:]]*got:' /tmp/hash.log | tail -1 | awk '{print $2}'
 
 Default to `.diff`. Only fall back to `.patch` if you specifically need authorship metadata (rare for Nix patching). If a previously-working `.patch` URL suddenly fails to apply, switching to `.diff` is the first thing to try.
 
-Setting the hash to `lib.fakeHash` (preferred when `lib` is in scope), `sha256-AAAA...` (44 A's), or leaving the old one in place all work — the build will fail at the FOD with `got: sha256-...` which is the correct value.
+Always use `lib.fakeHash` (or `pkgs.lib.fakeHash` if only `pkgs` is in scope). This is the only reliable way to set a bogus hash — never write a literal `sha256-...` placeholder string. The build will fail at the FOD with `got: sha256-...` which is the correct value.
 
 **Note:** `.src`, `.goModules`, etc. are sub-attributes of the derivation. They download but do not compile. `nix build .#<name>` (without the `.src` suffix) compiles — never do that.
 
