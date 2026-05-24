@@ -18,6 +18,10 @@ Be cognizant of context use; this file is loaded for all LLMs. Keep guidance con
    nix run nixpkgs#python3 -- script.py
    ```
 
+## Asking Questions
+
+If a task is ambiguous, underspecified, or you foresee a non-obvious tradeoff during implementation, **surface it before coding** rather than guessing and producing rework. Treat this as always-on; an explicit "any questions?" is never required.
+
 ## Context Discipline
 
 Prefer a **search → targeted read** pattern:
@@ -40,7 +44,9 @@ Full-file reads are fine when genuinely needed, but avoid them as the default re
 
 3. **Maintain AGENTS.md**: Keep project guidance up to date, but BLUF: concise, actionable, and context-size conscious.
 
-4. **Knowledge Capture Check**: Before the final response, ask whether the task revealed a non-obvious convention, pitfall, repeatable workflow, or missing helper. If yes, briefly recommend exactly where to capture it: package/project AGENTS.md, global AGENTS.md, a skill, or a helper script. Skip this note when there is nothing meaningful.
+4. **Rephrase over append**: When extending existing content (docs, comments, prose, code), prefer rephrasing to capture the new intent over tacking on more verbosity.
+
+5. **Knowledge Capture Check**: Before the final response, ask whether the task revealed a non-obvious convention, pitfall, repeatable workflow, or missing helper. If yes, briefly recommend exactly where to capture it: package/project AGENTS.md, global AGENTS.md, a skill, or a helper script. Skip this note when there is nothing meaningful.
 
 ## Style
 
