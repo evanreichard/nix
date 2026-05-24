@@ -16,13 +16,13 @@
 
 buildNpmPackage rec {
   pname = "pi-coding-agent";
-  version = "0.75.4";
+  version = "0.75.5";
 
   src = fetchFromGitHub {
     owner = "earendil-works";
     repo = "pi-mono";
     rev = "v${version}";
-    hash = "sha256-zyIgs2N7uVz+7E+NqxH78baRw0OwXvlrjZiDIP/v0M4=";
+    hash = "sha256-RNQ4ospdohOA8hyegCMziJHHbmFGdk/QtkjzJmS/PZc=";
   };
 
   npmDepsHash = "sha256-/mWjrZFzRmtkbWYMJOXKnLPxFITFndq5hgdY0DnPfAg=";
