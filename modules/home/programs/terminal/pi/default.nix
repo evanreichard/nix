@@ -17,6 +17,7 @@ let
   # writing other fields (current model, etc.) without us clobbering them.
   piPackages = [
     "https://gitea.va.reichard.io/evan/pi-lsp.git@main"
+    "https://gitea.va.reichard.io/evan/pi-web.git@main"
     "https://gitea.va.reichard.io/evan/pi-subagents.git@main"
     "https://gitea.va.reichard.io/evan/pi-statusline.git@main"
   ];
@@ -130,6 +131,17 @@ in
           })
           piAuthApiKeys
       );
+      # Pi Web Config - Sops template so the kagi token (declared by the
+      # glimpse module, which pi enables above) can be embedded alongside
+      # the non-secret searxng base URL.
+      templates."pi-web.json" = {
+        path = "${config.home.homeDirectory}/.pi/pi-web/config.json";
+        content = builtins.toJSON {
+          provider = "searxng";
+          kagi.token = "${config.sops.placeholder.kagi_token}";
+          searxng.baseUrl = "https://search.va.reichard.io";
+        };
+      };
       templates."pi-models.json" = {
         path = "${config.home.homeDirectory}/.pi/agent/models.json";
         content = builtins.toJSON {
