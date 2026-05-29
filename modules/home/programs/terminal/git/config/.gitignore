@@ -3,3 +3,4 @@ _scratch
 .envrc
 .agents
 .pi
+.nvim.lua

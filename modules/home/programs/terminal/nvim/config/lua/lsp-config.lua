@@ -304,3 +304,30 @@ none_ls.setup({
 		end
 	end,
 })
+
+------------------------------------------------------
+---------------------- EXRC LSP ----------------------
+------------------------------------------------------
+
+vim.o.exrc = true -- native path: <cwd>/.nvim.lua on startup
+
+local loaded = {} -- absolute path -> true
+local function load_project_config(buf)
+	local fname = vim.api.nvim_buf_get_name(buf)
+	if fname == "" then return end
+	local found = vim.fs.find(".nvim.lua", {
+		upward = true,
+		path = vim.fs.dirname(fname),
+	})[1]
+	if not found or loaded[found] then return end
+	local content = vim.secure.read(found)
+	if content then
+		loaded[found] = true
+		local chunk, err = loadfile(found)
+		if chunk then chunk() else vim.notify("project config: " .. err, vim.log.levels.ERROR) end
+	end
+end
+
+vim.api.nvim_create_autocmd({ "BufReadPost", "BufNewFile" }, {
+	callback = function(args) load_project_config(args.buf) end,
+})
