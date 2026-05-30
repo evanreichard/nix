@@ -3,6 +3,8 @@
 , fetchFromGitHub
 , nodejs
 , nodejs_22
+, firefox
+, geckodriver
 , makeWrapper
 , pkg-config
 , pixman
@@ -78,7 +80,12 @@ buildNpmPackage rec {
       chmod +x $out/bin/pi
 
       wrapProgram $out/bin/pi \
-        --prefix PATH : ${lib.makeBinPath [ nodejs_22 ]}
+        --prefix PATH : ${lib.makeBinPath [
+          nodejs_22
+          # evan/pi-web - Browser automation tools are needed for web-fetch support.
+          firefox
+          geckodriver
+        ]}
 
       runHook postInstall
   '';
