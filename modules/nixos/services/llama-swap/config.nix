@@ -34,12 +34,12 @@ in
 
     # https://huggingface.co/unsloth/Qwen3.6-35B-A3B-GGUF/tree/main
     "qwen3.6-35b-cuda0" = {
-      name = "Qwen3.6 35B (CUDA0, UD-Q4)";
-      macros.ctx = "100000";
+      name = "Qwen3.6 35B (CUDA0, UD-IQ4)";
+      macros.ctx = "262144";
       cmd = ''
         ${llama-cpp}/bin/llama-server \
           --port ''${PORT} \
-          -m /mnt/ssd/Models/Qwen3.6/Qwen3.6-35B-A3B-UD-Q4_K_M.gguf \
+          -m /mnt/ssd/Models/Qwen3.6/Qwen3.6-35B-A3B-UD-IQ4_NL.gguf \
           -c ''${ctx} \
           -np 2 -kvu \
           --temp 0.6 \
@@ -88,7 +88,7 @@ in
     # https://huggingface.co/unsloth/Qwen3.6-27B-GGUF-MTP/tree/main
     "qwen3.6-27b-cuda0" = {
       name = "Qwen3.6 27B (CUDA0, UD-Q4)";
-      macros.ctx = "140000";
+      macros.ctx = "110000";
       cmd = ''
         ${llama-cpp}/bin/llama-server \
           --port ''${PORT} \
@@ -650,7 +650,7 @@ in
     # https://huggingface.co/unsloth/Qwen3.6-27B-GGUF-MTP/tree/main
     "qwen3.6-27b-dual" = {
       name = "Qwen3.6 27B (Dual GPU, UD-Q6)";
-      macros.ctx = "180000";
+      macros.ctx = "120000";
       cmd = ''
         ${llama-cpp}/bin/llama-server \
           --port ''${PORT} \
@@ -682,7 +682,7 @@ in
     # https://huggingface.co/unsloth/Qwen3.6-35B-A3B-MTP-GGUF/tree/main
     "qwen3.6-35b-dual" = {
       name = "Qwen3.6 35B (Dual GPU, UD-Q6)";
-      macros.ctx = "262144";
+      macros.ctx = "215000";
       cmd = ''
         ${llama-cpp}/bin/llama-server \
           --port ''${PORT} \
@@ -700,7 +700,7 @@ in
           --spec-draft-n-max 3 \
           -dev CUDA0,CUDA1 \
           -fit off \
-          -ts 7,3 \
+          -ts 72,28 \
           --chat-template-kwargs "{\"preserve_thinking\": true}"
       '';
       metadata = {

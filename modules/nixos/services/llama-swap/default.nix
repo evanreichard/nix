@@ -11,6 +11,31 @@ let
   cfg = config.${namespace}.services.llama-swap;
 
   llama-swap = pkgs.reichard.llama-swap;
+  llamaCppPresets =
+    let
+      models = (import ./config.nix { inherit pkgs; }).models;
+      llamaCppModels = lib.filterAttrs (_: model: lib.hasInfix "/bin/llama-server" (model.cmd or "")) models;
+    in
+    builtins.mapAttrs (_: model: {
+      inherit (model) cmd;
+      name = model.name or "";
+      env = model.env or [ ];
+    }) llamaCppModels;
+  llamaCppPresetFile = pkgs.writeText "llama-cpp-presets.json" (builtins.toJSON llamaCppPresets);
+  llama-cpp-bisect-context = pkgs.writeShellApplication {
+    name = "llama-cpp-bisect-context";
+    runtimeInputs = with pkgs; [
+      coreutils
+      curl
+      gnused
+      python3
+      util-linux
+    ];
+    text = builtins.replaceStrings
+      [ "__LLAMA_CPP_PRESETS__" ]
+      [ "${llamaCppPresetFile}" ]
+      (builtins.readFile ./scripts/llama-cpp-bisect-context);
+  };
 in
 {
   options.${namespace}.services.llama-swap = {
@@ -107,6 +132,8 @@ in
         );
       };
     };
+
+    environment.systemPackages = [ llama-cpp-bisect-context ];
 
     networking.firewall.allowedTCPPorts = [ 8080 ];
   };

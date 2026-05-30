@@ -3,13 +3,13 @@ let
   # Version MUST be an integer string.
   # For tagged releases use the tag number (e.g. "9222").
   # For HEAD builds use YYYYMMDD (e.g. "20260519").
-  version = "20260519";
+  version = "9412";
 
   src = pkgs.fetchFromGitHub {
     owner = "ggml-org";
     repo = "llama.cpp";
-    rev = "b28a2f372a4a470a90ad10f93654e5dc33e78949";
-    hash = "sha256-SXOpTS3q5Vaik76fg2WQ1mmwAk9+KSMdLe4AErQQlOA=";
+    rev = "cb47092b007fcd5122eee2e8bb32ce972cdb23c2";
+    hash = "sha256-x/2LOlEoaghgHEZp6m5ItXyNHGsvYmUrHYxKEtSeVSM=";
     leaveDotGit = true;
     postFetch = ''
       git -C "$out" rev-parse --short HEAD > $out/COMMIT
@@ -37,9 +37,9 @@ let
     pname = "llama-webui";
     inherit version src;
 
-    # Custom unpack: the vite plugin writes to ../../build/tools/ui/dist, so
-    # the whole tree from the repo root must be writable. Plain sourceRoot
-    # leaves the parent dirs in the read-only Nix store.
+    # Custom unpack: the vite plugin writes back into the source tree (tools/ui/dist),
+    # so it must be writable. Plain sourceRoot leaves the parent dirs in the read-only
+    # Nix store.
     unpackPhase = ''
       runHook preUnpack
       cp -r ${src} llama-src
@@ -50,18 +50,13 @@ let
 
     npmDeps = webuiNpmDeps;
 
-    # The vite plugin writes to ../../build/tools/ui/dist; ensure it exists.
-    preBuild = ''
-      mkdir -p ../../build/tools/ui/dist
-    '';
-
     installPhase = ''
       runHook preInstall
       mkdir -p $out
-      install -Dm644 ../../build/tools/ui/dist/index.html   $out/index.html
-      install -Dm644 ../../build/tools/ui/dist/bundle.js    $out/bundle.js
-      install -Dm644 ../../build/tools/ui/dist/bundle.css   $out/bundle.css
-      install -Dm644 ../../build/tools/ui/dist/loading.html $out/loading.html
+      install -Dm644 dist/index.html   $out/index.html
+      install -Dm644 dist/bundle.js    $out/bundle.js
+      install -Dm644 dist/bundle.css   $out/bundle.css
+      install -Dm644 dist/loading.html $out/loading.html
       runHook postInstall
     '';
   };
@@ -93,12 +88,14 @@ in
       ${oldAttrs.preConfigure or ""}
     '';
 
-    # Drop pre-built UI assets into build/tools/ui/dist/ so cmake's
-    # Priority 1 path picks them up and skips the HF Bucket fetch.
+    # Drop pre-built UI assets into tools/ui/dist/ so cmake's Priority 1 path
+    # (SRC_DIST_DIR in scripts/ui-assets.cmake) picks them up and skips the HF
+    # Bucket fetch. As of b9404 the lookup moved from build/tools/ui/dist to
+    # tools/ui/dist.
     postPatch = ''
       ${oldAttrs.postPatch or ""}
-      mkdir -p build/tools/ui/dist
-      cp ${webui}/* build/tools/ui/dist/
+      mkdir -p tools/ui/dist
+      cp ${webui}/* tools/ui/dist/
     '';
 
     # Expose the WebUI sub-derivation so it can be built/tested in isolation:
