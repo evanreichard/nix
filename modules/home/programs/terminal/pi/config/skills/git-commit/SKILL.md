@@ -126,6 +126,8 @@ EOF
 - Imperative mood: "fix bug" not "fixes bug"
 - Reference issues: `Closes #123`, `Refs #456`
 - Keep description under 72 characters
+- Keep commit bodies short: 4 sentences max.
+- If you are unsure whether a body is useful, omit it entirely.
 
 ## Git Safety Protocol
 
