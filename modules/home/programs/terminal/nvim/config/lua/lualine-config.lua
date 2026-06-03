@@ -49,7 +49,7 @@ local function pr_status()
 end
 
 require("lualine").setup({
-	options = { theme = "catppuccin" },
+	options = { theme = "catppuccin-mocha" },
 	sections = {
 		lualine_c = { { pr_status } },
 		-- lualine_z = { require("opencode").statusline }

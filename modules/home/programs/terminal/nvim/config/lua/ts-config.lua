@@ -1,4 +1,7 @@
-require("nvim-treesitter.configs").setup({
-	highlight = { enable = true, additional_vim_regex_highlighting = false },
-})
 vim.treesitter.language.register("markdown", "octo")
+
+vim.api.nvim_create_autocmd("FileType", {
+	callback = function(args)
+		pcall(vim.treesitter.start, args.buf)
+	end,
+})
