@@ -7,7 +7,7 @@ let
   inherit (lib.${namespace}) enabled;
 in
 {
-  home.stateVersion = "25.11";
+  home.stateVersion = "26.05";
 
   reichard = {
     user = {

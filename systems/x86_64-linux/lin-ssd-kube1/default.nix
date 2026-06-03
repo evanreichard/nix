@@ -12,7 +12,7 @@ in
     (modulesPath + "/profiles/qemu-guest.nix")
   ];
 
-  system.stateVersion = "25.11";
+  system.stateVersion = "26.05";
   time.timeZone = "UTC";
 
   networking.firewall.allowedTCPPorts = [ 443 ];

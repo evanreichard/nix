@@ -135,18 +135,18 @@ in
         golangci-lint-langserver
         lua-language-server
         nil
-        nodePackages.eslint
-        nodePackages.svelte-language-server
-        nodePackages.typescript
-        nodePackages.typescript-language-server
-        nodePackages.vscode-langservers-extracted
+        eslint
+        svelte-language-server
+        typescript
+        typescript-language-server
+        vscode-langservers-extracted
         pyright
         python312Packages.autopep8
 
         # Formatters
         luaformatter
         nixpkgs-fmt
-        nodePackages.prettier
+        prettier
         stylua
         sql-formatter
 
@@ -177,9 +177,9 @@ in
           clangd = "${pkgs.clang-tools}/bin/clangd",
           golintls = "${pkgs.golangci-lint-langserver}/bin/golangci-lint-langserver",
           luals = "${pkgs.lua-language-server}/bin/lua-language-server",
-          sveltels = "${pkgs.nodePackages.svelte-language-server}/bin/svelteserver",
-          tsls = "${pkgs.nodePackages.typescript-language-server}/bin/typescript-language-server",
-          vscls = "${pkgs.nodePackages.vscode-langservers-extracted}",
+          sveltels = "${pkgs.svelte-language-server}/bin/svelteserver",
+          tsls = "${pkgs.typescript-language-server}/bin/typescript-language-server",
+          vscls = "${pkgs.vscode-langservers-extracted}",
           sqls = "${pkgs.sqls}/bin/sqls",
         }
         return nix_vars

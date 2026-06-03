@@ -11,7 +11,7 @@ in
     (modulesPath + "/profiles/qemu-guest.nix")
   ];
 
-  system.stateVersion = "25.11";
+  system.stateVersion = "26.05";
   time.timeZone = "America/New_York";
 
   programs.nix-ld.enable = true;

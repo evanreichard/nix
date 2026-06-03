@@ -3,7 +3,7 @@
 }:
 {
   time.timeZone = "America/New_York";
-  system.stateVersion = "25.11";
+  system.stateVersion = "26.05";
 
   reichard = {
     system = {

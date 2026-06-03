@@ -15,7 +15,7 @@ let
   };
 in
 {
-  system.stateVersion = "25.11";
+  system.stateVersion = "26.05";
   time.timeZone = "America/New_York";
   nixpkgs.config.allowUnfree = true;
   hardware.nvidia-container-toolkit.enable = true;
