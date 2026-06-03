@@ -24,92 +24,27 @@ in
 
     wayland.windowManager.hyprland = {
       enable = true;
-      # Pin Renderer - stateVersion 26.05 flips configType default to "lua"; our settings/extraConfig are hyprlang.
-      configType = "hyprlang";
-      extraConfig = builtins.readFile ./config/hyprland.conf;
-      settings = {
-        "$mainMod" = cfg.mainMod;
-        "$menuMod" = cfg.menuMod;
-        "$terminal" = "ghostty";
-        "$menu" = "wofi --show drun";
+      # Lua Backend - Hyprland 0.55 deprecated hyprlang and home-manager 26.05 defaults configType to "lua".
+      configType = "lua";
+      extraConfig =
+        let
+          # Quote unless the value is numeric, so scale can be `2` or `"auto"`.
+          luaScalar = v: if builtins.match "[0-9]+(\\.[0-9]+)?" v != null then v else ''"${v}"'';
+          mkMonitor =
+            s:
+            let
+              parts = map lib.trim (lib.splitString "," s);
+              field = i: if builtins.length parts > i then builtins.elemAt parts i else "";
+            in
+            ''hl.monitor({ output = "${field 0}", mode = "${field 1}", position = "${field 2}", scale = ${luaScalar (field 3)} })'';
+        in
+        ''
+          local mainMod = "${cfg.mainMod}"
+          local menuMod = "${cfg.menuMod}"
 
-        monitor = cfg.monitors;
-
-        bind = [
-          # Menu Mod Bindings (macOS Transition - Spotlight & Screenshots)
-          "$menuMod, SPACE, exec, $menu"
-          "$menuMod SHIFT, 1, exec, hyprshot -m output"
-          "$menuMod SHIFT, 2, exec, hyprshot -m window"
-          "$menuMod SHIFT, 3, exec, hyprshot -m region"
-          "$menuMod, Q, killactive"
-
-          # Primary Bindings
-          "$mainMod, RETURN, exec, $terminal"
-          "$mainMod, M, exit"
-          "$mainMod, V, togglefloating"
-          "$mainMod, P, pin"
-          "$mainMod, J, layoutmsg, togglesplit"
-          "$mainMod, S, togglespecialworkspace, magic"
-          "$mainMod SHIFT, S, movetoworkspace, special:magic"
-
-          # Window Focus
-          "$mainMod, left, movefocus, l"
-          "$mainMod, right, movefocus, r"
-          "$mainMod, up, movefocus, u"
-          "$mainMod, down, movefocus, d"
-
-          # Workspace Switch
-          "$mainMod, 1, workspace, 1"
-          "$mainMod, 2, workspace, 2"
-          "$mainMod, 3, workspace, 3"
-          "$mainMod, 4, workspace, 4"
-          "$mainMod, 5, workspace, 5"
-          "$mainMod, 6, workspace, 6"
-          "$mainMod, 7, workspace, 7"
-          "$mainMod, 8, workspace, 8"
-          "$mainMod, 9, workspace, 9"
-          "$mainMod, 0, workspace, 10"
-
-          # Window Workspace Move
-          "$mainMod SHIFT, 1, movetoworkspace, 1"
-          "$mainMod SHIFT, 2, movetoworkspace, 2"
-          "$mainMod SHIFT, 3, movetoworkspace, 3"
-          "$mainMod SHIFT, 4, movetoworkspace, 4"
-          "$mainMod SHIFT, 5, movetoworkspace, 5"
-          "$mainMod SHIFT, 6, movetoworkspace, 6"
-          "$mainMod SHIFT, 7, movetoworkspace, 7"
-          "$mainMod SHIFT, 8, movetoworkspace, 8"
-          "$mainMod SHIFT, 9, movetoworkspace, 9"
-          "$mainMod SHIFT, 0, movetoworkspace, 10"
-          "$mainMod SHIFT, right, workspace, +1"
-          "$mainMod SHIFT, left, workspace, -1"
-        ];
-        bindm = [
-          # Window Resizing
-          "$mainMod, mouse:272, movewindow"
-          "$mainMod, mouse:273, resizewindow"
-        ];
-        bindel = [
-          # Multimedia & Brightness Keys
-          ",XF86AudioRaiseVolume, exec, wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+"
-          ",XF86AudioLowerVolume, exec, wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"
-          ",XF86AudioMute, exec, wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
-          ",XF86AudioMicMute, exec, wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"
-          ",XF86MonBrightnessUp, exec, brightnessctl s 4%+"
-          ",XF86MonBrightnessDown, exec, brightnessctl s 5%-"
-
-          # macOS Keyboard Brightness
-          "$menuMod, XF86MonBrightnessUp, exec, brightnessctl -d kbd_backlight s 10%+"
-          "$menuMod, XF86MonBrightnessDown, exec, brightnessctl -d kbd_backlight s 10%-"
-        ];
-        bindl = [
-          # Player Controls
-          ", XF86AudioNext, exec, playerctl next"
-          ", XF86AudioPause, exec, playerctl play-pause"
-          ", XF86AudioPlay, exec, playerctl play-pause"
-          ", XF86AudioPrev, exec, playerctl previous"
-        ];
-      };
+          ${lib.concatMapStringsSep "\n" mkMonitor cfg.monitors}
+        ''
+        + builtins.readFile ./config/hyprland.lua;
     };
 
     programs.waybar = {
