@@ -5,23 +5,23 @@
 , ...
 }:
 let
-  cfg = config.${namespace}.services.swww;
+  cfg = config.${namespace}.services.awww;
 in
 {
-  options.${namespace}.services.swww = {
-    enable = lib.mkEnableOption "swww wallpaper service";
+  options.${namespace}.services.awww = {
+    enable = lib.mkEnableOption "awww wallpaper service";
   };
 
   config = lib.mkIf cfg.enable {
     home.packages = with pkgs; [
-      swww
+      awww
     ];
 
     systemd.user = {
       services = {
-        swww-daemon = {
+        awww-daemon = {
           Unit = {
-            Description = "SWWW Wallpaper Daemon";
+            Description = "AWWW Wallpaper Daemon";
             After = [ "graphical-session.target" ];
           };
 
@@ -31,7 +31,7 @@ in
 
           Service = {
             Type = "simple";
-            ExecStart = "${pkgs.swww}/bin/swww-daemon";
+            ExecStart = "${pkgs.awww}/bin/awww-daemon";
             Restart = "on-failure";
             RestartSec = 5;
           };
@@ -39,28 +39,28 @@ in
 
         change-wallpaper = {
           Unit = {
-            Description = "SWWW Wallpaper Changer";
-            After = [ "swww-daemon.service" ];
-            Requires = [ "swww-daemon.service" ];
+            Description = "AWWW Wallpaper Changer";
+            After = [ "awww-daemon.service" ];
+            Requires = [ "awww-daemon.service" ];
           };
 
           Install = {
-            WantedBy = [ "swww-daemon.service" ];
+            WantedBy = [ "awww-daemon.service" ];
           };
 
           Service = {
             Type = "oneshot";
             ExecStart = "${pkgs.writeShellScript "change-wallpaper-script" ''
               WALLPAPER=$(${pkgs.findutils}/bin/find $HOME/Wallpapers -type f | ${pkgs.coreutils}/bin/shuf -n 1)
-              ${pkgs.swww}/bin/swww img "$WALLPAPER" --transition-type random
+              ${pkgs.awww}/bin/awww img "$WALLPAPER" --transition-type random
             ''}";
           };
         };
       };
 
-      timers.swww-schedule = {
+      timers.awww-schedule = {
         Unit = {
-          Description = "SWWW Wallpaper Schedule";
+          Description = "AWWW Wallpaper Schedule";
         };
 
         Install = {

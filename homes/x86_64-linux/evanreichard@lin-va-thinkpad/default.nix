@@ -20,7 +20,7 @@ in
     services = {
       ssh-agent = enabled;
       fusuma = enabled;
-      swww = enabled;
+      awww = enabled;
       poweralertd = enabled;
     };
 
