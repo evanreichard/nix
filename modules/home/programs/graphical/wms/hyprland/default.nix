@@ -24,6 +24,8 @@ in
 
     wayland.windowManager.hyprland = {
       enable = true;
+      # Pin Renderer - stateVersion 26.05 flips configType default to "lua"; our settings/extraConfig are hyprlang.
+      configType = "hyprlang";
       extraConfig = builtins.readFile ./config/hyprland.conf;
       settings = {
         "$mainMod" = cfg.mainMod;
@@ -46,7 +48,7 @@ in
           "$mainMod, M, exit"
           "$mainMod, V, togglefloating"
           "$mainMod, P, pin"
-          "$mainMod, J, togglesplit"
+          "$mainMod, J, layoutmsg, togglesplit"
           "$mainMod, S, togglespecialworkspace, magic"
           "$mainMod SHIFT, S, movetoworkspace, special:magic"
 
@@ -117,9 +119,9 @@ in
         {
           layer = "top";
           position = "top";
-          mod = "dock";
+          mode = "dock";
           exclusive = true;
-          passtrough = false;
+          passthrough = false;
           gtk-layer-shell = true;
           height = 0;
           modules-left = [
