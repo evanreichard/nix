@@ -1,4 +1,9 @@
-{ config, lib, pkgs, namespace, ... }:
+{ config
+, lib
+, pkgs
+, namespace
+, ...
+}:
 let
   inherit (lib)
     types
@@ -62,26 +67,31 @@ in
     extensions.packages = mkOpt (with lib.types; listOf package)
       (with pkgs.firefox-addons; [
         bitwarden
+        pkgs.firefox-addons."ctrl-number-to-switch-tabs"
         darkreader
         gruvbox-dark-theme
         kagi-search
         sponsorblock
         ublock-origin
-
-        # bypass-paywalls-clean
       ]) "Extensions to install";
   };
 
   config = mkIf cfg.enable {
     programs.firefox = {
       enable = true;
+      configPath = ".mozilla/firefox";
 
       inherit (cfg) policies;
 
       profiles = {
         ${config.${namespace}.user.name} = {
-          inherit (cfg) extraConfig extensions;
+          inherit (cfg) extraConfig;
           inherit (config.${namespace}.user) name;
+
+          extensions = {
+            packages = cfg.extensions.packages;
+            force = true;
+          };
 
           id = 0;
 
@@ -89,13 +99,15 @@ in
             cfg.settings
             {
               "browser.aboutConfig.showWarning" = false;
+              "extensions.autoDisableScopes" = 0;
+              "extensions.activeThemeID" = "{eb8c4a94-e603-49ef-8e81-73d3c4cc04ff}";
               "browser.aboutwelcome.enabled" = false;
               "browser.sessionstore.warnOnQuit" = true;
               "browser.newtabpage.activity-stream.showSponsoredTopSites" = false;
               "browser.shell.checkDefaultBrowser" = false;
               "general.smoothScroll.msdPhysics.enabled" = true;
               "intl.accept_languages" = "en-US,en";
-              "ui.key.accelKey" = "224";
+              "ui.key.accelKey" = 91;
 
               # "devtools.chrome.enabled" = true;
               # "xpinstall.signatures.required" = false;
