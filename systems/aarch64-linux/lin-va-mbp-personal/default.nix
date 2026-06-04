@@ -17,6 +17,14 @@ in
   programs.firejail.enable = true;
   programs.nix-ld.enable = true;
 
+  # Asahi Wi-Fi Resume Bug - The Broadcom driver can fail to reconnect after suspend on this MacBook.
+  powerManagement.resumeCommands = ''
+    ${pkgs.kmod}/bin/modprobe -r brcmfmac_wcc 2>/dev/null || true
+    ${pkgs.kmod}/bin/modprobe -r brcmfmac 2>/dev/null || true
+    ${pkgs.kmod}/bin/modprobe brcmfmac
+    ${pkgs.systemd}/bin/systemctl restart NetworkManager.service
+  '';
+
   # System Config
   reichard = {
     nix = enabled;
