@@ -16,6 +16,12 @@ in
     enable32Bit = mkBoolOpt false "enable 32-bit";
     enableIntel = mkBoolOpt false "support for intel";
     enableNvidia = mkBoolOpt false "support for nvidia";
+    nvidiaPackage = lib.mkOption {
+      type = lib.types.package;
+      default = config.boot.kernelPackages.nvidiaPackages.stable;
+      defaultText = "config.boot.kernelPackages.nvidiaPackages.stable";
+      description = "nvidia driver package; pin to legacy_580 for Pascal (GTX 10xx) and older";
+    };
   };
 
   config = mkIf cfg.enable {
@@ -32,7 +38,7 @@ in
 
     # Enable Nvidia Hardware
     hardware.nvidia = mkIf cfg.enableNvidia {
-      package = config.boot.kernelPackages.nvidiaPackages.stable;
+      package = cfg.nvidiaPackage;
       modesetting.enable = true;
       powerManagement.enable = true;
       open = false;

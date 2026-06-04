@@ -100,6 +100,8 @@ in
       opengl = {
         enable = true;
         enableNvidia = true;
+        # GTX 1080 Ti is Pascal; NVIDIA 590+ (nixpkgs stable = 595) dropped Pascal support.
+        nvidiaPackage = config.boot.kernelPackages.nvidiaPackages.legacy_580;
       };
     };
 

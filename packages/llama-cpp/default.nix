@@ -3,61 +3,17 @@ let
   # Version MUST be an integer string.
   # For tagged releases use the tag number (e.g. "9222").
   # For HEAD builds use YYYYMMDD (e.g. "20260519").
-  version = "9412";
+  version = "9496";
 
   src = pkgs.fetchFromGitHub {
     owner = "ggml-org";
     repo = "llama.cpp";
-    rev = "cb47092b007fcd5122eee2e8bb32ce972cdb23c2";
-    hash = "sha256-x/2LOlEoaghgHEZp6m5ItXyNHGsvYmUrHYxKEtSeVSM=";
+    rev = "94a220cd6745e6e3f8de62870b66fd5b9bc92700";
+    hash = "sha256-1jAowfGVzrrHDwWWzKESY7aV82whnuIg1N37fmtcgyw=";
     leaveDotGit = true;
     postFetch = ''
       git -C "$out" rev-parse --short HEAD > $out/COMMIT
       find "$out" -name .git -print0 | xargs -0 rm -rf
-    '';
-  };
-
-  # Pre-Built WebUI Assets
-  # As of b9151 llama.cpp removed the prebuilt WebUI from the repo and tries to
-  # curl them from a HuggingFace bucket at build time. That fails in the Nix
-  # sandbox. We build the UI from source in a separate derivation and drop the
-  # 4 output files into build/tools/ui/dist/ so cmake's "Priority 1: local
-  # assets present" branch short-circuits the network fetch.
-  #
-  # As of b9180 the source dir was renamed tools/server/webui -> tools/ui, and
-  # the vite plugin now writes to ../../build/tools/ui/dist relative to tools/ui.
-  webuiNpmDeps = pkgs.fetchNpmDeps {
-    name = "llama-webui-${version}-npm-deps";
-    inherit src;
-    sourceRoot = "${src.name}/tools/ui";
-    hash = "sha256-Iyg8FpcTKf2UYHuK7mA3cTAqVaLcQPcS0YCa5Qf01Gc=";
-  };
-
-  webui = pkgs.buildNpmPackage {
-    pname = "llama-webui";
-    inherit version src;
-
-    # Custom unpack: the vite plugin writes back into the source tree (tools/ui/dist),
-    # so it must be writable. Plain sourceRoot leaves the parent dirs in the read-only
-    # Nix store.
-    unpackPhase = ''
-      runHook preUnpack
-      cp -r ${src} llama-src
-      chmod -R u+w llama-src
-      cd llama-src/tools/ui
-      runHook postUnpack
-    '';
-
-    npmDeps = webuiNpmDeps;
-
-    installPhase = ''
-      runHook preInstall
-      mkdir -p $out
-      install -Dm644 dist/index.html   $out/index.html
-      install -Dm644 dist/bundle.js    $out/bundle.js
-      install -Dm644 dist/bundle.css   $out/bundle.css
-      install -Dm644 dist/loading.html $out/loading.html
-      runHook postInstall
     '';
   };
 in
@@ -70,6 +26,11 @@ in
 }).overrideAttrs
   (oldAttrs: {
     inherit version src;
+
+    # WebUI npm deps hash for our pinned src. Upstream nixpkgs builds the WebUI
+    # from tools/ui via `npm run build` in preConfigure (offline, using these
+    # deps), so no custom webui derivation / HF-bucket workaround is needed.
+    npmDepsHash = "sha256-1iM0LGeI9e+gZEHk46lkBe51DxIhiimfAm9o3Z3m9Ik=";
 
     # Add SPIR-V Headers for Vulkan Backend
     # Newer llama.cpp requires spirv/unified1/spirv.hpp which isn't
@@ -87,18 +48,4 @@ in
       export NIX_ENFORCE_NO_NATIVE=0
       ${oldAttrs.preConfigure or ""}
     '';
-
-    # Drop pre-built UI assets into tools/ui/dist/ so cmake's Priority 1 path
-    # (SRC_DIST_DIR in scripts/ui-assets.cmake) picks them up and skips the HF
-    # Bucket fetch. As of b9404 the lookup moved from build/tools/ui/dist to
-    # tools/ui/dist.
-    postPatch = ''
-      ${oldAttrs.postPatch or ""}
-      mkdir -p tools/ui/dist
-      cp ${webui}/* tools/ui/dist/
-    '';
-
-    # Expose the WebUI sub-derivation so it can be built/tested in isolation:
-    #   nix build .#llama-cpp.webui --builders ''
-    passthru = (oldAttrs.passthru or { }) // { inherit webui; };
   })
