@@ -682,7 +682,10 @@ in
     # https://huggingface.co/unsloth/Qwen3.6-35B-A3B-MTP-GGUF/tree/main
     "qwen3.6-35b-dual" = {
       name = "Qwen3.6 35B (Dual GPU, UD-Q6)";
-      macros.ctx = "215000";
+      # macros.ctx = "215000";
+      # -ctk q8_0 \
+      # -ctv q8_0 \
+      macros.ctx = "131072";
       cmd = ''
         ${llama-cpp}/bin/llama-server \
           --port ''${PORT} \
@@ -694,8 +697,6 @@ in
           --top-k 20 \
           --min-p 0.00 \
           --presence-penalty 0.0 \
-          -ctk q8_0 \
-          -ctv q8_0 \
           --spec-type draft-mtp \
           --spec-draft-n-max 3 \
           -dev CUDA0,CUDA1 \
