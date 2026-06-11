@@ -68,6 +68,10 @@ in
     };
   };
 
+  home.packages = with pkgs; [
+    orca-slicer
+  ];
+
   home.pointerCursor = {
     gtk.enable = true;
     name = "catppuccin-macchiato-mauve-cursors";

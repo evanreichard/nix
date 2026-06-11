@@ -2,11 +2,13 @@
 {
 
   home.packages = with pkgs; [
-    sqlite-interactive
     jnv
     jq
+    mosh
     ncdu
-    ripgrep
     reichard.codexis
+    ripgrep
+    sqlite-interactive
+    unzip
   ];
 }

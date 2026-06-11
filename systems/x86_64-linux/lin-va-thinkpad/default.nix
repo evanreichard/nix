@@ -10,13 +10,6 @@ in
   system.stateVersion = "26.05";
   time.timeZone = "America/New_York";
 
-  boot = {
-    kernelParams = [
-      # Mask GPE03 (EC wakeup events) to allow hibernation without spurious CPU wakeups
-      "acpi_mask_gpe=0x03"
-    ];
-  };
-
   programs.nix-ld.enable = true;
 
   hardware = {
@@ -85,14 +78,4 @@ in
       sops = enabled;
     };
   };
-
-  # Additional System Packages
-  environment.systemPackages = with pkgs; [
-    dool
-    jq
-    mosh
-    rclone
-    sqlite-interactive
-    unzip
-  ];
 }
