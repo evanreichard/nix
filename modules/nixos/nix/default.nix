@@ -38,7 +38,7 @@ in
           sshUser = "evanreichard";
           protocol = "ssh";
           sshKey = config.sops.secrets.builder_ssh_key.path;
-          publicHostKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGlpC0rorATKzK8mLMKgCYqM5N2N/GgS2t4M13cwnAOS";
+          publicHostKey = "c3NoLWVkMjU1MTkgQUFBQUMzTnphQzFsWkRJMU5URTVBQUFBSUdscEMwcm9yQVRLeks4bUxNS2dDWXFNNU4yTi9HZ1MydDRNMTNjd25BT1M=";
           supportedFeatures = [
             "benchmark"
             "big-parallel"
