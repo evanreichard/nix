@@ -17,6 +17,7 @@ in
 
     services = {
       ssh-agent = enabled;
+      open-proxy.client = enabled;
     };
 
     security = {

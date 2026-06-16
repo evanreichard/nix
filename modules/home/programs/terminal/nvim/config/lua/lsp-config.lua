@@ -241,7 +241,12 @@ setup_lsp("gopls", {
 		})
 	end,
 	filetypes = { "go" },
-	cmd = { "gopls", "-remote=auto" },
+	cmd = function(dispatchers, config)
+		return vim.lsp.rpc.start({ "gopls", "-remote=auto" }, dispatchers, {
+			cwd = config.root_dir,
+			env = { GOMEMLIMIT = "6GiB" },
+		})
+	end,
 	settings = {
 		gopls = {
 			buildFlags = { "-tags=e2e" },

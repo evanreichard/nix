@@ -46,7 +46,9 @@ Full-file reads are fine when genuinely needed, but avoid them as the default re
 
 4. **Rephrase over append**: When extending existing content (docs, comments, prose, code), prefer rephrasing to capture the new intent over tacking on more verbosity.
 
-5. **Knowledge Capture Check**: Before the final response, ask whether the task revealed a non-obvious convention, pitfall, repeatable workflow, or missing helper. If yes, briefly recommend exactly where to capture it: package/project AGENTS.md, global AGENTS.md, a skill, or a helper script. Skip this note when there is nothing meaningful.
+5. **Positive framing over prohibition**: State what _to_ do, not what _not_ to do. Default to omitting an instruction entirely rather than adding a "don't do X" rule — omission costs less context and avoids the failure mode where deleting a prohibition gets inverted into a mandate. Reserve explicit prohibitions for cases where the wrong behavior is a likely default that positive guidance alone can't redirect.
+
+6. **Knowledge Capture Check**: Before the final response, ask whether the task revealed a non-obvious convention, pitfall, repeatable workflow, or missing helper. If yes, briefly recommend exactly where to capture it: package/project AGENTS.md, global AGENTS.md, a skill, or a helper script. Skip this note when there is nothing meaningful.
 
 ## Style
 

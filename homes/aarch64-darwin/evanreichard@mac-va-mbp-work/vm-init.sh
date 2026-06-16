@@ -33,6 +33,16 @@ else
     echo "  [✓] VM SOCKS Proxy Already Running"
 fi
 
+# Reverse tunnel so the VM's `open`/`xdg-open` reach open-proxy serve on this host.
+if ! pgrep -f "ssh -N -R 7777:127.0.0.1:7777 adios-cs" > /dev/null; then
+    echo "  [*] VM Open Proxy Starting..."
+    ssh -N -R 7777:127.0.0.1:7777 adios-cs &> /dev/null &
+    disown
+    echo "  [✓] VM Open Proxy Started"
+else
+    echo "  [✓] VM Open Proxy Already Running"
+fi
+
 echo -e "  [*] Connecting..."
 
 # Connect to VM

@@ -41,6 +41,7 @@ in
 
     services = {
       sketchybar = enabled;
+      open-proxy.server = enabled;
     };
 
     security = {
