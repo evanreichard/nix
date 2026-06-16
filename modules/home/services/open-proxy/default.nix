@@ -8,6 +8,8 @@ let
   inherit (lib) mkIf mkEnableOption;
   cfg = config.${namespace}.services.open-proxy;
   package = pkgs.reichard.open-proxy;
+  secretName = "open_proxy_token";
+  tokenPath = config.sops.secrets.${secretName}.path;
 in
 {
   options.${namespace}.services.open-proxy = {
@@ -16,6 +18,12 @@ in
   };
 
   config = lib.mkMerge [
+    (mkIf (cfg.server.enable || cfg.client.enable) {
+      sops.secrets.${secretName} = {
+        sopsFile = lib.snowfall.fs.get-file "secrets/common/evanreichard.yaml";
+      };
+    })
+
     (mkIf cfg.server.enable {
       assertions = [
         {
@@ -31,8 +39,11 @@ in
           ProgramArguments = [ "${package}/bin/open-proxy" "serve" ];
           RunAtLoad = true;
           KeepAlive = true;
-          # open(1) lives in /usr/bin; launchd agents don't inherit a login PATH.
-          EnvironmentVariables.PATH = "/usr/bin:/bin:/usr/sbin:/sbin";
+          EnvironmentVariables = {
+            OPEN_PROXY_TOKEN_FILE = tokenPath;
+            # open(1) lives in /usr/bin; launchd agents don't inherit a login PATH.
+            PATH = "/usr/bin:/bin:/usr/sbin:/sbin";
+          };
           StandardOutPath = "${config.home.homeDirectory}/Library/Logs/open-proxy/open-proxy.out.log";
           StandardErrorPath = "${config.home.homeDirectory}/Library/Logs/open-proxy/open-proxy.err.log";
         };
@@ -56,7 +67,10 @@ in
       };
 
       home.sessionPath = [ "$HOME/.local/bin" ];
-      home.sessionVariables.BROWSER = "open";
+      home.sessionVariables = {
+        BROWSER = "open";
+        OPEN_PROXY_TOKEN_FILE = tokenPath;
+      };
     })
   ];
 }
