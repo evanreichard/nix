@@ -56,6 +56,7 @@ in
       };
 
       home.sessionPath = [ "$HOME/.local/bin" ];
+      home.sessionVariables.BROWSER = "open";
     })
   ];
 }
