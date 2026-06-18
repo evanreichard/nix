@@ -72,6 +72,7 @@ in
   home.packages = with pkgs; [
     orca-slicer
     blender
+    freecad
   ];
 
   home.pointerCursor = {

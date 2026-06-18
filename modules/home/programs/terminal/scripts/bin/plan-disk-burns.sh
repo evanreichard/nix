@@ -18,7 +18,10 @@ Options:
   -o DIR       Output directory for manifests (default: ./br-manifests)
   -l LABEL     Volume label prefix for the burn commands; disc number is
                appended, e.g. -l PHOTOS yields PHOTOS_1 (default: DISK)
-  -c GiB       Per-disc capacity in GiB, may be fractional e.g. 22.5 (default: 23)
+  -c LIST      Per-disc capacity in GiB. A single value applies to every disc, or
+               a comma-separated list assigns sizes per disc with the last value
+               repeating, e.g. -c 23 or -c 20,15 (disc1=20, then 15,15,...).
+               Values may be fractional, e.g. 22.5 (default: 23)
   -h           Show this help
 
 Output:
@@ -49,12 +52,27 @@ while getopts ":s:p:o:l:c:h" opt; do
 done
 
 [[ -d "$src" ]] || { echo "Source directory not found: $src" >&2; exit 1; }
-[[ "$cap_gib" =~ ^[0-9]+(\.[0-9]+)?$ ]] || { echo "Capacity must be a number (GiB), e.g. 23 or 22.5: $cap_gib" >&2; exit 1; }
+IFS=',' read -r -a cap_list <<< "$cap_gib"
+declare -a cap_bytes
+ncaps=0
+max_cap_bytes=0
+for c in "${cap_list[@]}"; do
+  [[ "$c" =~ ^[0-9]+(\.[0-9]+)?$ ]] || { echo "Capacities must be numbers in GiB, e.g. 23 or 20,15: $cap_gib" >&2; exit 1; }
+  ncaps=$(( ncaps + 1 ))
+  cap_bytes[ncaps]=$(awk -v c="$c" 'BEGIN { printf "%d", c * 1024 * 1024 * 1024 }')
+  (( cap_bytes[ncaps] > max_cap_bytes )) && max_cap_bytes=${cap_bytes[ncaps]}
+done
+
+# Per-Disc Capacity - Caps apply in order; once the list is exhausted the last
+# value repeats, so -c 20,15 yields disc1=20 GiB then 15 GiB for every disc after.
+disc_limit() {
+  local d=$1
+  (( d <= ncaps )) && echo "${cap_bytes[$d]}" || echo "${cap_bytes[$ncaps]}"
+}
 
 # Resolve to an absolute path so manifests and the burn command are CWD-independent.
 src=$(realpath "$src")
 
-limit=$(awk -v c="$cap_gib" 'BEGIN { printf "%d", c * 1024 * 1024 * 1024 }')
 mkdir -p "$outdir"
 rm -f "$outdir"/disc*_files.txt
 
@@ -68,6 +86,7 @@ fi
 
 disc=1
 disc_bytes=0
+limit=$(disc_limit 1)
 total_bytes=0
 total_files=0
 declare -A disc_bytes_map disc_files_map
@@ -78,15 +97,25 @@ for entry in "${entries[@]}"; do
   size="${entry%%$'\t'*}"
   path="${entry#*$'\t'}"
 
-  if (( size > limit )); then
-    echo "WARNING: '$path' ($((size/1024/1024)) MiB) exceeds disc capacity (${cap_gib} GiB); skipping." >&2
+  if (( size > max_cap_bytes )); then
+    echo "WARNING: '$path' ($((size/1024/1024)) MiB) exceeds the largest disc capacity; skipping." >&2
     continue
   fi
 
-  if (( disc_bytes + size > limit )); then
+  # Advance to a disc with room. Per-disc caps mean the next disc may be a
+  # different size, so re-read the limit each step and bound the search to one
+  # full cap cycle to guarantee termination.
+  advanced=0
+  while (( disc_bytes + size > limit )); do
     disc=$(( disc + 1 ))
     disc_bytes=0
-  fi
+    limit=$(disc_limit "$disc")
+    advanced=$(( advanced + 1 ))
+    if (( advanced > ncaps )); then
+      echo "WARNING: '$path' ($((size/1024/1024)) MiB) does not fit any configured disc size; skipping." >&2
+      continue 2
+    fi
+  done
 
   printf '%s\n' "$path" >> "$(manifest "$disc")"
   disc_bytes=$(( disc_bytes + size ))
@@ -96,12 +125,13 @@ for entry in "${entries[@]}"; do
   total_files=$(( total_files + 1 ))
 done
 
-echo "=== Manifest summary (cap ${cap_gib} GiB/disc) ==="
+echo "=== Manifest summary (caps ${cap_gib} GiB) ==="
 for ((d=1; d<=disc; d++)); do
   [[ -f "$(manifest "$d")" ]] || continue
   mib=$(( disc_bytes_map[$d] / 1024 / 1024 ))
-  printf '  disc%02d: %5d files, %6d MiB  ->  %s\n' \
-    "$d" "${disc_files_map[$d]}" "$mib" "$(manifest "$d")"
+  cap_mib=$(( $(disc_limit "$d") / 1024 / 1024 ))
+  printf '  disc%02d: %5d files, %6d / %6d MiB  ->  %s\n' \
+    "$d" "${disc_files_map[$d]}" "$mib" "$cap_mib" "$(manifest "$d")"
 done
 printf '  TOTAL : %5d files, %6d MiB across %d disc(s)\n' \
   "$total_files" "$(( total_bytes / 1024 / 1024 ))" "$disc"
