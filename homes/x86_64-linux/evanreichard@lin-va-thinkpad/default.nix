@@ -54,6 +54,7 @@ in
         k9s = enabled;
         nvim = enabled;
         pi = enabled;
+        scripts.plan-disk-burns = enabled;
       };
     };
   };
@@ -70,6 +71,7 @@ in
 
   home.packages = with pkgs; [
     orca-slicer
+    blender
   ];
 
   home.pointerCursor = {
