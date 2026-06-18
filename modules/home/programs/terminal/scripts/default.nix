@@ -16,7 +16,7 @@ let
   #     my-new-thing    = { runtimeInputs = with pkgs; [ jq curl ]; };
   #   };
   scriptDefs = {
-    plan-disk-burns = { runtimeInputs = with pkgs; [ smartmontools util-linux ]; };
+    plan-disk-burns = { runtimeInputs = with pkgs; [ coreutils findutils gawk xorriso ]; };
   };
 
   mkScript = name: def:
