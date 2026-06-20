@@ -18,16 +18,16 @@
 
 buildNpmPackage rec {
   pname = "pi-coding-agent";
-  version = "0.79.6";
+  version = "0.79.8";
 
   src = fetchFromGitHub {
     owner = "earendil-works";
     repo = "pi-mono";
     rev = "v${version}";
-    hash = "sha256-ZJv4YCqt10DnuS3oCwwJ9Byix0u4CDFuiVaQd01Ryhs=";
+    hash = "sha256-eH1+vHrKBu1GcUXnTdvRtNuLuf0EdReAnFit8UqiXB4=";
   };
 
-  npmDepsHash = "sha256-7QMIlG96nSd8J4M63PhCikUYh/84Hn1eaCuDBMBR3/A=";
+  npmDepsHash = "sha256-xrTpu4TkRmlflg7pMaw/QVsN+poQ41slVA5PET+NDoI=";
 
   nativeBuildInputs = [ pkg-config makeWrapper ];
 

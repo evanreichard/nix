@@ -1,13 +1,14 @@
 { config, lib, namespace, ... }:
 let
-  inherit (lib) mkIf mkEnableOption;
+  inherit (lib) mkIf mkEnableOption types;
   cfg = config.${namespace}.services.headscale;
-  inherit (lib.${namespace}) mkBoolOpt;
+  inherit (lib.${namespace}) mkBoolOpt mkOpt;
 in
 {
   options.${namespace}.services.headscale = {
     enable = mkEnableOption "enable headscale service";
     openFirewall = mkBoolOpt false "Open firewall";
+    policy = mkOpt (types.nullOr types.path) null "Path to a HuJSON ACL policy file (file mode).";
   };
 
   options.services.headscale.settings.dns.nameservers.split = lib.mkOption {
@@ -30,6 +31,10 @@ in
       address = "0.0.0.0";
       settings = {
         server_url = "https://headscale.reichard.io";
+        policy = mkIf (cfg.policy != null) {
+          mode = "file";
+          path = toString cfg.policy;
+        };
         dns = {
           base_domain = "reichard.dev";
           nameservers = {

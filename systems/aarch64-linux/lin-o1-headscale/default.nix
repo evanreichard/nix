@@ -1,5 +1,4 @@
 { namespace
-, config
 , pkgs
 , lib
 , modulesPath
@@ -7,8 +6,6 @@
 }:
 let
   inherit (lib.${namespace}) enabled;
-
-  cfg = config.${namespace}.user;
 in
 {
   imports = [
@@ -22,6 +19,9 @@ in
     efiSupport = true;
     efiInstallAsRemovable = true;
   };
+
+  # Legacy Partion Name
+  fileSystems."/boot".device = lib.mkForce "/dev/disk/by-partlabel/disk-main-ESP";
 
   reichard = {
     nix = enabled;
@@ -39,6 +39,7 @@ in
       headscale = {
         enable = true;
         openFirewall = true;
+        policy = ./acl.hujson;
       };
       tailscale = {
         enable = true;

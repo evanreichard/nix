@@ -1,0 +1,35 @@
+{
+  "tagOwners": {
+    "tag:mobile": ["evan@"],
+  },
+
+  "hosts": {
+    "lan-route": "10.0.0.0/16",
+  },
+
+  "acls": [
+    // 10.0.0.0/16
+    {
+      "action": "accept",
+      "src": ["tag:mobile"],
+      "dst": ["lan-route:*"],
+    },
+
+    // Main Net
+    {
+      "action": "accept",
+      "src": ["*"],
+      "dst": [
+        "100.64.0.0/10:*",
+        "fd7a:115c:a1e0::/48:*",
+      ],
+    },
+
+    // Exit Nodes
+    {
+      "action": "accept",
+      "src": ["*"],
+      "dst": ["autogroup:internet:*"],
+    },
+  ],
+}
