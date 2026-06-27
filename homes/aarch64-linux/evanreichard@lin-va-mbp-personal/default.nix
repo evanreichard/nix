@@ -58,6 +58,7 @@ in
 
   home.packages = with pkgs; [
     orca-slicer
+    solvespace
     reichard.tuxguitar
   ];
 
