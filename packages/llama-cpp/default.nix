@@ -3,13 +3,13 @@ let
   # Version MUST be an integer string.
   # For tagged releases use the tag number (e.g. "9222").
   # For HEAD builds use YYYYMMDD (e.g. "20260519").
-  version = "9496";
+  version = "9802";
 
   src = pkgs.fetchFromGitHub {
     owner = "ggml-org";
     repo = "llama.cpp";
-    rev = "94a220cd6745e6e3f8de62870b66fd5b9bc92700";
-    hash = "sha256-1jAowfGVzrrHDwWWzKESY7aV82whnuIg1N37fmtcgyw=";
+    rev = "beac5309f1bc67534f509bf29420abf58fff063c";
+    hash = "sha256-muVLC9PBzu6fRD5ddz5I4b1INRGsfgjkuqnMj4MUoqk=";
     leaveDotGit = true;
     postFetch = ''
       git -C "$out" rev-parse --short HEAD > $out/COMMIT
@@ -30,7 +30,7 @@ in
     # WebUI npm deps hash for our pinned src. Upstream nixpkgs builds the WebUI
     # from tools/ui via `npm run build` in preConfigure (offline, using these
     # deps), so no custom webui derivation / HF-bucket workaround is needed.
-    npmDepsHash = "sha256-1iM0LGeI9e+gZEHk46lkBe51DxIhiimfAm9o3Z3m9Ik=";
+    npmDepsHash = "sha256-X1DZgmhS/zHTqDT5zq0kywwntthcJ9vRXeqyO3zz6UU=";
 
     # Add SPIR-V Headers for Vulkan Backend
     # Newer llama.cpp requires spirv/unified1/spirv.hpp which isn't

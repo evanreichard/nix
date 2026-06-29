@@ -13,13 +13,13 @@ let
 in
 buildGo126Module (finalAttrs: {
   pname = "llama-swap";
-  version = "216";
+  version = "230";
 
   src = fetchFromGitHub {
     owner = "mostlygeek";
     repo = "llama-swap";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-PHSY4z2h406xL+EcIYyrzr4s28txO7SCsWm8hrXf+2U=";
+    hash = "sha256-IoA7YMxOtrAeyVBSRVjUx64lPxBLNEzu5J5HAl2vr98=";
     # populate values that require us to use git. By doing this in postFetch we
     # can delete .git afterwards and maintain better reproducibility of the src.
     leaveDotGit = true;
@@ -32,7 +32,7 @@ buildGo126Module (finalAttrs: {
     '';
   };
 
-  vendorHash = "sha256-QysQ7YdwJcLTziwL25j73n3tQVvzVQIFxN4GkTU8JZg=";
+  vendorHash = "sha256-is8pm5g27in/LraLVJUzsa7EPqs+C3qzY8OQ/DXe98A=";
 
   passthru.ui = callPackage ./ui.nix { llama-swap = finalAttrs.finalPackage; };
   passthru.npmDepsHash = "sha256-NJqEJ+XTdpPFtJJxP4CGu+JDUW7lKDcFgsixQJ3SXtQ=";
@@ -55,8 +55,8 @@ buildGo126Module (finalAttrs: {
     ldflags+=" -X main.commit=$(cat COMMIT)"
     ldflags+=" -X main.date=$(cat SOURCE_DATE_EPOCH)"
 
-    # copy for go:embed in proxy/ui_embed.go
-    cp -r ${finalAttrs.passthru.ui}/ui_dist proxy/
+    # copy for go:embed in internal/server/ui.go
+    cp -r ${finalAttrs.passthru.ui}/ui_dist internal/server/
   '';
 
   excludedPackages = [
@@ -73,7 +73,14 @@ buildGo126Module (finalAttrs: {
 
   checkFlags =
     let
-      skippedTests = lib.optionals (stdenv.isDarwin && stdenv.isx86_64) [
+      # These tests write fixtures with a hardcoded `#!/bin/bash` shebang and exec
+      # them; the sandbox has no /bin/bash, so fork/exec fails with ENOENT.
+      forkingTests = [
+        "TestProcessCommand_StopForkingWrapper"
+        "TestProcessCommand_StopHonorsGracefulTimeout"
+        "TestProcessCommand_StopReapsForkedGrandchild"
+      ];
+      skippedTests = forkingTests ++ lib.optionals (stdenv.isDarwin && stdenv.isx86_64) [
         # Fail only on x86_64-darwin intermittently
         # https://github.com/mostlygeek/llama-swap/issues/320
         "TestProcess_AutomaticallyStartsUpstream"

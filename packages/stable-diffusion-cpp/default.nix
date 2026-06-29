@@ -34,13 +34,13 @@ let
 in
 effectiveStdenv.mkDerivation (finalAttrs: {
   pname = "stable-diffusion-cpp";
-  version = "master-462-c5602a6";
+  version = "master-721-8caa3f9";
 
   src = fetchFromGitHub {
     owner = "leejet";
     repo = "stable-diffusion.cpp";
-    rev = "master-462-c5602a6";
-    hash = "sha256-6uW9k30QqvozJACw+Hv4nRj9PyTzQqY/M0/CWjqrV28=";
+    rev = "master-721-8caa3f9";
+    hash = "sha256-voybvJQrG6/Puogf9vBr/3jzHBcl1MnIAsRQtswUw2U=";
     fetchSubmodules = true;
   };
 
@@ -100,12 +100,6 @@ effectiveStdenv.mkDerivation (finalAttrs: {
   ]
   ++ optionals rocmSupport [
     (cmakeFeature "CMAKE_HIP_ARCHITECTURES" (builtins.concatStringsSep ";" rocmGpuTargets))
-  ];
-
-  patchFlags = [ "-p1" ];
-  patches = [
-    ./lora_enable.patch # https://github.com/leejet/stable-diffusion.cpp/pull/1156
-    ./server_mask.patch # https://github.com/leejet/stable-diffusion.cpp/pull/1178
   ];
 
   meta = with lib; {
