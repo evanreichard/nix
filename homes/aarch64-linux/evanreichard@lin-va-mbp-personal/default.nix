@@ -47,6 +47,7 @@ in
       terminal = {
         btop = enabled;
         direnv = enabled;
+        conduit = enabled;
         git = enabled;
         k9s = enabled;
         nvim = enabled;
