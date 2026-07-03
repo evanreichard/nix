@@ -19,6 +19,7 @@ in
   time.timeZone = "America/New_York";
   nixpkgs.config.allowUnfree = true;
   hardware.nvidia-container-toolkit.enable = true;
+  programs.nix-ld.enable = true;
 
   security.pam.loginLimits = [
     {
