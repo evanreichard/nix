@@ -12,10 +12,12 @@ in
 
   programs.nix-ld.enable = true;
 
+  # BCM43224 WiFi (2012 MacBook Air) - Driven by the in-tree brcmsmac driver;
+  # its firmware ships in the redistributable linux-firmware set above.
   hardware = {
     enableRedistributableFirmware = true;
     bluetooth.enable = true;
-    amdgpu.initrd.enable = lib.mkDefault true;
+    cpu.intel.updateMicrocode = true;
   };
 
   services = {
@@ -36,7 +38,7 @@ in
       };
       disk = {
         enable = true;
-        diskPath = "/dev/nvme0n1";
+        diskPath = "/dev/disk/by-id/ata-APPLE_SSD_TS128E_52FS11DIT06Y";
       };
       networking = {
         enable = true;
@@ -45,7 +47,10 @@ in
     };
 
     hardware = {
-      opengl = enabled;
+      opengl = {
+        enable = true;
+        enableIntel = true;
+      };
       battery = {
         upower = enabled;
       };
@@ -61,11 +66,6 @@ in
 
     virtualisation = {
       podman = enabled;
-      libvirtd = {
-        enable = true;
-        withVirtManager = true;
-        enableAMDIOMMU = true;
-      };
     };
 
     programs = {
