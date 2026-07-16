@@ -20,6 +20,7 @@ let
     "https://gitea.va.reichard.io/evan/pi-web.git@main"
     "https://gitea.va.reichard.io/evan/pi-subagents.git@main"
     "https://gitea.va.reichard.io/evan/pi-statusline.git@main"
+    "npm:pi-ponytail@latest"
   ];
 
   piPackagesJson = pkgs.writeText "pi-packages.json" (builtins.toJSON piPackages);
