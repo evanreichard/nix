@@ -32,9 +32,9 @@ in
       graphical = {
         wms.hyprland = {
           enable = true;
-          menuMod = "ALT";
+          mainMod = "ALT";
         };
-        ghostty = enabled;
+        kitty = enabled;
         strawberry = enabled;
         gimp = enabled;
         wireshark = enabled;
