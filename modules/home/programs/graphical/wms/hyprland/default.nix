@@ -10,6 +10,11 @@ let
   inherit (lib.${namespace}) mkOpt enabled;
 
   cfg = config.${namespace}.programs.graphical.wms.hyprland;
+  graphical = config.${namespace}.programs.graphical;
+  terminal =
+    if graphical.ghostty.enable then "ghostty"
+    else if graphical.kitty.enable then "kitty"
+    else null;
 in
 {
   options.${namespace}.programs.graphical.wms.hyprland = {
@@ -41,6 +46,7 @@ in
         ''
           local mainMod = "${cfg.mainMod}"
           local menuMod = "${cfg.menuMod}"
+          local terminal = ${if terminal == null then "nil" else ''"${terminal}"''}
 
           ${lib.concatMapStringsSep "\n" mkMonitor cfg.monitors}
         ''

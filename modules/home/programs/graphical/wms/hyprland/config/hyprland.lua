@@ -1,8 +1,7 @@
 -- Hyprland config (lua backend, Hyprland 0.55+).
--- `mainMod`, `menuMod`, and the monitor(s) are injected by Nix above this file.
+-- `mainMod`, `menuMod`, `terminal`, and the monitor(s) are injected by Nix above this file.
 -- See https://wiki.hypr.land/Configuring/Start/
 
-local terminal = "ghostty"
 local menu     = "wofi --show drun"
 
 -------------------
@@ -11,7 +10,7 @@ local menu     = "wofi --show drun"
 
 hl.on("hyprland.start", function()
     hl.exec_cmd("uwsm app -- waybar")
-    hl.exec_cmd("uwsm app -- " .. terminal)
+    if terminal then hl.exec_cmd("uwsm app -- " .. terminal) end
     hl.exec_cmd("uwsm app -- firefox")
 end)
 
@@ -147,7 +146,7 @@ hl.bind(menuMod .. " + SHIFT + 3", hl.dsp.exec_cmd("hyprshot -m region"))
 hl.bind(menuMod .. " + Q",         hl.dsp.window.close())
 
 -- Primary Bindings
-hl.bind(mainMod .. " + RETURN", hl.dsp.exec_cmd(terminal))
+if terminal then hl.bind(mainMod .. " + RETURN", hl.dsp.exec_cmd(terminal)) end
 hl.bind(mainMod .. " + M",      hl.dsp.exec_cmd("uwsm stop"))
 hl.bind(mainMod .. " + V",      hl.dsp.window.float({ action = "toggle" }))
 hl.bind(mainMod .. " + P",      hl.dsp.window.pin())

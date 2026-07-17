@@ -30,6 +30,7 @@ in
       display-managers = {
         sddm = {
           enable = true;
+          scale = "1.25";
         };
       };
     };
