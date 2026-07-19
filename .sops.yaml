@@ -4,16 +4,16 @@ keys:
 
   # User SSH Derived
   - &user_lin-va-desktop age15hdlen5dgjvdfgg2j0uzvchs5vs3xuptkhsw9xeuatcuk6uwrvcsz7hcsg
+  - &user_lin-va-mba-personal age1qd3ms36h9tdxgxe46glucy5weuv3d9q94p4h3jw8mcakwaqxds4sgl4rj8
   - &user_lin-va-mbp-personal age17ayje4uv2mhwehhp9jr3u9l0ds07396kt7ef40sufx89vm7cgfjq6d5d4y
   - &user_lin-va-mbp-work-vm age1mar507c9mxmwalg486chs5kfh0mya38rv5w64ypfwnwlawewrpnswerpg8
   - &user_lin-va-terminal age1w6avj7gd4f5frk90lsyh4e2k5am6z92hzlr0vpgrm767muyj59qsnuah62
-  - &user_lin-va-thinkpad age1avlhszrryt4gf4ya536jhzm7qwt9xfttm8x4sns6h9w2tahzqp8sspz9y5
   - &user_mac-va-mbp-personal age1dccte7xtwswgef089nd80dutp96xnezx5lrqnneh9cusegsnda8sj3dj6c
   - &user_mac-va-mbp-work age1ped3hpugq06908ex8kgama33qckqe03rmac5pa6th87vks5d249qhshvqu
 
   # System SSH Derived
   - &system_lin-va-desktop age1mxjrvjxkn69kfn2np3wpd73g44fuhsgykw7l5ss9rx30em5jfp2scnrq32
-  - &system_lin-va-thinkpad age13gymlygyac9z2slecl53jp8spq7e8n4zkan86n0gmnm3nrj4muxqa5ullm
+  - &system_lin-va-mba-personal age1dnkhmslccsq5s68p9jrd4y27mzvacmhrc4hxrem9vhdzryl7ryzss5jkxl
   - &system_lin-va-terminal age1rfgh40p6wmaam4ttwgv9xfukgxjruskhfvm0q3ud6lvxtlqc2y8snhwjft
 creation_rules:
   - path_regex: secrets/[^/]+\.(yaml|json|env|ini)$
@@ -25,7 +25,7 @@ creation_rules:
       - age:
           - *admin_reichard
           - *system_lin-va-desktop
-          - *system_lin-va-thinkpad
+          - *system_lin-va-mba-personal
           - *system_lin-va-terminal
   - path_regex: secrets/common/llama-swap.yaml
     key_groups:
@@ -35,7 +35,7 @@ creation_rules:
           - *user_lin-va-mbp-personal
           - *user_lin-va-mbp-work-vm
           - *user_lin-va-terminal
-          - *user_lin-va-thinkpad
+          - *user_lin-va-mba-personal
           - *user_mac-va-mbp-personal
           - *user_mac-va-mbp-work
   - path_regex: secrets/common/evanreichard.yaml
@@ -45,6 +45,6 @@ creation_rules:
           - *user_lin-va-mbp-personal
           - *user_lin-va-mbp-work-vm
           - *user_lin-va-terminal
-          - *user_lin-va-thinkpad
+          - *user_lin-va-mba-personal
           - *user_mac-va-mbp-personal
           - *user_mac-va-mbp-work
