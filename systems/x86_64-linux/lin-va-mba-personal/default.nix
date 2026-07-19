@@ -23,6 +23,8 @@ in
   services = {
     xserver.videoDrivers = [ "modesetting" ];
     fwupd.enable = true;
+    # Blueman Mechanism - Polkit helper the waybar tray applet needs for privileged BT ops.
+    blueman.enable = true;
   };
 
   # System Config

@@ -7,7 +7,7 @@
 }:
 let
   inherit (lib) types mkIf;
-  inherit (lib.${namespace}) mkOpt enabled;
+  inherit (lib.${namespace}) mkOpt mkBoolOpt enabled;
 
   cfg = config.${namespace}.programs.graphical.wms.hyprland;
   graphical = config.${namespace}.programs.graphical;
@@ -22,6 +22,7 @@ in
     mainMod = mkOpt types.str "SUPER" "main modifier key";
     menuMod = mkOpt types.str "SUPER" "menu modifier key (i.e. menuMod + space)";
     monitors = mkOpt (with types; listOf str) [ ", preferred, auto, 1" ] "monitor configuration";
+    bluetooth = mkBoolOpt false "Bluetooth tray applet (blueman); requires system services.blueman.enable";
   };
 
   config = mkIf cfg.enable {
@@ -47,6 +48,7 @@ in
           local mainMod = "${cfg.mainMod}"
           local menuMod = "${cfg.menuMod}"
           local terminal = ${if terminal == null then "nil" else ''"${terminal}"''}
+          local btApplet = ${if cfg.bluetooth then "true" else "false"}
 
           ${lib.concatMapStringsSep "\n" mkMonitor cfg.monitors}
         ''
@@ -218,7 +220,7 @@ in
       hyprshot
       wofi
       wofi-emoji
-    ];
+    ] ++ lib.optional cfg.bluetooth blueman;
 
     xdg.configFile = {
       "wofi/config".source = ./config/wofi.conf;

@@ -12,6 +12,7 @@ hl.on("hyprland.start", function()
     hl.exec_cmd("uwsm app -- waybar")
     if terminal then hl.exec_cmd("uwsm app -- " .. terminal) end
     hl.exec_cmd("uwsm app -- firefox")
+    if btApplet then hl.exec_cmd("uwsm app -- blueman-applet") end
 end)
 
 -----------------------
@@ -182,9 +183,11 @@ hl.bind("XF86AudioMicMute",      hl.dsp.exec_cmd("wpctl set-mute @DEFAULT_AUDIO_
 hl.bind("XF86MonBrightnessUp",   hl.dsp.exec_cmd("brightnessctl s 4%+"),                          { locked = true, repeating = true })
 hl.bind("XF86MonBrightnessDown", hl.dsp.exec_cmd("brightnessctl s 5%-"),                          { locked = true, repeating = true })
 
--- macOS Keyboard Brightness
-hl.bind(menuMod .. " + XF86MonBrightnessUp",   hl.dsp.exec_cmd("brightnessctl -d kbd_backlight s 10%+"), { locked = true, repeating = true })
-hl.bind(menuMod .. " + XF86MonBrightnessDown", hl.dsp.exec_cmd("brightnessctl -d kbd_backlight s 10%-"), { locked = true, repeating = true })
+-- macOS Keyboard Brightness - Dedicated F5/F6 keys emit XF86KbdBrightness*; applesmc LED is 'smc::kbd_backlight'.
+hl.bind("XF86KbdBrightnessUp",   hl.dsp.exec_cmd("brightnessctl -d smc::kbd_backlight s 10%+"), { locked = true, repeating = true })
+hl.bind("XF86KbdBrightnessDown", hl.dsp.exec_cmd("brightnessctl -d smc::kbd_backlight s 10%-"), { locked = true, repeating = true })
+hl.bind(menuMod .. " + XF86MonBrightnessUp",   hl.dsp.exec_cmd("brightnessctl -d smc::kbd_backlight s 10%+"), { locked = true, repeating = true })
+hl.bind(menuMod .. " + XF86MonBrightnessDown", hl.dsp.exec_cmd("brightnessctl -d smc::kbd_backlight s 10%-"), { locked = true, repeating = true })
 
 -- Player Controls
 hl.bind("XF86AudioNext",  hl.dsp.exec_cmd("playerctl next"),       { locked = true })

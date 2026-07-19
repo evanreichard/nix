@@ -33,6 +33,7 @@ in
         wms.hyprland = {
           enable = true;
           mainMod = "ALT";
+          bluetooth = true;
         };
         kitty = enabled;
         strawberry = enabled;
