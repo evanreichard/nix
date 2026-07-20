@@ -27,7 +27,7 @@ buildNpmPackage rec {
     hash = "sha256-Vs/ndHYzFyfN4CjPV2zMYblLXe9IuM13UrPJI1VsZEQ=";
   };
 
-  npmDepsHash = "sha256-Bd/NIt3lyQR5Y7P+HksPxMQvJc0AjVfDi1M1bH3/eOg=";
+  npmDepsHash = "sha256-XGvDNH+eilsgc0Z7ITqbitB/9RVc+WuDfCcr1pibNqk=";
 
   nativeBuildInputs = [ pkg-config makeWrapper ];
 
