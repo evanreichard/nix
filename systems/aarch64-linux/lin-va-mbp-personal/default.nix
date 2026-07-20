@@ -25,6 +25,10 @@ in
     ${pkgs.systemd}/bin/systemctl restart NetworkManager.service
   '';
 
+  # Enable Bluetooth
+  hardware.bluetooth.enable = true;
+  services.blueman.enable = true;
+
   # System Config
   reichard = {
     nix = enabled;

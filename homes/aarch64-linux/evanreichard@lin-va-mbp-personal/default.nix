@@ -32,6 +32,7 @@ in
         wms.hyprland = {
           enable = true;
           mainMod = "ALT";
+          bluetooth = true;
           monitors = [ ",highres,auto,2" ]; # Alternatively - 1.68
         };
         ghostty = enabled;
