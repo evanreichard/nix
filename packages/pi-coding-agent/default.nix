@@ -1,6 +1,7 @@
 { lib
 , buildNpmPackage
 , fetchFromGitHub
+, fetchurl
 , nodejs
 , nodejs_22
 , firefox
@@ -16,18 +17,25 @@
 ,
 }:
 
+let
+  version = "0.82.1";
+  aiModelData = fetchurl {
+    url = "https://registry.npmjs.org/@earendil-works/pi-ai/-/pi-ai-${version}.tgz";
+    hash = "sha256-L535UigItiHNNEmHZTfwPYqN+LjX7C1bGMapEKqFtJA=";
+  };
+in
 buildNpmPackage rec {
   pname = "pi-coding-agent";
-  version = "0.80.10";
+  inherit version;
 
   src = fetchFromGitHub {
     owner = "earendil-works";
     repo = "pi-mono";
     rev = "v${version}";
-    hash = "sha256-Vs/ndHYzFyfN4CjPV2zMYblLXe9IuM13UrPJI1VsZEQ=";
+    hash = "sha256-LESpgd/KUoNqdBfnd1oyMN8coKm0Odbo9GYkUDry8Zk=";
   };
 
-  npmDepsHash = "sha256-XGvDNH+eilsgc0Z7ITqbitB/9RVc+WuDfCcr1pibNqk=";
+  npmDepsHash = "sha256-5pHRwxpKg95/phOcYHeWdvPJNtSOhiw7PRoVxsuh0RM=";
 
   nativeBuildInputs = [ pkg-config makeWrapper ];
 
@@ -40,12 +48,17 @@ buildNpmPackage rec {
     librsvg
   ];
 
-  # Skip generate-models in ai package (models.generated.ts already in repo)
+  # Use the published model data so the build does not need network access.
   preBuild = ''
+    mkdir -p packages/ai/src/providers/data
+    tar -xzf ${aiModelData} --strip-components=4 \
+      -C packages/ai/src/providers/data package/dist/providers/data
     substituteInPlace packages/ai/package.json \
-      --replace-fail '"build": "npm run generate-models && npm run generate-image-models && tsgo -p tsconfig.build.json"' \
-                     '"build": "tsgo -p tsconfig.build.json"'
+      --replace-fail '"build": "npm run generate-models && npm run build:offline"' \
+                     '"build": "npm run build:offline"'
   '';
+
+  passthru = { inherit aiModelData; };
 
   # Build coding-agent dependencies in order
   buildPhase = ''
