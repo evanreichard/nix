@@ -13,7 +13,7 @@ in
   toPiModels =
     llamaSwapConfig:
     let
-      hasType = type: model: any (t: t == type) (model.metadata.type or [ ]);
+      hasType = type: model: any (t: t == type) (model.metadata.tags or [ ]);
 
       codingModels = filterAttrs (_name: model: hasType "coding" model) (llamaSwapConfig.models or { });
 

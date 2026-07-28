@@ -28,7 +28,7 @@ in
           -dev CUDA0
       '';
       metadata = {
-        type = [ "text-generation" ];
+        tags = [ "text-generation" ];
       };
     };
 
@@ -56,7 +56,7 @@ in
           --chat-template-kwargs "{\"preserve_thinking\": true}"
       '';
       metadata = {
-        type = [
+        tags = [
           "text-generation"
           "coding"
         ];
@@ -78,7 +78,7 @@ in
           --jinja --chat-template-kwargs '{"preserve_thinking":true}'
       '';
       metadata = {
-        type = [
+        tags = [
           "text-generation"
           "coding"
         ];
@@ -109,7 +109,7 @@ in
           --chat-template-kwargs "{\"preserve_thinking\": true}"
       '';
       metadata = {
-        type = [
+        tags = [
           "text-generation"
           "coding"
         ];
@@ -140,7 +140,7 @@ in
           -dev CUDA0
       '';
       metadata = {
-        type = [
+        tags = [
           "text-generation"
           "vision"
         ];
@@ -184,7 +184,7 @@ in
       '';
       cmdStop = "${pkgs.docker}/bin/docker stop \${MODEL_ID}";
       metadata = {
-        type = [
+        tags = [
           "text-generation"
           "coding"
         ];
@@ -282,7 +282,7 @@ in
       cmdStop = "${pkgs.docker}/bin/docker stop \${MODEL_ID}";
 
       metadata = {
-        type = [
+        tags = [
           "text-generation"
           "coding"
         ];
@@ -414,7 +414,7 @@ in
       cmdStop = "${pkgs.docker}/bin/docker stop \${MODEL_ID}";
 
       metadata = {
-        type = [
+        tags = [
           "text-generation"
           "coding"
           "vision"
@@ -554,7 +554,7 @@ in
       cmdStop = "${pkgs.docker}/bin/docker stop \${MODEL_ID}";
 
       metadata = {
-        type = [
+        tags = [
           "text-generation"
           "coding"
         ];
@@ -584,7 +584,7 @@ in
           -dev CUDA0
       '';
       metadata = {
-        type = [
+        tags = [
           "text-generation"
           "coding"
           "vision"
@@ -610,7 +610,7 @@ in
           -dev CUDA0
       '';
       metadata = {
-        type = [
+        tags = [
           "text-generation"
           "coding"
         ];
@@ -640,7 +640,7 @@ in
       '';
 
       metadata = {
-        type = [
+        tags = [
           "text-generation"
           "coding"
         ];
@@ -672,7 +672,7 @@ in
           --chat-template-kwargs "{\"preserve_thinking\": true}"
       '';
       metadata = {
-        type = [
+        tags = [
           "text-generation"
           "coding"
         ];
@@ -705,7 +705,7 @@ in
           --chat-template-kwargs "{\"preserve_thinking\": true}"
       '';
       metadata = {
-        type = [
+        tags = [
           "text-generation"
           "coding"
         ];
@@ -732,7 +732,7 @@ in
           --rng cuda
       '';
       metadata = {
-        type = [ "image-generation" ];
+        tags = [ "image-generation" ];
       };
     };
 
@@ -756,7 +756,7 @@ in
           --rng cuda
       '';
       metadata = {
-        type = [
+        tags = [
           "image-edit"
           "image-generation"
         ];
@@ -782,7 +782,7 @@ in
           --rng cuda
       '';
       metadata = {
-        type = [ "image-generation" ];
+        tags = [ "image-generation" ];
       };
     };
 
@@ -801,7 +801,7 @@ in
           --rng cuda
       '';
       metadata = {
-        type = [ "image-generation" ];
+        tags = [ "image-generation" ];
       };
     };
   };

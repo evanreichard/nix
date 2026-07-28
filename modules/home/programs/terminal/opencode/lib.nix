@@ -14,7 +14,7 @@ in
   toOpencodeModels =
     llamaSwapConfig:
     let
-      textGenModels = filterAttrs (name: model: any (t: t == "coding") (model.metadata.type or [ ])) (
+      textGenModels = filterAttrs (name: model: any (t: t == "coding") (model.metadata.tags or [ ])) (
         llamaSwapConfig.models or { }
       );
 

@@ -71,7 +71,7 @@ in
               local models=( $(${pkgs.curl}/bin/curl -s -H "Authorization: Bearer ${authToken}" "${baseUrl}/v1/models" | ${pkgs.jq}/bin/jq -r '
                 .data[] |
                 select(
-                  (try (.meta.llamaswap.type[] | contains("coding")) catch false) or
+                  (try (.meta.llamaswap.tags[] | contains("coding")) catch false) or
                   (.name | startswith("synthetic:"))
                 ) |
                 .id
