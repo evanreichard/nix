@@ -104,6 +104,8 @@ in
               "browser.aboutwelcome.enabled" = false;
               "browser.sessionstore.warnOnQuit" = true;
               "browser.newtabpage.activity-stream.showSponsoredTopSites" = false;
+              "browser.urlbar.quicksuggest.enabled" = false;
+              "browser.urlbar.quicksuggest.sponsored" = false;
               "browser.shell.checkDefaultBrowser" = false;
               "general.smoothScroll.msdPhysics.enabled" = true;
               "intl.accept_languages" = "en-US,en";

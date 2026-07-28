@@ -13,13 +13,13 @@ let
 in
 buildGo126Module (finalAttrs: {
   pname = "llama-swap";
-  version = "230";
+  version = "244";
 
   src = fetchFromGitHub {
     owner = "mostlygeek";
     repo = "llama-swap";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-IoA7YMxOtrAeyVBSRVjUx64lPxBLNEzu5J5HAl2vr98=";
+    hash = "sha256-uMGOcrMgGALPWhYQSngfeUKLpx3vNFaNbTqBRJ6ZBl4=";
     # populate values that require us to use git. By doing this in postFetch we
     # can delete .git afterwards and maintain better reproducibility of the src.
     leaveDotGit = true;
@@ -32,10 +32,14 @@ buildGo126Module (finalAttrs: {
     '';
   };
 
-  vendorHash = "sha256-is8pm5g27in/LraLVJUzsa7EPqs+C3qzY8OQ/DXe98A=";
+  vendorHash = "sha256-jQRnFGqQvk6my7ejnesv1pylCmEXLs9GKbQJEZdsaYg=";
+
+  # UI embed is build-tag gated since v244: without `embed_ui`, embed_notag.go
+  # compiles in an empty FS and /ui/ serves 404.
+  tags = [ "embed_ui" ];
 
   passthru.ui = callPackage ./ui.nix { llama-swap = finalAttrs.finalPackage; };
-  passthru.npmDepsHash = "sha256-NJqEJ+XTdpPFtJJxP4CGu+JDUW7lKDcFgsixQJ3SXtQ=";
+  passthru.npmDepsHash = "sha256-cAdFKDhmyaYCoKqSYEuAhu29rBxs7i8uTmU2SHwTLnY=";
 
   nativeBuildInputs = [
     versionCheckHook

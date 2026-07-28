@@ -85,11 +85,11 @@ in
           "hyprland/window" = {
             format = "{}";
           };
-          "wlr/workspaces" = {
-            on-scroll-up = "hyprctl dispatch workspace e+1";
-            on-scroll-down = "hyprctl dispatch workspace e-1";
-            all-outputs = true;
-            on-click = "activate";
+          "hyprland/workspaces" = {
+            # ponytail: "activate" uses old hyprctl dispatch that breaks with Lua backend (0.55+).
+            on-click-use-workspace = "hyprctl dispatch 'hl.dsp.focus({ workspace = {} })'";
+            on-scroll-up = "hyprctl dispatch 'hl.dsp.focus({ workspace = \"e+1\" })'";
+            on-scroll-down = "hyprctl dispatch 'hl.dsp.focus({ workspace = \"e-1\" })'";
           };
           battery = {
             states = {
