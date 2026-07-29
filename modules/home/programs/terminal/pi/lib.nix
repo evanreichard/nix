@@ -7,6 +7,7 @@ let
     flatten
     listToAttrs
     nameValuePair
+    optionalAttrs
     ;
 in
 {
@@ -54,10 +55,15 @@ in
               map
                 (
                   modelName:
-                  nameValuePair modelName {
-                    id = modelName;
-                    name = modelName;
-                  }
+                  nameValuePair modelName (
+                    {
+                      id = modelName;
+                      name = modelName;
+                    }
+                    // optionalAttrs (peer.contextWindows ? ${modelName}) {
+                      contextWindow = peer.contextWindows.${modelName};
+                    }
+                  )
                 )
                 peer.models
             )

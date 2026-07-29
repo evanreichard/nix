@@ -836,4 +836,22 @@ in
       concurrent = "(go | g4 | q36a | q36b | q36ik | v180 | v145 | v75 | v50 | zi | qie | qi | cr) & (q4 | q9)";
     };
   };
+
+  peers = {
+    synthetic = {
+      proxy = "https://api.synthetic.new/openai/";
+      contextWindows = {
+        "hf:moonshotai/Kimi-K3" = 524288;
+        "hf:Qwen/Qwen3.6-27B" = 262144;
+        "hf:zai-org/GLM-4.7-Flash" = 196608;
+        "hf:zai-org/GLM-5.2" = 524288;
+      };
+      models = [
+        "hf:Qwen/Qwen3.6-27B"
+        "hf:moonshotai/Kimi-K3"
+        "hf:zai-org/GLM-4.7-Flash"
+        "hf:zai-org/GLM-5.2"
+      ];
+    };
+  };
 }

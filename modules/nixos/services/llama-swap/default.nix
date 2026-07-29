@@ -114,12 +114,16 @@ in
 
     # Create Config
     sops = {
-      secrets = listToAttrs (map (name: {
+      secrets = (listToAttrs (map (name: {
         name = "llama_swap_api_keys/${name}";
         value = {
           sopsFile = lib.snowfall.fs.get-file "secrets/common/llama-swap.yaml";
         };
-      }) apiKeys);
+      }) apiKeys)) // {
+        synthetic_apikey = {
+          sopsFile = lib.snowfall.fs.get-file "secrets/common/systems.yaml";
+        };
+      };
       templates."llama-swap.json" = {
         restartUnits = [ "llama-swap.service" ];
         owner = "llama-swap";
@@ -128,6 +132,7 @@ in
         content = builtins.toJSON (
           recursiveUpdate cfg.config {
             apiKeys = map (name: config.sops.placeholder."llama_swap_api_keys/${name}") apiKeys;
+            peers.synthetic.apiKey = config.sops.placeholder.synthetic_apikey;
           }
         );
       };
