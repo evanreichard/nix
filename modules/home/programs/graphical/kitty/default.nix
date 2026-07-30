@@ -53,7 +53,9 @@ in
       keybindings = {
         # Tabs & Splits
         "ctrl+shift+t" = "new_tab";
+        "super+t" = "new_tab";
         "ctrl+shift+w" = "close_window";
+        "super+w" = "close_window";
         # super+d mirrors Ghostty's cmd+d; Hyprland does not grab super+d.
         "super+d" = "launch --location=vsplit";
         "super+shift+d" = "launch --location=hsplit";
@@ -64,6 +66,12 @@ in
         "ctrl+shift+right" = "neighboring_window right";
         "ctrl+shift+up" = "neighboring_window up";
         "ctrl+shift+down" = "neighboring_window down";
+        "super+[" = "next_window";
+        "super+]" = "previous_window";
+        "super+left" = "neighboring_window left";
+        "super+right" = "neighboring_window right";
+        "super+up" = "neighboring_window up";
+        "super+down" = "neighboring_window down";
         "ctrl+shift+]" = "next_window";
         "ctrl+shift+[" = "previous_window";
 
@@ -77,6 +85,15 @@ in
         "ctrl+shift+7" = "goto_tab 7";
         "ctrl+shift+8" = "goto_tab 8";
         "ctrl+shift+9" = "goto_tab 9";
+        "super+1" = "goto_tab 1";
+        "super+2" = "goto_tab 2";
+        "super+3" = "goto_tab 3";
+        "super+4" = "goto_tab 4";
+        "super+5" = "goto_tab 5";
+        "super+6" = "goto_tab 6";
+        "super+7" = "goto_tab 7";
+        "super+8" = "goto_tab 8";
+        "super+9" = "goto_tab 9";
 
         # Clipboard - copy passes ctrl+c through when there is no selection.
         "ctrl+shift+c" = "copy_or_interrupt";

@@ -35,7 +35,7 @@ in
           bluetooth = true;
           monitors = [ ",highres,auto,2" ]; # Alternatively - 1.68
         };
-        ghostty = enabled;
+        kitty = enabled;
         ghidra = enabled;
         gimp = enabled;
         browsers.firefox = {
