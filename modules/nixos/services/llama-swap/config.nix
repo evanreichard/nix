@@ -59,6 +59,7 @@ in
         tags = [
           "text-generation"
           "coding"
+          "reasoning"
         ];
       };
     };
@@ -81,6 +82,7 @@ in
         tags = [
           "text-generation"
           "coding"
+          "reasoning"
         ];
       };
     };
@@ -112,6 +114,7 @@ in
         tags = [
           "text-generation"
           "coding"
+          "reasoning"
         ];
       };
     };
@@ -285,6 +288,7 @@ in
         tags = [
           "text-generation"
           "coding"
+          "reasoning"
         ];
       };
     };
@@ -418,6 +422,7 @@ in
           "text-generation"
           "coding"
           "vision"
+          "reasoning"
         ];
       };
     };
@@ -557,6 +562,7 @@ in
         tags = [
           "text-generation"
           "coding"
+          "reasoning"
         ];
       };
     };
@@ -675,6 +681,7 @@ in
         tags = [
           "text-generation"
           "coding"
+          "reasoning"
         ];
       };
     };
@@ -708,6 +715,7 @@ in
         tags = [
           "text-generation"
           "coding"
+          "reasoning"
         ];
       };
     };

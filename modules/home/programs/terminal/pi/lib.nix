@@ -44,6 +44,14 @@ in
               else
                 { }
             )
+            // (
+              if hasType "reasoning" model then
+                {
+                  reasoning = true;
+                }
+              else
+                { }
+            )
         )
         codingModels;
 

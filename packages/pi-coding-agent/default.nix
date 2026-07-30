@@ -18,10 +18,10 @@
 }:
 
 let
-  version = "0.82.1";
+  version = "0.83.0";
   aiModelData = fetchurl {
     url = "https://registry.npmjs.org/@earendil-works/pi-ai/-/pi-ai-${version}.tgz";
-    hash = "sha256-L535UigItiHNNEmHZTfwPYqN+LjX7C1bGMapEKqFtJA=";
+    hash = "sha256-+YPCiiEgkwXtnCdJd+KRMPpNiEjfbN836QlNlcx7xtQ=";
   };
 in
 buildNpmPackage rec {
@@ -32,10 +32,10 @@ buildNpmPackage rec {
     owner = "earendil-works";
     repo = "pi-mono";
     rev = "v${version}";
-    hash = "sha256-LESpgd/KUoNqdBfnd1oyMN8coKm0Odbo9GYkUDry8Zk=";
+    hash = "sha256-+XRJua2TSXkZMnWtxtLMskSzEHrGEFFyvYcPATi7An4=";
   };
 
-  npmDepsHash = "sha256-5pHRwxpKg95/phOcYHeWdvPJNtSOhiw7PRoVxsuh0RM=";
+  npmDepsHash = "sha256-AbSfP1Ion8bN309NUBQb1QSn2cIIUjNONmZgls9vnYE=";
 
   nativeBuildInputs = [ pkg-config makeWrapper ];
 
