@@ -34,6 +34,12 @@ let
       jqVar = "zai";
       sopsFile = lib.snowfall.fs.get-file "secrets/common/evanreichard.yaml";
     }
+    {
+      provider = "opencode";
+      secretName = "opencode_go_apikey";
+      jqVar = "opencode";
+      sopsFile = lib.snowfall.fs.get-file "secrets/common/evanreichard.yaml";
+    }
   ];
 
   piAuthJqRawfiles = lib.concatStringsSep " \\\n          " (
