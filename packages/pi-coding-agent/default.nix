@@ -18,10 +18,10 @@
 }:
 
 let
-  version = "0.83.0";
+  version = "0.84.1";
   aiModelData = fetchurl {
     url = "https://registry.npmjs.org/@earendil-works/pi-ai/-/pi-ai-${version}.tgz";
-    hash = "sha256-+YPCiiEgkwXtnCdJd+KRMPpNiEjfbN836QlNlcx7xtQ=";
+    hash = "sha256-araJGJ58s95c2xJjEqPmDorDX+XuXxtj0A9xHIpDDHM=";
   };
 in
 buildNpmPackage rec {
@@ -32,10 +32,10 @@ buildNpmPackage rec {
     owner = "earendil-works";
     repo = "pi-mono";
     rev = "v${version}";
-    hash = "sha256-+XRJua2TSXkZMnWtxtLMskSzEHrGEFFyvYcPATi7An4=";
+    hash = "sha256-lg+I4S/aAjazjhGZU567ow+rksoNiqOqjHl//TjAMes=";
   };
 
-  npmDepsHash = "sha256-AbSfP1Ion8bN309NUBQb1QSn2cIIUjNONmZgls9vnYE=";
+  npmDepsHash = "sha256-tufyZQRPAUeDtiq0UQodbKA/Y9xUAvNT8K+NWFjkeME=";
 
   nativeBuildInputs = [ pkg-config makeWrapper ];
 
@@ -60,14 +60,13 @@ buildNpmPackage rec {
 
   passthru = { inherit aiModelData; };
 
-  # Build coding-agent dependencies in order
+  # Build coding-agent dependencies in topological order.
   buildPhase = ''
     runHook preBuild
 
-    cd packages/tui && npm run build && cd ../..
-    cd packages/ai && npm run build && cd ../..
-    cd packages/agent && npm run build && cd ../..
-    cd packages/coding-agent && npm run build && cd ../..
+    for pkg in telemetry protocol tui client ai agent coding-agent; do
+      (cd packages/$pkg && npm run build)
+    done
 
     runHook postBuild
   '';
