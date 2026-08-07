@@ -16,6 +16,7 @@ in
   config = mkIf cfg.enable {
     programs.claude-code = {
       enable = true;
+      package = pkgs.${namespace}.claude-code;
       mcpServers = {
         gopls = {
           type = "stdio";
@@ -59,7 +60,7 @@ in
             ANTHROPIC_AUTH_TOKEN="${authToken}" \
             ANTHROPIC_MODEL="$model_id" \
             ANTHROPIC_SMALL_FAST_MODEL="$model_id" \
-            ${lib.getExe pkgs.claude-code}
+            ${lib.getExe pkgs.${namespace}.claude-code}
           }
 
           # Completion Function
