@@ -20,7 +20,7 @@ let
     "https://gitea.va.reichard.io/evan/pi-web.git@main"
     "https://gitea.va.reichard.io/evan/pi-subagents.git@main"
     "https://gitea.va.reichard.io/evan/pi-statusline.git@main"
-    "npm:pi-ponytail@latest"
+    "npm:@aliou/pi-synthetic"
   ];
 
   piPackagesJson = pkgs.writeText "pi-packages.json" (builtins.toJSON piPackages);
@@ -32,6 +32,12 @@ let
       provider = "zai";
       secretName = "zai_apikey";
       jqVar = "zai";
+      sopsFile = lib.snowfall.fs.get-file "secrets/common/evanreichard.yaml";
+    }
+    {
+      provider = "synthetic";
+      secretName = "synthetic_apikey";
+      jqVar = "synthetic";
       sopsFile = lib.snowfall.fs.get-file "secrets/common/evanreichard.yaml";
     }
     {
