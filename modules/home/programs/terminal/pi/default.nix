@@ -41,7 +41,7 @@ let
       sopsFile = lib.snowfall.fs.get-file "secrets/common/evanreichard.yaml";
     }
     {
-      provider = "opencode";
+      provider = "opencode-go";
       secretName = "opencode_go_apikey";
       jqVar = "opencode";
       sopsFile = lib.snowfall.fs.get-file "secrets/common/evanreichard.yaml";
