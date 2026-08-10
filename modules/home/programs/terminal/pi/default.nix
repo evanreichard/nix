@@ -103,7 +103,10 @@ in
     ${namespace}.programs.terminal.glimpse.enable = true;
 
     # Add Pi Coding Agent to Home Packages
-    home.packages = with pkgs; [ reichard.pi-coding-agent ];
+    home.packages = with pkgs; [
+      reichard.pi-coding-agent
+      reichard.pi-web
+    ];
 
     # Define Pi Configuration
     home.file = {
