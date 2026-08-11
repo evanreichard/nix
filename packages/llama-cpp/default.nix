@@ -3,13 +3,13 @@ let
   # Version MUST be an integer string.
   # For tagged releases use the tag number (e.g. "9222").
   # For HEAD builds use YYYYMMDD (e.g. "20260519").
-  version = "10159";
+  version = "10342";
 
   src = pkgs.fetchFromGitHub {
     owner = "ggml-org";
     repo = "llama.cpp";
-    rev = "f95de9776b5b90dd993f36d2bd66a3eee21c887f";
-    hash = "sha256-xWvOe1yub0wxwCnfLxfDi8EP6hSmCdBkfjRP3NAt/IQ=";
+    rev = "157b81fe6dbfec7d7ce91ef7cd9c6bc0c218d6fe";
+    hash = "sha256-SDxGylXECLlgEPyv7k8lEHI38gitqAiPoAx0fVe/rrA=";
     leaveDotGit = true;
     postFetch = ''
       git -C "$out" rev-parse --short HEAD > $out/COMMIT
@@ -27,7 +27,7 @@ in
   (oldAttrs: {
     inherit version src;
 
-    npmDepsHash = "sha256-B7uEynAG70a3xauBKc20RuFa9cnWaWzVBCh+LPLBnIM=";
+    npmDepsHash = "sha256-2Q7XhaLAArmviOLdQsNbYTfdyDE5pW9lR26cRHEVl9k=";
 
     # Add SPIR-V Headers for Vulkan Backend
     # Newer llama.cpp requires spirv/unified1/spirv.hpp which isn't
