@@ -77,8 +77,8 @@
 *PageSize Postcard.Fullbleed: "<</PageSize[283.4646 419.5276]/ImagingBBox null/Orientation 0>>setpagedevice"
 *PageSize Tabloid: "<</PageSize[792.0000 1224.0000]/ImagingBBox null/Orientation 0>>setpagedevice"
 *PageSize Tabloid.Fullbleed: "<</PageSize[792.0000 1224.0000]/ImagingBBox null/Orientation 0>>setpagedevice"
-*PageSize 13x19: "<</PageSize[936.0000 1368.0000]/ImagingBBox null/Orientation 0>>setpagedevice"
-*PageSize 13x19.Fullbleed: "<</PageSize[936.0000 1368.0000]/ImagingBBox null/Orientation 0>>setpagedevice"
+*PageSize 13x19: "<</PageSize[933.0000 1368.0000]/ImagingBBox null/Orientation 0>>setpagedevice"
+*PageSize 13x19.Fullbleed: "<</PageSize[933.0000 1368.0000]/ImagingBBox null/Orientation 0>>setpagedevice"
 *CloseUI: *PageSize
 *OpenUI *PageRegion/Media Size: PickOne
 *OrderDependency: 10 AnySetup *PageRegion
@@ -107,8 +107,8 @@
 *PageRegion Postcard.Fullbleed: "<</PageSize[283.4646 419.5276]/ImagingBBox null/Orientation 0>>setpagedevice"
 *PageRegion Tabloid: "<</PageSize[792.0000 1224.0000]/ImagingBBox null/Orientation 0>>setpagedevice"
 *PageRegion Tabloid.Fullbleed: "<</PageSize[792.0000 1224.0000]/ImagingBBox null/Orientation 0>>setpagedevice"
-*PageRegion 13x19: "<</PageSize[936.0000 1368.0000]/ImagingBBox null/Orientation 0>>setpagedevice"
-*PageRegion 13x19.Fullbleed: "<</PageSize[936.0000 1368.0000]/ImagingBBox null/Orientation 0>>setpagedevice"
+*PageRegion 13x19: "<</PageSize[933.0000 1368.0000]/ImagingBBox null/Orientation 0>>setpagedevice"
+*PageRegion 13x19.Fullbleed: "<</PageSize[933.0000 1368.0000]/ImagingBBox null/Orientation 0>>setpagedevice"
 *CloseUI: *PageRegion
 *DefaultImageableArea: Letter.Fullbleed
 *DefaultPaperDimension: Letter.Fullbleed
@@ -160,10 +160,10 @@
 *ImageableArea Tabloid: "9.6378 14.1732 782.3622 1209.8268"
 *PaperDimension Tabloid.Fullbleed: "792.0000 1224.0000"
 *ImageableArea Tabloid.Fullbleed: "0.0000 0.0000 792.0000 1224.0000"
-*PaperDimension 13x19: "792.0000 1224.0000"
-*ImageableArea 13x19: "9.6378 14.1732 926.3622 1353.8268"
-*PaperDimension 13x19.Fullbleed: "936.0000 1368.0000"
-*ImageableArea 13x19.Fullbleed: "0.0000 0.0000 936.0000 1368.0000"
+*PaperDimension 13x19: "933.0000 1368.0000"
+*ImageableArea 13x19: "9.6378 14.1732 923.3622 1353.8268"
+*PaperDimension 13x19.Fullbleed: "933.0000 1368.0000"
+*ImageableArea 13x19.Fullbleed: "0.0000 0.0000 933.0000 1368.0000"
 *ParamCustomPageSize Width: 1 points 156 933
 *ParamCustomPageSize Height: 2 points 258 1916
 *ParamCustomPageSize WidthOffset: 3 points 0 0
