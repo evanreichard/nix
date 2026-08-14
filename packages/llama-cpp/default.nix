@@ -3,13 +3,13 @@ let
   # Version MUST be an integer string.
   # For tagged releases use the tag number (e.g. "9222").
   # For HEAD builds use YYYYMMDD (e.g. "20260519").
-  version = "10342";
+  version = "10430";
 
   src = pkgs.fetchFromGitHub {
     owner = "ggml-org";
     repo = "llama.cpp";
-    rev = "157b81fe6dbfec7d7ce91ef7cd9c6bc0c218d6fe";
-    hash = "sha256-SDxGylXECLlgEPyv7k8lEHI38gitqAiPoAx0fVe/rrA=";
+    rev = "4c1a0af40d88c7fbb3b15c85bf2e8016d1d5b64c";
+    hash = "sha256-jhMnyPKgHZfDAJUhjaZt38Hiflf9MnFb5xZutkJ/cTk=";
     leaveDotGit = true;
     postFetch = ''
       git -C "$out" rev-parse --short HEAD > $out/COMMIT

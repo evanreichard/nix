@@ -119,6 +119,37 @@ in
       };
     };
 
+    "qwen3.8-27b-cuda0" = {
+      name = "Qwen3.8 27B (CUDA0, UD-Q4)";
+      macros.ctx = "110000";
+      cmd = ''
+        ${llama-cpp}/bin/llama-server \
+          --port ''${PORT} \
+          -m /mnt/ssd/Models/Qwen3.8/Qwen3.8-27B-UD-Q4_K_XL.gguf \
+          -c ''${ctx} \
+          -np 2 -kvu \
+          --temp 0.6 \
+          --top-p 0.95 \
+          --top-k 20 \
+          --min-p 0.00 \
+          --presence-penalty 0.0 \
+          -ctk q8_0 \
+          -ctv q8_0 \
+          --spec-type draft-mtp \
+          --spec-draft-n-max 3 \
+          -dev CUDA0 \
+          -fit off \
+          --chat-template-kwargs "{\"preserve_thinking\": true}"
+      '';
+      metadata = {
+        tags = [
+          "text-generation"
+          "coding"
+          "reasoning"
+        ];
+      };
+    };
+
     # https://huggingface.co/unsloth/gemma-4-26B-A4B-it-GGUF/tree/main
     "gemma-4-26b-vl-cuda0" = {
       name = "Gemma 4 26B (VL, CUDA0)";
@@ -146,6 +177,46 @@ in
         tags = [
           "text-generation"
           "vision"
+        ];
+      };
+    };
+
+    # Muse-Glimmer 30B with DFlash speculative decoding
+    "muse-glimmer-30b-vl-cuda0" = {
+      name = "Muse-Glimmer 30B (VL, CUDA0, DFlash)";
+      macros.ctx = "262144";
+      cmd = ''
+        ${llama-cpp}/bin/llama-server \
+          --port ''${PORT} \
+          --model /mnt/ssd/Models/Muse/Muse-Glimmer-30B-UD-Q4_K_XL.gguf \
+          --mmproj /mnt/ssd/Models/Muse/Muse-Glimmer-30B-mmproj-kquant.gguf \
+          --spec-draft-model /mnt/ssd/Models/Muse/Muse-Glimmer-30B-DFlash-kquant.gguf \
+          --spec-draft-ngl 999 \
+          --spec-draft-n-max 15 \
+          --spec-type draft-dflash \
+          -c 262144 \
+          --override-kv muse-glimmer.context_length=int:262144,dflash.context_length=int:262144 \
+          -ngl 999 \
+          -fit off \
+          --parallel 1 \
+          --flash-attn on \
+          --no-warmup \
+          --cache-type-k f16 \
+          --cache-type-v f16 \
+          --temp 1.0 \
+          --top-p 0.95 \
+          --top-k 64 \
+          --reasoning-preserve \
+          --jinja \
+          --host 127.0.0.1 \
+          -dev CUDA0
+      '';
+      metadata = {
+        tags = [
+          "text-generation"
+          "coding"
+          "vision"
+          "reasoning"
         ];
       };
     };
@@ -686,6 +757,38 @@ in
       };
     };
 
+    "qwen3.8-27b-dual" = {
+      name = "Qwen3.8 27B (Dual GPU, UD-Q6)";
+      macros.ctx = "120000";
+      cmd = ''
+        ${llama-cpp}/bin/llama-server \
+          --port ''${PORT} \
+          -m /mnt/ssd/Models/Qwen3.8/Qwen3.8-27B-UD-Q6_K_XL.gguf \
+          -c ''${ctx} \
+          -np 4 -kvu \
+          --temp 0.6 \
+          --top-p 0.95 \
+          --top-k 20 \
+          --min-p 0.00 \
+          --presence-penalty 0.0 \
+          -ctk q8_0 \
+          -ctv q8_0 \
+          --spec-type draft-mtp \
+          --spec-draft-n-max 3 \
+          -dev CUDA0,CUDA1 \
+          -ts 73,27 \
+          -fit off \
+          --chat-template-kwargs "{\"preserve_thinking\": true}"
+      '';
+      metadata = {
+        tags = [
+          "text-generation"
+          "coding"
+          "reasoning"
+        ];
+      };
+    };
+
     # https://huggingface.co/unsloth/Qwen3.6-35B-A3B-MTP-GGUF/tree/main
     "qwen3.6-35b-dual" = {
       name = "Qwen3.6 35B (Dual GPU, UD-Q6)";
@@ -827,9 +930,11 @@ in
       v50 = "qwen3.6-27b-vllm-50k-cuda0";
       go = "gpt-oss-20b-cuda0";
       g4 = "gemma-4-26b-vl-cuda0";
+      mg = "muse-glimmer-30b-vl-cuda0";
       q36a = "qwen3.6-35b-cuda0";
       q36b = "qwen3.6-27b-cuda0";
       q36ik = "qwen3.6-27b-ik-cuda0";
+      q38 = "qwen3.8-27b-cuda0";
       zi = "z-image-turbo-cuda0";
       qie = "qwen-image-edit-2511-cuda0";
       qi = "qwen-image-2512-cuda0";
@@ -841,7 +946,7 @@ in
     };
 
     sets = {
-      concurrent = "(go | g4 | q36a | q36b | q36ik | v180 | v145 | v75 | v50 | zi | qie | qi | cr) & (q4 | q9)";
+      concurrent = "(go | g4 | mg | q36a | q36b | q36ik | q38 | v180 | v145 | v75 | v50 | zi | qie | qi | cr) & (q4 | q9)";
     };
   };
 
