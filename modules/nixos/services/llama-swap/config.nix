@@ -5,6 +5,94 @@ let
   stable-diffusion-cpp = pkgs.reichard.stable-diffusion-cpp.override {
     cudaSupport = true;
   };
+
+  chatTemplateControl = parameter: {
+    location = "chat_template_kwargs";
+    inherit parameter;
+  };
+  requestBudgetControl = parameter: {
+    location = "request";
+    inherit parameter;
+    minimum = 0;
+  };
+
+  reasoningProfiles = {
+    qwen36LlamaCpp = {
+      mode = "hybrid";
+      defaults = {
+        enabled = true;
+        preserve = true;
+      };
+      controls = {
+        enabled = chatTemplateControl "enable_thinking";
+        preserve = chatTemplateControl "preserve_thinking";
+        budgetTokens = requestBudgetControl "reasoning_budget_tokens" // { unlimited = -1; };
+      };
+    };
+
+    qwen36IkLlamaCpp = {
+      mode = "hybrid";
+      defaults = {
+        enabled = true;
+        preserve = true;
+      };
+      controls = {
+        enabled = chatTemplateControl "enable_thinking";
+        preserve = chatTemplateControl "preserve_thinking";
+        budgetTokens = requestBudgetControl "thinking_budget_tokens" // { unlimited = -1; };
+      };
+    };
+
+    qwen36Vllm = {
+      mode = "hybrid";
+      defaults = {
+        enabled = true;
+        preserve = false;
+      };
+      controls = {
+        enabled = chatTemplateControl "enable_thinking";
+        preserve = chatTemplateControl "preserve_thinking";
+        budgetTokens = requestBudgetControl "thinking_token_budget";
+      };
+    };
+
+    qwen38LlamaCpp = {
+      mode = "hybrid";
+      defaults = {
+        enabled = true;
+        level = "xhigh";
+        preserve = true;
+      };
+      controls = {
+        enabled = chatTemplateControl "enable_thinking";
+        level = chatTemplateControl "reasoning_effort" // {
+          values = [
+            "low"
+            "medium"
+            "xhigh"
+          ];
+        };
+        preserve = chatTemplateControl "preserve_thinking";
+        budgetTokens = requestBudgetControl "reasoning_budget_tokens" // { unlimited = -1; };
+      };
+    };
+
+    museGlimmerLlamaCpp = {
+      mode = "always";
+      defaults.level = "high";
+      controls = {
+        level = chatTemplateControl "reasoning_strength" // {
+          values = [
+            "low"
+            "medium"
+            "high"
+            "xhigh"
+          ];
+        };
+        budgetTokens = requestBudgetControl "reasoning_budget_tokens" // { unlimited = -1; };
+      };
+    };
+  };
 in
 {
   healthCheckTimeout = 500;
@@ -61,6 +149,7 @@ in
           "coding"
           "reasoning"
         ];
+        reasoning = reasoningProfiles.qwen36LlamaCpp;
       };
     };
 
@@ -84,6 +173,7 @@ in
           "coding"
           "reasoning"
         ];
+        reasoning = reasoningProfiles.qwen36IkLlamaCpp;
       };
     };
 
@@ -116,6 +206,7 @@ in
           "coding"
           "reasoning"
         ];
+        reasoning = reasoningProfiles.qwen36LlamaCpp;
       };
     };
 
@@ -147,6 +238,7 @@ in
           "coding"
           "reasoning"
         ];
+        reasoning = reasoningProfiles.qwen38LlamaCpp;
       };
     };
 
@@ -218,6 +310,7 @@ in
           "vision"
           "reasoning"
         ];
+        reasoning = reasoningProfiles.museGlimmerLlamaCpp;
       };
     };
 
@@ -361,6 +454,7 @@ in
           "coding"
           "reasoning"
         ];
+        reasoning = reasoningProfiles.qwen36Vllm;
       };
     };
 
@@ -495,6 +589,7 @@ in
           "vision"
           "reasoning"
         ];
+        reasoning = reasoningProfiles.qwen36Vllm;
       };
     };
 
@@ -635,6 +730,7 @@ in
           "coding"
           "reasoning"
         ];
+        reasoning = reasoningProfiles.qwen36Vllm;
       };
     };
 
@@ -754,6 +850,7 @@ in
           "coding"
           "reasoning"
         ];
+        reasoning = reasoningProfiles.qwen36LlamaCpp;
       };
     };
 
@@ -786,6 +883,7 @@ in
           "coding"
           "reasoning"
         ];
+        reasoning = reasoningProfiles.qwen38LlamaCpp;
       };
     };
 
@@ -820,6 +918,7 @@ in
           "coding"
           "reasoning"
         ];
+        reasoning = reasoningProfiles.qwen36LlamaCpp;
       };
     };
 

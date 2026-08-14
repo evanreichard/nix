@@ -4,6 +4,10 @@
 
 Use `<family>-<size>[-backend/variant][-context][-vl]-<placement>`. Omit `thinking` from IDs, use `vl` for vision-language models, and keep placement as the final suffix (`cuda0`, `cuda1`, or `dual`). Keep quantization and richer behavior details in the display `name` unless they are needed to distinguish two active configs for the same family/placement.
 
+## Reasoning Metadata
+
+Reasoning-capable models use `metadata.reasoning` profiles from `config.nix` as the client-neutral source of truth. Record only verified native modes, levels, defaults, and request controls; `location = "chat_template_kwargs"` denotes a nested template argument and `location = "request"` a top-level API field. Pi-specific level mapping belongs in `modules/home/programs/terminal/pi/lib.nix`.
+
 ## Syncing vLLM Configs from club-3090
 
 The three vLLM model configs in `config.nix` (`qwen3.6-27b-vllm-180k-cuda0`, `qwen3.6-27b-vllm-145k-vl-cuda0`, `qwen3.6-27b-vllm-75k-cuda0`) are derived from the club-3090 repo's Docker Compose files. Each config block has a `Synced from:` comment with the commit hash it was last aligned to.
