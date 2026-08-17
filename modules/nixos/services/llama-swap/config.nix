@@ -180,6 +180,45 @@ in
       };
     };
 
+    # https://huggingface.co/unsloth/Qwen3.6-35B-A3B-GGUF/tree/main
+    #
+    # Document Transcription Profile - Shares the IQ4_NL weights with qwen3.6-35b-cuda0 and
+    # adds only the 899 MiB F16 projector. Context is sized for a ~5 page batch (~4K image
+    # tokens per 200 DPI page plus LaTeX output and thinking), which leaves enough room for
+    # f16 KV; quantized KV is avoided here because dense math is where it visibly degrades.
+    "qwen3.6-35b-vl-cuda0" = {
+      name = "Qwen3.6 35B (VL, 64K, CUDA0)";
+      macros.ctx = "65536";
+      cmd = ''
+        ${llama-cpp}/bin/llama-server \
+          --port ''${PORT} \
+          -m /mnt/ssd/Models/Qwen3.6/Qwen3.6-35B-A3B-UD-IQ4_NL.gguf \
+          --mmproj /mnt/ssd/Models/Qwen3.6/Qwen3.6-35B-A3B-mmproj-F16.gguf \
+          -c ''${ctx} \
+          --parallel 1 \
+          --temp 0.6 \
+          --top-p 0.95 \
+          --top-k 20 \
+          --min-p 0.0 \
+          --presence-penalty 0.0 \
+          --cache-type-k f16 \
+          --cache-type-v f16 \
+          --spec-type draft-mtp \
+          --spec-draft-n-max 3 \
+          -dev CUDA0 \
+          -fit off \
+          --chat-template-kwargs "{\"preserve_thinking\": true}"
+      '';
+      metadata = {
+        tags = [
+          "text-generation"
+          "vision"
+          "reasoning"
+        ];
+        reasoning = reasoningProfiles.qwen36LlamaCpp;
+      };
+    };
+
     # https://huggingface.co/ubergarm/Qwen3.6-27B-GGUF/tree/main
     "qwen3.6-27b-ik-cuda0" = {
       name = "Qwen3.6 (27B) (CUDA0, IQ4_KS)";
@@ -478,6 +517,55 @@ in
           -ngl 999 \
           -fit off \
           --parallel 1 \
+          --flash-attn on \
+          --no-warmup \
+          --cache-type-k f16 \
+          --cache-type-v f16 \
+          --temp 1.0 \
+          --top-p 0.95 \
+          --top-k 64 \
+          --reasoning-preserve \
+          --jinja \
+          --host 127.0.0.1 \
+          -dev CUDA0
+      '';
+      metadata = {
+        tags = [
+          "text-generation"
+          "coding"
+          "vision"
+          "reasoning"
+        ];
+        reasoning = reasoningProfiles.museGlimmerLlamaCpp;
+      };
+    };
+
+    # Batch Document Transcription Profile - Four slots of 50K, sized for ~5 page jobs
+    # (a page saturates the encoder at ~4K tokens, so 5 pages is ~20K).
+    #
+    # Measured on this 3090: KV costs 13.25 KiB/token, because only 13 of 52 layers are full
+    # attention (sliding_window_pattern=4); the rest are capped at the 2048 window. The real
+    # ceiling is a ~1.9 GiB mmproj compute buffer allocated lazily on the first image, which
+    # is why 327680 starts up clean and then OOMs on the first request. That buffer is
+    # per-context rather than per-slot, so --parallel 4 costs almost nothing over 1.
+    # 262144 fits but peaks at 23.7 GiB; 200000 trades unused depth for ~1.3 GiB of slack.
+    "muse-glimmer-30b-vl-200k-cuda0" = {
+      name = "Muse-Glimmer 30B (VL, 200K, CUDA0, DFlash)";
+      macros.ctx = "200000";
+      cmd = ''
+        ${llama-cpp}/bin/llama-server \
+          --port ''${PORT} \
+          --model /mnt/ssd/Models/Muse/Muse-Glimmer-30B-UD-Q4_K_XL.gguf \
+          --mmproj /mnt/ssd/Models/Muse/Muse-Glimmer-30B-mmproj-kquant.gguf \
+          --spec-draft-model /mnt/ssd/Models/Muse/Muse-Glimmer-30B-DFlash-kquant.gguf \
+          --spec-draft-ngl 999 \
+          --spec-draft-n-max 15 \
+          --spec-type draft-dflash \
+          -c ''${ctx} \
+          --override-kv muse-glimmer.context_length=int:''${ctx},dflash.context_length=int:''${ctx} \
+          -ngl 999 \
+          -fit off \
+          --parallel 4 \
           --flash-attn on \
           --no-warmup \
           --cache-type-k f16 \
@@ -1217,7 +1305,9 @@ in
       go = "gpt-oss-20b-cuda0";
       g4 = "gemma-4-26b-vl-cuda0";
       mg = "muse-glimmer-30b-vl-cuda0";
+      mg200 = "muse-glimmer-30b-vl-200k-cuda0";
       q36a = "qwen3.6-35b-cuda0";
+      q36avl = "qwen3.6-35b-vl-cuda0";
       q36b = "qwen3.6-27b-cuda0";
       q36ik = "qwen3.6-27b-ik-cuda0";
       q38 = "qwen3.8-27b-cuda0";
@@ -1236,7 +1326,7 @@ in
     };
 
     sets = {
-      concurrent = "(go | g4 | mg | q36a | q36b | q36ik | q38 | n38vl | n38rkvl | n38l | n38rk | v180 | v145 | v75 | v50 | zi | qie | qi | cr) & (q4 | q9)";
+      concurrent = "(go | g4 | mg | mg200 | q36a | q36avl | q36b | q36ik | q38 | n38vl | n38rkvl | n38l | n38rk | v180 | v145 | v75 | v50 | zi | qie | qi | cr) & (q4 | q9)";
     };
   };
 
