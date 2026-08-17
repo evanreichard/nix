@@ -34,6 +34,25 @@ in
           ${control.parameter} = value;
         };
 
+      levelIndex = listToAttrs (lib.imap0 (index: level: nameValuePair level index) piReasoningLevels);
+
+      # Nearest Native Level - pi forwards an unmapped level verbatim (`map[level] ?? level`),
+      # so a null entry means a strict backend like NInfer answers 400 instead of falling back.
+      # Resolving every pi level to a real native one keeps the whole UI ladder usable; ties go
+      # to the higher effort.
+      nearestNativeLevel =
+        nativeLevels: level:
+        let
+          distance = native: let d = levelIndex.${native} - levelIndex.${level}; in if d < 0 then -d else d;
+          closer =
+            best: native:
+            if best == null || distance native < distance best || levelIndex.${native} > levelIndex.${best} && distance native == distance best then
+              native
+            else
+              best;
+        in
+        builtins.foldl' closer null nativeLevels;
+
       mkThinkingLevelMap =
         reasoning:
         let
@@ -51,7 +70,10 @@ in
           if levelControl != null then
             listToAttrs (
               map (
-                level: nameValuePair level (if builtins.elem level nativeLevels then level else null)
+                level:
+                nameValuePair level (
+                  if builtins.elem level nativeLevels then level else nearestNativeLevel nativeLevels level
+                )
               ) piReasoningLevels
             )
           else if supportsPiTokenBudget then
@@ -72,6 +94,7 @@ in
         let
           controls = reasoning.controls or { };
           budgetControl = controls.budgetTokens or null;
+          enabledControl = controls.enabled or null;
           chatTemplateKwargs =
             controlAttrs controls "enabled" { "$var" = "thinking.enabled"; }
             // controlAttrs controls "level" { "$var" = "thinking.effort"; }
@@ -80,10 +103,21 @@ in
             budgetControl != null
             && budgetControl.location == "request"
             && budgetControl.parameter == "thinking_token_budget";
+          # Top-Level Thinking Toggle - pi's "openai" format can only disable thinking through a
+          # `thinkingLevelMap.off` string, which hybrid profiles do not have, so turning thinking
+          # off would silently do nothing. Its "qwen" format sends `enable_thinking` alongside
+          # `reasoning_effort`, which is exactly the pair NInfer accepts at the top level.
+          sendsTopLevelThinkingToggle =
+            enabledControl != null
+            && enabledControl.location == "request"
+            && enabledControl.parameter == "enable_thinking";
         in
         optionalAttrs (chatTemplateKwargs != { }) {
           thinkingFormat = "chat-template";
           inherit chatTemplateKwargs;
+        }
+        // optionalAttrs (chatTemplateKwargs == { } && sendsTopLevelThinkingToggle) {
+          thinkingFormat = "qwen";
         }
         // optionalAttrs supportsPiTokenBudget {
           supportsThinkingTokenBudget = true;
