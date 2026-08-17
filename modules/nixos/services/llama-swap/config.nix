@@ -2,12 +2,17 @@
 let
   llama-cpp = pkgs.reichard.llama-cpp;
   ik-llama-cpp = pkgs.reichard.ik-llama-cpp;
+  ninfer = pkgs.reichard.ninfer-3090;
   stable-diffusion-cpp = pkgs.reichard.stable-diffusion-cpp.override {
     cudaSupport = true;
   };
 
   chatTemplateControl = parameter: {
     location = "chat_template_kwargs";
+    inherit parameter;
+  };
+  requestControl = parameter: {
+    location = "request";
     inherit parameter;
   };
   requestBudgetControl = parameter: {
@@ -74,6 +79,28 @@ let
         };
         preserve = chatTemplateControl "preserve_thinking";
         budgetTokens = requestBudgetControl "reasoning_budget_tokens" // { unlimited = -1; };
+      };
+    };
+
+    # NInfer takes enable_thinking, preserve_thinking, and reasoning_effort as top-level
+    # request fields; chat_template_kwargs rejects every key except preserve_thinking.
+    # Effort default comes from the artifact's chat template, so no level default is recorded.
+    qwen38Ninfer = {
+      mode = "hybrid";
+      defaults = {
+        enabled = true;
+        preserve = true;
+      };
+      controls = {
+        enabled = requestControl "enable_thinking";
+        preserve = requestControl "preserve_thinking";
+        level = requestControl "reasoning_effort" // {
+          values = [
+            "low"
+            "medium"
+            "xhigh"
+          ];
+        };
       };
     };
 
@@ -239,6 +266,116 @@ in
           "reasoning"
         ];
         reasoning = reasoningProfiles.qwen38LlamaCpp;
+      };
+    };
+
+    # https://huggingface.co/neroued/Qwen3.8-27B-NInfer
+    #
+    # All three profiles share one artifact; run setup-qwen38-ninfer.sh to fetch it.
+    # --model-id must equal the llama-swap alias: NInfer rejects requests whose model
+    # field does not match its public model ID.
+    "qwen3.8-27b-ninfer-64k-cuda0" = {
+      name = "Qwen3.8 27B (NInfer, 64K, CUDA0)";
+      macros.ctx = "65536";
+      env = [
+        "CUDA_VISIBLE_DEVICES=0"
+        "CUDA_DEVICE_ORDER=PCI_BUS_ID"
+      ];
+      cmd = ''
+        ${ninfer}/bin/ninfer-serve /mnt/ssd/Ninfer/Models/qwen3_8_27b.ninfer \
+          --host 127.0.0.1 \
+          --port ''${PORT} \
+          --model-id qwen3.8-27b-ninfer-64k-cuda0 \
+          --max-context ''${ctx} \
+          --kv-capacity ''${ctx} \
+          --max-concurrency 1 \
+          --max-pending-requests 16 \
+          --prefill-chunk 1024 \
+          --kv-dtype int8 \
+          --spec mtp \
+          --draft-tokens 3 \
+          --lm-head-draft \
+          --preserve-thinking \
+          --cors
+      '';
+      metadata = {
+        tags = [
+          "text-generation"
+          "coding"
+          "reasoning"
+        ];
+        reasoning = reasoningProfiles.qwen38Ninfer;
+      };
+    };
+
+    "qwen3.8-27b-ninfer-c8-8k-cuda0" = {
+      name = "Qwen3.8 27B (NInfer, C8, 8K, CUDA0)";
+      macros.ctx = "8192";
+      env = [
+        "CUDA_VISIBLE_DEVICES=0"
+        "CUDA_DEVICE_ORDER=PCI_BUS_ID"
+      ];
+      cmd = ''
+        ${ninfer}/bin/ninfer-serve /mnt/ssd/Ninfer/Models/qwen3_8_27b.ninfer \
+          --host 127.0.0.1 \
+          --port ''${PORT} \
+          --model-id qwen3.8-27b-ninfer-c8-8k-cuda0 \
+          --max-context ''${ctx} \
+          --kv-capacity 16384 \
+          --max-concurrency 8 \
+          --max-pending-requests 32 \
+          --prefill-chunk 1024 \
+          --kv-dtype int8 \
+          --spec mtp \
+          --draft-tokens 3 \
+          --lm-head-draft \
+          --preserve-thinking \
+          --cors
+      '';
+      metadata = {
+        tags = [
+          "text-generation"
+          "coding"
+          "reasoning"
+        ];
+        reasoning = reasoningProfiles.qwen38Ninfer;
+      };
+    };
+
+    "qwen3.8-27b-ninfer-32k-vl-cuda0" = {
+      name = "Qwen3.8 27B (NInfer, VL, 32K, CUDA0)";
+      macros.ctx = "32768";
+      env = [
+        "CUDA_VISIBLE_DEVICES=0"
+        "CUDA_DEVICE_ORDER=PCI_BUS_ID"
+      ];
+      cmd = ''
+        ${ninfer}/bin/ninfer-serve /mnt/ssd/Ninfer/Models/qwen3_8_27b.ninfer \
+          --host 127.0.0.1 \
+          --port ''${PORT} \
+          --model-id qwen3.8-27b-ninfer-32k-vl-cuda0 \
+          --max-context ''${ctx} \
+          --kv-capacity ''${ctx} \
+          --max-concurrency 1 \
+          --max-pending-requests 8 \
+          --prefill-chunk 512 \
+          --kv-dtype int8 \
+          --default-max-tokens 1024 \
+          --vision \
+          --spec mtp \
+          --draft-tokens 3 \
+          --lm-head-draft \
+          --preserve-thinking \
+          --cors
+      '';
+      metadata = {
+        tags = [
+          "text-generation"
+          "coding"
+          "vision"
+          "reasoning"
+        ];
+        reasoning = reasoningProfiles.qwen38Ninfer;
       };
     };
 
@@ -1034,6 +1171,9 @@ in
       q36b = "qwen3.6-27b-cuda0";
       q36ik = "qwen3.6-27b-ik-cuda0";
       q38 = "qwen3.8-27b-cuda0";
+      n38 = "qwen3.8-27b-ninfer-64k-cuda0";
+      n38c8 = "qwen3.8-27b-ninfer-c8-8k-cuda0";
+      n38vl = "qwen3.8-27b-ninfer-32k-vl-cuda0";
       zi = "z-image-turbo-cuda0";
       qie = "qwen-image-edit-2511-cuda0";
       qi = "qwen-image-2512-cuda0";
@@ -1045,7 +1185,7 @@ in
     };
 
     sets = {
-      concurrent = "(go | g4 | mg | q36a | q36b | q36ik | q38 | v180 | v145 | v75 | v50 | zi | qie | qi | cr) & (q4 | q9)";
+      concurrent = "(go | g4 | mg | q36a | q36b | q36ik | q38 | n38 | n38c8 | n38vl | v180 | v145 | v75 | v50 | zi | qie | qi | cr) & (q4 | q9)";
     };
   };
 

@@ -8,6 +8,15 @@ Use `<family>-<size>[-backend/variant][-context][-vl]-<placement>`. Omit `thinki
 
 Reasoning-capable models use `metadata.reasoning` profiles from `config.nix` as the client-neutral source of truth. Record only verified native modes, levels, defaults, and request controls; `location = "chat_template_kwargs"` denotes a nested template argument and `location = "request"` a top-level API field. Pi-specific level mapping belongs in `modules/home/programs/terminal/pi/lib.nix`.
 
+## NInfer Configs
+
+The three `qwen3.8-27b-ninfer-*` entries run `pkgs.reichard.ninfer-3090` (`packages/ninfer-3090/`) against one 17 GiB artifact at `/mnt/ssd/Ninfer/Models/qwen3_8_27b.ninfer`, fetched by `setup-qwen38-ninfer.sh`. Flags mirror upstream's tested 3090 launchers in `scripts/run-qwen38-{c1,c8,vision}.sh`.
+
+Two NInfer-specific constraints:
+
+- `--model-id` must equal the llama-swap alias. NInfer rejects any request whose `model` field differs from its public model ID, and llama-swap forwards the body unchanged.
+- `chat_template_kwargs` accepts only `preserve_thinking`; any other key is a 400. `enable_thinking`, `preserve_thinking`, and `reasoning_effort` are top-level request fields, so the `qwen38Ninfer` reasoning profile uses `location = "request"` throughout. Using `chat_template_kwargs` controls here would push pi onto its `thinkingFormat = "chat-template"` path and break every request.
+
 ## Syncing vLLM Configs from club-3090
 
 The three vLLM model configs in `config.nix` (`qwen3.6-27b-vllm-180k-cuda0`, `qwen3.6-27b-vllm-145k-vl-cuda0`, `qwen3.6-27b-vllm-75k-cuda0`) are derived from the club-3090 repo's Docker Compose files. Each config block has a `Synced from:` comment with the commit hash it was last aligned to.
