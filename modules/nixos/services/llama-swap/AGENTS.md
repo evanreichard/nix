@@ -10,12 +10,31 @@ Reasoning-capable models use `metadata.reasoning` profiles from `config.nix` as 
 
 ## NInfer Configs
 
-The three `qwen3.8-27b-ninfer-*` entries run `pkgs.reichard.ninfer-3090` (`packages/ninfer-3090/`) against one 17 GiB artifact at `/mnt/ssd/Ninfer/Models/qwen3_8_27b.ninfer`, fetched by `setup-qwen38-ninfer.sh`. Flags mirror upstream's tested 3090 launchers in `scripts/run-qwen38-{c1,c8,vision}.sh`.
+The `qwen3.8-27b-ninfer-*` entries run `pkgs.reichard.ninfer-3090` (`packages/ninfer-3090/`) against one 17 GiB artifact at `/mnt/ssd/Ninfer/Models/qwen3_8_27b.ninfer`, fetched by `setup-qwen38-ninfer.sh`. The 64K/C8/vision flags mirror upstream's launchers in `scripts/run-qwen38-{c1,c8,vision}.sh`; the 165K and 240K profiles are derived from upstream's measured allocation boundaries.
 
-Two NInfer-specific constraints:
+### Context Budget
+
+Qwen3.6/3.8-27B is a hybrid: 16 of 64 layers are full attention, the other 48 are GDN with fixed-size state (`src/targets/qwen3_6_27b/impl/config.h`). With 4 KV heads at head_dim 256, KV costs ~33 KiB/token at INT8 and ~26 KiB/token at rk8v4 — that is what makes 165K+ fit alongside 17 GiB of weights.
+
+Sizing is arithmetic, not trial and error. Reservation is linear in capacity and an oversized run fails in under a second printing required vs available bytes, so two failed probes recover both constants exactly (`scripts/ninfer-probe.sh`). Measured on our 3090 at C1/MTP3 with CUDA Graphs on:
+
+| Profile | Fixed bytes | Bytes/token | Startup ceiling | Config value |
+|---|---|---|---|---|
+| `int8` | 600,945,920 | 35,904 | 181,312 | 177,152 (~217 MiB free) |
+| `rk8v4` | 600,913,152 | 27,200 | 239,296 | 234,496 (~201 MiB free) |
+| `int8 --vision` | 2,567,478,272 | 35,904 | 118,336 | 114,688 (~199 MiB free) |
+| `rk8v4 --vision` | 2,567,441,408 | 27,200 | 156,224 | 151,552 (~195 MiB free) |
+
+Every ceiling above leaves only ~75 MiB free, hence the ~200 MiB deployed margin. Two constants generalize to profiles we have not probed: vision is a flat ~1.83 GiB plus ~282 MiB of weights, and each `--max-concurrency` slot beyond the first costs ~409 MB (~11,390 int8 tokens or ~15,035 rk8v4). Both are independent of KV dtype. A separate artifact limit caps `--max-context` at 262,144 regardless of memory.
+
+Available memory drifts ~1.5 MB between runs, so running at the ceiling is not reproducible; leave ~200 MiB. The CUDA Graph allowance is one 86 MiB class at C1/K3 (`graphs=8.00 MiB/86.00 MiB` in the startup ledger), worth ~2.5K INT8 or ~3.2K rk8v4 tokens — lower the context rather than passing `--no-cuda-graph`.
+
+### NInfer Request Constraints
 
 - `--model-id` must equal the llama-swap alias. NInfer rejects any request whose `model` field differs from its public model ID, and llama-swap forwards the body unchanged.
 - `chat_template_kwargs` accepts only `preserve_thinking`; any other key is a 400. `enable_thinking`, `preserve_thinking`, and `reasoning_effort` are top-level request fields, so the `qwen38Ninfer` reasoning profile uses `location = "request"` throughout. Using `chat_template_kwargs` controls here would push pi onto its `thinkingFormat = "chat-template"` path and break every request.
+
+The package pins the `feature/qwen38-rk8v4-paged-sm86` branch, not a release tag: `--kv-dtype rk8v4` does not exist in `release/v0.6.0-rtx3090`. Dropping the 240K entry would allow moving back to a release pin.
 
 ## Syncing vLLM Configs from club-3090
 

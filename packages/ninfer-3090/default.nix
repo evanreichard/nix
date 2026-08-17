@@ -11,13 +11,16 @@
 }:
 cudaPackages.backendStdenv.mkDerivation (finalAttrs: {
   pname = "ninfer-3090";
-  version = "0.6.1-rtx3090";
+  version = "0.6.1-rtx3090-unstable-2026-08-16";
 
+  # Feature Branch Pin - rk8v4 (rotated INT8 key / INT4 value KV) only exists on
+  # feature/qwen38-rk8v4-paged-sm86, which merges release/v0.6.0-rtx3090. The 240K
+  # llama-swap profile needs it; INT8 profiles behave the same as the release branch.
   src = fetchFromGitHub {
     owner = "Don-Chad";
     repo = "ninfer-3090";
-    rev = "7d715ccdaf58ad214fcbe61bb517c5e414c2a83d";
-    hash = "sha256-UZTuW7QrvYCgOoY29zOW7DXj8GZHQ1SUt3+qO+w9lcY=";
+    rev = "a9a93fb0256b0d75d747e03136646f0e9d32f908";
+    hash = "sha256-NlSKUqO2SQNqNWd14QW1oUOaBF9lEMmzbbYfFwHNbRY=";
   };
 
   nativeBuildInputs = [

@@ -47,9 +47,67 @@ Swap the profile block to match the config under test:
 
 | Profile | Flags |
 | --- | --- |
-| C1 / 64K | `--max-context 65536 --kv-capacity 65536 --max-concurrency 1 --max-pending-requests 16 --prefill-chunk 1024` |
-| C8 / 8K | `--max-context 8192 --kv-capacity 16384 --max-concurrency 8 --max-pending-requests 32 --prefill-chunk 1024` |
-| Vision / 32K | `--max-context 32768 --kv-capacity 32768 --max-concurrency 1 --max-pending-requests 8 --prefill-chunk 512 --default-max-tokens 1024 --vision` |
+| C1 / 173K | `--max-context 177152 --kv-capacity 177152 --max-concurrency 1 --max-pending-requests 16 --prefill-chunk 1024` |
+| C1 / 229K rk8v4 | `--max-context 234496 --kv-capacity 234496 --max-concurrency 1 --max-pending-requests 16 --prefill-chunk 1024 --kv-dtype rk8v4` |
+| C1 / 112K vision | `--max-context 114688 --kv-capacity 114688 --max-concurrency 1 --max-pending-requests 8 --prefill-chunk 512 --default-max-tokens 1024 --vision` |
+| C1 / 148K vision rk8v4 | `--max-context 151552 --kv-capacity 151552 --max-concurrency 1 --max-pending-requests 8 --prefill-chunk 512 --default-max-tokens 1024 --vision --kv-dtype rk8v4` |
+
+### Sizing long-context profiles
+
+Reservation is linear in capacity and an oversized run fails in under a second, printing
+both numbers:
+
+```
+requested Engine runtime reservation requires 7285583104 bytes,
+but only 7114079232 bytes are available for runtime capacity
+```
+
+So two failed probes at different capacities recover the whole model — no bisection
+needed. Measured on this 3090 at C1/MTP3 with CUDA Graphs on:
+
+```
+bytes =   600,945,920 + tokens x 35,904   (int8,           7,114,079,232 available)
+bytes =   600,913,152 + tokens x 27,200   (rk8v4,          7,114,079,232 available)
+bytes = 2,567,478,272 + tokens x 35,904   (int8 vision,    6,818,359,808 available)
+bytes = 2,567,441,408 + tokens x 27,200   (rk8v4 vision,   6,818,359,808 available)
+```
+
+`--vision` costs ~1.83 GiB of fixed reservation and ~282 MiB of extra weights, identical
+for both KV dtypes. Each extra `--max-concurrency` slot costs ~409 MB (~390 MiB), also
+dtype- and vision-independent: ~11,390 int8 tokens or ~15,035 rk8v4 tokens. Probe with
+the flags the target profile will actually run.
+
+| Profile | Ceiling that starts | First failure | Free at ceiling | Deployed |
+| --- | --- | --- | --- | --- |
+| `int8` | 181,312 | 181,376 | 75 MiB | 177,152 (217 MiB free, 60.7 tok/s) |
+| `rk8v4` | 239,296 | 239,424 | 77 MiB | 234,496 (201 MiB free, 56.0 tok/s) |
+| `int8 --vision` | 118,336 | 118,400 | 75 MiB | 114,688 (199 MiB free, 60.9 tok/s) |
+| `rk8v4 --vision` | 156,224 | 156,288 | 75 MiB | 151,552 (195 MiB free, 53.1 tok/s) |
+
+The artifact also caps `--max-context` at 262,144 independently of memory; probes above
+that return the usage text rather than a reservation error.
+
+Available memory drifts ~1.5 MB run to run, so the ceiling is not reproducible — the
+deployed values keep ~200 MiB. `--no-cuda-graph` frees only the 86 MiB graph allowance
+(~2.5K INT8 / ~3.2K rk8v4 tokens) and costs decode throughput; lower the context instead.
+
+The startup ledger reports exactly what resolved:
+
+```
+KV capacity explicit resolved=177152 tokens pages=2768/2768 runtime=6.48 GiB
+free-after-weights=6.62 GiB free-after-startup=219.00 MiB slack=144.09 MiB
+graphs=8.00 MiB/86.00 MiB
+```
+
+`scripts/ninfer-probe.sh` and `scripts/ninfer-smoke.sh` automate the probe and a
+one-request end-to-end check. Both take `<dtype> <tokens>` and read `NINFER_SERVE`:
+
+```bash
+nix build /etc/nixos#ninfer-3090
+export NINFER_SERVE=$PWD/result/bin/ninfer-serve
+./scripts/ninfer-probe.sh rk8v4 245760    # FIT rk8v4 245760 required=... available=...
+./scripts/ninfer-smoke.sh rk8v4 234496    # loads, generates, prints the ledger
+```
 
 Only one process can own the GPU. Stop the resident llama-swap model first:
 

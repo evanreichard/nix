@@ -271,12 +271,17 @@ in
 
     # https://huggingface.co/neroued/Qwen3.8-27B-NInfer
     #
-    # All three profiles share one artifact; run setup-qwen38-ninfer.sh to fetch it.
+    # All profiles share one artifact; run setup-qwen38-ninfer.sh to fetch it.
     # --model-id must equal the llama-swap alias: NInfer rejects requests whose model
     # field does not match its public model ID.
-    "qwen3.8-27b-ninfer-64k-cuda0" = {
-      name = "Qwen3.8 27B (NInfer, 64K, CUDA0)";
-      macros.ctx = "65536";
+    #
+    # Long-Context Profiles - Capacities measured on this 3090 (see README): the C1/MTP3
+    # startup ceiling is 181,312 tokens INT8 and 239,296 rk8v4, each leaving only ~75 MiB
+    # free. These sit ~4K tokens below that for ~200 MiB of slack, which model swaps need.
+    # Both were verified end to end at 60.7 and 56.0 tok/s decode.
+    "qwen3.8-27b-ninfer-173k-cuda0" = {
+      name = "Qwen3.8 27B (NInfer, 173K, CUDA0)";
+      macros.ctx = "177152";
       env = [
         "CUDA_VISIBLE_DEVICES=0"
         "CUDA_DEVICE_ORDER=PCI_BUS_ID"
@@ -285,7 +290,7 @@ in
         ${ninfer}/bin/ninfer-serve /mnt/ssd/Ninfer/Models/qwen3_8_27b.ninfer \
           --host 127.0.0.1 \
           --port ''${PORT} \
-          --model-id qwen3.8-27b-ninfer-64k-cuda0 \
+          --model-id qwen3.8-27b-ninfer-173k-cuda0 \
           --max-context ''${ctx} \
           --kv-capacity ''${ctx} \
           --max-concurrency 1 \
@@ -308,9 +313,13 @@ in
       };
     };
 
-    "qwen3.8-27b-ninfer-c8-8k-cuda0" = {
-      name = "Qwen3.8 27B (NInfer, C8, 8K, CUDA0)";
-      macros.ctx = "8192";
+    # rk8v4 stores keys at eight bits and rotated values at four: ~25.6 KiB/token against
+    # ~33 KiB/token for INT8. It is experimental and lossy - upstream measured a quality
+    # regression on a coding fixture - so INT8 stays the default for real work.
+    #
+    "qwen3.8-27b-ninfer-rk8v4-229k-cuda0" = {
+      name = "Qwen3.8 27B (NInfer, RotorQuant, 229K, CUDA0)";
+      macros.ctx = "234496";
       env = [
         "CUDA_VISIBLE_DEVICES=0"
         "CUDA_DEVICE_ORDER=PCI_BUS_ID"
@@ -319,13 +328,13 @@ in
         ${ninfer}/bin/ninfer-serve /mnt/ssd/Ninfer/Models/qwen3_8_27b.ninfer \
           --host 127.0.0.1 \
           --port ''${PORT} \
-          --model-id qwen3.8-27b-ninfer-c8-8k-cuda0 \
+          --model-id qwen3.8-27b-ninfer-rk8v4-229k-cuda0 \
           --max-context ''${ctx} \
-          --kv-capacity 16384 \
-          --max-concurrency 8 \
-          --max-pending-requests 32 \
+          --kv-capacity ''${ctx} \
+          --max-concurrency 1 \
+          --max-pending-requests 16 \
           --prefill-chunk 1024 \
-          --kv-dtype int8 \
+          --kv-dtype rk8v4 \
           --spec mtp \
           --draft-tokens 3 \
           --lm-head-draft \
@@ -342,9 +351,13 @@ in
       };
     };
 
-    "qwen3.8-27b-ninfer-32k-vl-cuda0" = {
-      name = "Qwen3.8 27B (NInfer, VL, 32K, CUDA0)";
-      macros.ctx = "32768";
+    # Vision costs ~1.83 GiB of fixed reservation (encoder plus the media request-transient
+    # buffer) and ~282 MiB of extra weights, independent of KV dtype, but per-token KV is
+    # unchanged. Ceilings are 118,336 int8 and 156,224 rk8v4; upstream's launcher ships 32K
+    # because it targets a stock 24 GiB card conservatively, not because vision caps context.
+    "qwen3.8-27b-ninfer-112k-vl-cuda0" = {
+      name = "Qwen3.8 27B (NInfer, VL, 112K, CUDA0)";
+      macros.ctx = "114688";
       env = [
         "CUDA_VISIBLE_DEVICES=0"
         "CUDA_DEVICE_ORDER=PCI_BUS_ID"
@@ -353,13 +366,50 @@ in
         ${ninfer}/bin/ninfer-serve /mnt/ssd/Ninfer/Models/qwen3_8_27b.ninfer \
           --host 127.0.0.1 \
           --port ''${PORT} \
-          --model-id qwen3.8-27b-ninfer-32k-vl-cuda0 \
+          --model-id qwen3.8-27b-ninfer-112k-vl-cuda0 \
           --max-context ''${ctx} \
           --kv-capacity ''${ctx} \
           --max-concurrency 1 \
           --max-pending-requests 8 \
           --prefill-chunk 512 \
           --kv-dtype int8 \
+          --default-max-tokens 1024 \
+          --vision \
+          --spec mtp \
+          --draft-tokens 3 \
+          --lm-head-draft \
+          --preserve-thinking \
+          --cors
+      '';
+      metadata = {
+        tags = [
+          "text-generation"
+          "coding"
+          "vision"
+          "reasoning"
+        ];
+        reasoning = reasoningProfiles.qwen38Ninfer;
+      };
+    };
+
+    "qwen3.8-27b-ninfer-rk8v4-148k-vl-cuda0" = {
+      name = "Qwen3.8 27B (NInfer, RotorQuant, VL, 148K, CUDA0)";
+      macros.ctx = "151552";
+      env = [
+        "CUDA_VISIBLE_DEVICES=0"
+        "CUDA_DEVICE_ORDER=PCI_BUS_ID"
+      ];
+      cmd = ''
+        ${ninfer}/bin/ninfer-serve /mnt/ssd/Ninfer/Models/qwen3_8_27b.ninfer \
+          --host 127.0.0.1 \
+          --port ''${PORT} \
+          --model-id qwen3.8-27b-ninfer-rk8v4-148k-vl-cuda0 \
+          --max-context ''${ctx} \
+          --kv-capacity ''${ctx} \
+          --max-concurrency 1 \
+          --max-pending-requests 8 \
+          --prefill-chunk 512 \
+          --kv-dtype rk8v4 \
           --default-max-tokens 1024 \
           --vision \
           --spec mtp \
@@ -1171,9 +1221,10 @@ in
       q36b = "qwen3.6-27b-cuda0";
       q36ik = "qwen3.6-27b-ik-cuda0";
       q38 = "qwen3.8-27b-cuda0";
-      n38 = "qwen3.8-27b-ninfer-64k-cuda0";
-      n38c8 = "qwen3.8-27b-ninfer-c8-8k-cuda0";
-      n38vl = "qwen3.8-27b-ninfer-32k-vl-cuda0";
+      n38vl = "qwen3.8-27b-ninfer-112k-vl-cuda0";
+      n38rkvl = "qwen3.8-27b-ninfer-rk8v4-148k-vl-cuda0";
+      n38l = "qwen3.8-27b-ninfer-173k-cuda0";
+      n38rk = "qwen3.8-27b-ninfer-rk8v4-229k-cuda0";
       zi = "z-image-turbo-cuda0";
       qie = "qwen-image-edit-2511-cuda0";
       qi = "qwen-image-2512-cuda0";
@@ -1185,7 +1236,7 @@ in
     };
 
     sets = {
-      concurrent = "(go | g4 | mg | q36a | q36b | q36ik | q38 | n38 | n38c8 | n38vl | v180 | v145 | v75 | v50 | zi | qie | qi | cr) & (q4 | q9)";
+      concurrent = "(go | g4 | mg | q36a | q36b | q36ik | q38 | n38vl | n38rkvl | n38l | n38rk | v180 | v145 | v75 | v50 | zi | qie | qi | cr) & (q4 | q9)";
     };
   };
 
