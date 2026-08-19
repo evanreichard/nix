@@ -12,6 +12,28 @@ let
 
   cfg = config.${namespace}.programs.terminal.pi;
 
+  homeDir = config.home.homeDirectory;
+
+  # Sandbox Binds - $HOME is a tmpfs inside the sandbox, so every path pi
+  # genuinely needs has to be listed. Missing paths are skipped at runtime.
+  sandboxRoBinds = [
+    "${homeDir}/.config/sops-nix/secrets/rendered/pi-models.json"
+    "${homeDir}/.config/sops-nix/secrets/rendered/pi-web.json"
+    "${homeDir}/.gitconfig"
+    "${homeDir}/.config/git"
+  ]
+  ++ cfg.sandbox.extraRoBinds;
+
+  sandboxRwBinds = cfg.sandbox.extraRwBinds;
+
+  piSandbox = import ./sandbox.nix {
+    inherit lib pkgs;
+    piPackage = pkgs.${namespace}.pi-coding-agent;
+    roBinds = sandboxRoBinds;
+    rwBinds = sandboxRwBinds;
+    inherit (cfg.sandbox) shareNet bindSshAgent;
+  };
+
   # Nix-Owned Plugin List - Source of truth for `packages` in settings.json.
   # Merged into the (mutable) settings.json on activation so pi can keep
   # writing other fields (current model, etc.) without us clobbering them.
@@ -96,16 +118,38 @@ in
 {
   options.${namespace}.programs.terminal.pi = {
     enable = lib.mkEnableOption "enable pi";
+
+    sandbox = {
+      enable = lib.mkEnableOption "run pi inside a bubblewrap sandbox" // {
+        default = true;
+      };
+      shareNet = lib.mkEnableOption "give the sandbox host network access" // {
+        default = true;
+      };
+      bindSshAgent = lib.mkEnableOption "expose $SSH_AUTH_SOCK to the sandbox";
+      extraRoBinds = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [ ];
+        description = "Additional paths bind-mounted read-only into the pi sandbox.";
+      };
+      extraRwBinds = lib.mkOption {
+        type = lib.types.listOf lib.types.str;
+        default = [ ];
+        description = "Additional paths bind-mounted read-write into the pi sandbox.";
+      };
+    };
   };
 
   config = mkIf cfg.enable {
     # Enable Glimpse
     ${namespace}.programs.terminal.glimpse.enable = true;
 
-    # Add Pi Coding Agent to Home Packages
-    home.packages = with pkgs; [
-      reichard.pi-coding-agent
-      reichard.pi-web
+    # Add Pi Coding Agent to Home Packages - `pi` is the sandboxed wrapper when
+    # the sandbox is enabled; `pi-dangerous` is always the unwrapped binary.
+    home.packages = [
+      (if cfg.sandbox.enable then piSandbox.sandboxed else pkgs.${namespace}.pi-coding-agent)
+      piSandbox.dangerous
+      pkgs.${namespace}.pi-web
     ];
 
     # Define Pi Configuration
