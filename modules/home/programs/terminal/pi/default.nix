@@ -26,9 +26,10 @@ let
 
   sandboxRwBinds = cfg.sandbox.extraRwBinds;
 
-  piSandbox = import ./sandbox.nix {
+  piSandbox = import ../agent-shared/sandbox.nix {
     inherit lib pkgs;
-    piPackage = pkgs.${namespace}.pi-coding-agent;
+    name = "pi";
+    package = pkgs.${namespace}.pi-coding-agent;
     roBinds = sandboxRoBinds;
     rwBinds = sandboxRwBinds;
     inherit (cfg.sandbox) shareNet bindSshAgent;
@@ -152,21 +153,22 @@ in
       pkgs.${namespace}.pi-web
     ];
 
-    # Define Pi Configuration
+    # Define Pi Configuration - AGENTS.md, skills, and prompts are agent-agnostic and shared
+    # with omp via `../agent-shared/config`; subagents and extensions are pi-only formats.
     home.file = {
       ".pi/agent/AGENTS.md" = {
-        source = ./config/AGENTS.md;
+        source = ../agent-shared/config/AGENTS.md;
       };
       ".pi/agent/skills" = {
-        source = ./config/skills;
+        source = ../agent-shared/config/skills;
+        recursive = true;
+      };
+      ".pi/agent/prompts" = {
+        source = ../agent-shared/config/prompts;
         recursive = true;
       };
       ".pi/agent/subagents" = {
         source = ./config/subagents;
-        recursive = true;
-      };
-      ".pi/agent/prompts" = {
-        source = ./config/prompts;
         recursive = true;
       };
       ".pi/agent/extensions" = {

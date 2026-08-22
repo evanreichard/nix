@@ -33,6 +33,7 @@ in
         git = enabled;
         k9s = enabled;
         nvim = enabled;
+        omp = enabled;
         opencode = enabled;
         pi = enabled;
         tmux = enabled;

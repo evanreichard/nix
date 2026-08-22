@@ -1,16 +1,23 @@
-# Pi Bubblewrap Sandbox - Wraps `pi` in a user-namespace sandbox so a rogue
-# tool call can only touch the cwd and pi's own state. $HOME is replaced by a
-# tmpfs, so anything not bound below (SSH keys, browser profiles, other repos)
-# is simply absent rather than merely unwritable.
+# Coding Agent Bubblewrap Sandbox - Wraps an agent CLI in a user-namespace sandbox so a rogue
+# tool call can only touch the cwd and the agent's own state. $HOME is replaced by a tmpfs, so
+# anything not bound below (SSH keys, browser profiles, other repos) is simply absent rather
+# than merely unwritable.
+#
+# `name` drives the binary name, the `$HOME/.<name>` state bind, and the `<NAME>_SANDBOX` guard,
+# so every agent that keeps its state in a single dotdir shares this wrapper unchanged.
 { lib
 , pkgs
-, piPackage
+, name
+, package
 , roBinds
 , rwBinds
 , shareNet
 , bindSshAgent
 }:
 let
+  guardVar = "${lib.toUpper name}_SANDBOX";
+  binary = "${package}/bin/${name}";
+
   # Bind Loop - Emitted only for non-empty lists, since `for x in ; do` is a
   # bash syntax error.
   bindLoop = flag: paths:
@@ -19,13 +26,13 @@ let
     '';
 
   sandboxed = pkgs.writeShellApplication {
-    name = "pi";
+    inherit name;
     runtimeInputs = [ pkgs.bubblewrap ];
     text = ''
-      # Nested Invocation Guard - Subagents re-exec `pi`, and bwrap cannot nest
-      # inside its own user namespace.
-      if [ "''${PI_SANDBOX:-0}" = "1" ]; then
-        exec ${piPackage}/bin/pi "$@"
+      # Nested Invocation Guard - Subagents re-exec `${name}`, and bwrap cannot
+      # nest inside its own user namespace.
+      if [ "''${${guardVar}:-0}" = "1" ]; then
+        exec ${binary} "$@"
       fi
 
       runtime_dir="''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
@@ -40,7 +47,7 @@ let
         --tmpfs /tmp
         --tmpfs "$HOME"
         --tmpfs "$runtime_dir"
-        --bind "$HOME/.pi" "$HOME/.pi"
+        --bind "$HOME/.${name}" "$HOME/.${name}"
       )
 
       add_bind() {
@@ -67,14 +74,14 @@ let
         "''${args[@]}" \
         --unshare-all ${lib.optionalString shareNet "--share-net"} \
         --die-with-parent \
-        --setenv PI_SANDBOX 1 \
-        ${piPackage}/bin/pi "$@"
+        --setenv ${guardVar} 1 \
+        ${binary} "$@"
     '';
   };
 
-  dangerous = pkgs.runCommand "pi-dangerous" { } ''
+  dangerous = pkgs.runCommand "${name}-dangerous" { } ''
     mkdir -p $out/bin
-    ln -s ${piPackage}/bin/pi $out/bin/pi-dangerous
+    ln -s ${binary} $out/bin/${name}-dangerous
   '';
 in
 { inherit sandboxed dangerous; }
