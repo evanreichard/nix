@@ -1009,6 +1009,38 @@ in
       };
     };
 
+    # https://huggingface.co/Abiray/OvisOCR2-GGUF/tree/main
+    #
+    # Page-Parsing Profile - 0.8B Qwen3.5 derivative that transcribes a full page into
+    # Markdown with LaTeX formulas and HTML tables; it has no coding or chat use.
+    # Eight 12.8K slots: a 200 DPI page plus its transcription fits inside one slot, and
+    # --image-min-tokens 1024 is upstream's floor for Qwen-VL image handling. Measured
+    # 2.7 GiB total at this geometry, so it is a filler model rather than a resident one.
+    "ovis-ocr2-cuda0" = {
+      name = "OvisOCR2 0.8B (OCR, 100K, CUDA0)";
+      macros.ctx = "102400";
+      cmd = ''
+        ${llama-cpp}/bin/llama-server \
+          --port ''${PORT} \
+          -m /mnt/ssd/Models/Vision/OvisOCR2-Q8_0.gguf \
+          --mmproj /mnt/ssd/Models/Vision/OvisOCR2-mmproj-F16.gguf \
+          -c ''${ctx} \
+          --parallel 8 \
+          --image-min-tokens 1024 \
+          --temp 0.0 \
+          --top-p 1.0 \
+          --no-warmup \
+          -fit off \
+          -dev CUDA0
+      '';
+      metadata = {
+        tags = [
+          "text-generation"
+          "vision"
+        ];
+      };
+    };
+
     # ---------------------------------------
     # ------------- GTX 1080 Ti -------------
     # ---------------------------------------
@@ -1061,6 +1093,36 @@ in
         tags = [
           "text-generation"
           "coding"
+        ];
+      };
+    };
+
+    # https://huggingface.co/Abiray/OvisOCR2-GGUF/tree/main
+    #
+    # Same geometry as ovis-ocr2-cuda0; verified end to end here at 8 concurrent pages,
+    # which is why the 3090 copy needs no separate sizing.
+    "ovis-ocr2-cuda1" = {
+      name = "OvisOCR2 0.8B (OCR, 100K, CUDA1)";
+      macros.ctx = "102400";
+      env = [ "CUDA_VISIBLE_DEVICES=1" ];
+      cmd = ''
+        ${llama-cpp}/bin/llama-server \
+          --port ''${PORT} \
+          -m /mnt/ssd/Models/Vision/OvisOCR2-Q8_0.gguf \
+          --mmproj /mnt/ssd/Models/Vision/OvisOCR2-mmproj-F16.gguf \
+          -c ''${ctx} \
+          --parallel 8 \
+          --image-min-tokens 1024 \
+          --temp 0.0 \
+          --top-p 1.0 \
+          --no-warmup \
+          -fit off \
+          -dev CUDA0
+      '';
+      metadata = {
+        tags = [
+          "text-generation"
+          "vision"
         ];
       };
     };
@@ -1319,14 +1381,16 @@ in
       qie = "qwen-image-edit-2511-cuda0";
       qi = "qwen-image-2512-cuda0";
       cr = "chroma-radiance-cuda0";
+      ov0 = "ovis-ocr2-cuda0";
 
       # --- GTX 1080 Ti Models ---
       q4 = "qwen3.5-4b-cuda1";
       q9 = "qwen3.5-9b-vl-cuda1";
+      ov1 = "ovis-ocr2-cuda1";
     };
 
     sets = {
-      concurrent = "(go | g4 | mg | mg200 | q36a | q36avl | q36b | q36ik | q38 | n38vl | n38rkvl | n38l | n38rk | v180 | v145 | v75 | v50 | zi | qie | qi | cr) & (q4 | q9)";
+      concurrent = "(go | g4 | mg | mg200 | q36a | q36avl | q36b | q36ik | q38 | n38vl | n38rkvl | n38l | n38rk | v180 | v145 | v75 | v50 | ov0 | zi | qie | qi | cr) & (q4 | q9 | ov1)";
     };
   };
 
