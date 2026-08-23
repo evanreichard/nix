@@ -44,7 +44,7 @@ description: "<One-liner: what it does and when to trigger. Keep under ~200 char
 **Guidelines:**
 
 - **Be concise.** Skills are injected into agent context — every line costs tokens. Aim for the minimum needed to reliably guide the agent.
-- **Use scripts for repeatable logic.** If a step involves a multi-line shell command, `jq` pipeline, or API call that won't change between runs, put it in a `.sh` file next to `SKILL.md` and reference it from the workflow. See `address-gh-review/` for an example.
+- **Use scripts for repeatable logic.** If a step involves a multi-line shell command, `jq` pipeline, or API call that won't change between runs, put it in a `.sh` file next to `SKILL.md` and reference it from the workflow. See `address-pr-review/` for an example.
 - **Needs configurable values (paths, identifiers, etc.; not secrets — values are stored as plaintext files)?** Copy `assets/variable.sh` into the new skill's `scripts/` dir as-is. Callers use `variable.sh --get NAME [--require-exec RELPATH]`; the helper prints self-explaining `--set` instructions on "unset" or "set-but-invalid" and exits non-zero, so callers just propagate. The helper self-ignores its `.vars/` store on first `--set`, so no `.gitignore` setup is needed.
 - **Frontmatter is required.** `name` and `description` fields. The description is what the agent uses to decide whether to load the skill, so make it specific about trigger conditions.
 - **Don't over-specify.** Trust the agent to fill gaps. Document the _what_ and _when_, not every micro-step.

@@ -60,6 +60,10 @@ let
       envVar = "KAGI_API_KEY";
       secretName = "kagi_token";
     }
+    {
+      envVar = "GITEA_TOKEN";
+      secretName = "gitea_token";
+    }
   ];
 
   ompPlainEnv = {
