@@ -1,15 +1,14 @@
 { pkgs }:
 let
-  # Version MUST be an integer string.
-  # For tagged releases use the tag number (e.g. "9222").
+  # Tracks upstream stable vX.Y.Z tags (since v0.1.0); bN tags are nightlies.
   # For HEAD builds use YYYYMMDD (e.g. "20260519").
-  version = "10430";
+  version = "0.2.0";
 
   src = pkgs.fetchFromGitHub {
     owner = "ggml-org";
     repo = "llama.cpp";
-    rev = "4c1a0af40d88c7fbb3b15c85bf2e8016d1d5b64c";
-    hash = "sha256-jhMnyPKgHZfDAJUhjaZt38Hiflf9MnFb5xZutkJ/cTk=";
+    rev = "bb4caa7540188872173c44d161602d9271386413";
+    hash = "sha256-6cK5BMCCEUWL+590+WbrRInH3eEnsZ/S5m71IIBgDsA=";
     leaveDotGit = true;
     postFetch = ''
       git -C "$out" rev-parse --short HEAD > $out/COMMIT
