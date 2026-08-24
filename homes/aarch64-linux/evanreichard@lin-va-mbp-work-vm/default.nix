@@ -39,6 +39,7 @@ in
         k9s = enabled;
         nvim = enabled;
         pi = enabled;
+        omp = enabled;
         tmux = enabled;
       };
     };
