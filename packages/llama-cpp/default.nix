@@ -2,16 +2,15 @@
 let
   # Tracks upstream stable vX.Y.Z tags (since v0.1.0); bN tags are nightlies.
   # For HEAD builds use YYYYMMDD (e.g. "20260519").
-  version = "0.2.0";
-  # b-tag for this commit. nixpkgs injects `version` into LLAMA_BUILD_NUMBER,
-  # which upstream compiles as a C++ int — semver there breaks the build.
-  buildNumber = "10566";
+  version = "0.3.0";
+  # b-tag shipped by the v0.3.0 release.
+  buildNumber = "10621";
 
   src = pkgs.fetchFromGitHub {
     owner = "ggml-org";
     repo = "llama.cpp";
-    rev = "bb4caa7540188872173c44d161602d9271386413";
-    hash = "sha256-6cK5BMCCEUWL+590+WbrRInH3eEnsZ/S5m71IIBgDsA=";
+    rev = "c1d0e7a004015f23bc0233470b747b596f29b264";
+    hash = "sha256-eUHLOgWFy8N4vmrolnUxJYHPmtxmEmNGR4qL46mQs7A=";
     leaveDotGit = true;
     postFetch = ''
       git -C "$out" rev-parse --short HEAD > $out/COMMIT
@@ -28,9 +27,14 @@ in
 }).overrideAttrs
   (oldAttrs: {
     inherit version src;
+    patches = (oldAttrs.patches or [ ]) ++ [
+      (pkgs.fetchpatch {
+        url = "https://github.com/ggml-org/llama.cpp/pull/27742.diff";
+        hash = "sha256-EYLqNZQyvaNggDfaXCkh2+Aq7SjtzU9OwyAQuKW9V9o=";
+      })
+    ];
 
     npmDepsHash = "sha256-2Q7XhaLAArmviOLdQsNbYTfdyDE5pW9lR26cRHEVl9k=";
-
     # Add SPIR-V Headers for Vulkan Backend
     # Newer llama.cpp requires spirv/unified1/spirv.hpp which isn't
     # pulled in by vulkan-headers alone.
