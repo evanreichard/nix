@@ -36,7 +36,7 @@ Available memory drifts ~1.5 MB between runs, so running at the ceiling is not r
 - `--model-id` must equal the llama-swap alias. NInfer rejects any request whose `model` field differs from its public model ID, and llama-swap forwards the body unchanged.
 - `chat_template_kwargs` accepts only `preserve_thinking`; any other key is a 400. `enable_thinking`, `preserve_thinking`, and `reasoning_effort` are top-level request fields, so the `qwen38Ninfer` reasoning profile uses `location = "request"` throughout. Using `chat_template_kwargs` controls here would push pi onto its `thinkingFormat = "chat-template"` path and break every request.
 
-The package pins the `feature/qwen38-rk8v4-paged-sm86` branch, not a release tag: `--kv-dtype rk8v4` does not exist in `release/v0.6.0-rtx3090`. Dropping the 240K entry would allow moving back to a release pin.
+The package pins the `v0.6.1-rtx3090` release tag. `--kv-dtype rk8v4` merged to master via PR #3 before that tag, so the long-context rk8v4 profiles no longer need a feature-branch pin.
 
 ## Syncing vLLM Configs from club-3090
 
