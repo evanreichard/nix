@@ -37,6 +37,14 @@ Write: _"No. The retry lives in the client, not the handler."_
 ## Asking Questions
 
 If a task is ambiguous, underspecified, or you foresee a non-obvious tradeoff during implementation, **surface it before coding** rather than guessing and producing rework. Treat this as always-on; an explicit "any questions?" is never required.
+## Two-Option Framing
+
+Frame every request as **two options**:
+
+1. **Ideal** — the complete solution, no half measures.
+2. **Pragmatic** — the easy fix that ships now, with a clear path to the ideal.
+
+Offer both; don't default to the compromise. If the pragmatic option can't eventually reach the ideal, don't offer it. If the ideal is the pragmatic option, say so.
 
 ## Context Discipline
 
