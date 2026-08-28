@@ -21,6 +21,18 @@ in
   hardware.nvidia-container-toolkit.enable = true;
   programs.nix-ld.enable = true;
 
+  # EVGA iCX3 Sensors - evga-icx talks to the card's microcontroller over I2C to
+  # read per-fan RPM and the memory/VRM thermistors, none of which NVML exposes.
+  # iomem=relaxed additionally permits the root-only VRAM and hotspot reads.
+  boot.kernelModules = [ "i2c-dev" ];
+  boot.kernelParams = [ "iomem=relaxed" ];
+
+  # Lets wheel read the sensors without sudo, matching the udev rules OpenRGB
+  # ships. This grants access to every I2C bus, not just the GPU's.
+  services.udev.extraRules = ''
+    KERNEL=="i2c-[0-9]*", GROUP="wheel", MODE="0660"
+  '';
+
   security.pam.loginLimits = [
     {
       domain = "*";
@@ -67,7 +79,10 @@ in
       wantedBy = [ "multi-user.target" ];
       serviceConfig.Type = "oneshot";
       serviceConfig.RemainAfterExit = true;
-      script = "${nvidia-smi} -i 0 -pl 290";
+      # Target By UUID - nvidia-smi indices follow PCI bus order, so reseating a
+      # card silently retargets an index-based limit at the wrong GPU. The UUID
+      # is the RTX 3090; the 1080 Ti is left at its stock limit.
+      script = "${nvidia-smi} -i GPU-32732286-e9cc-0d35-a72e-4567813a2470 -pl 290";
     };
   };
 
@@ -135,5 +150,6 @@ in
     llama-cpp
     ik-llama-cpp
     stable-diffusion-cpp
+    reichard.evga-icx
   ];
 }
