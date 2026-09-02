@@ -5,22 +5,41 @@
 , ...
 }:
 let
-  inherit (lib) mkIf mkEnableOption recursiveUpdate listToAttrs;
+  inherit (lib)
+    mkIf
+    mkEnableOption
+    recursiveUpdate
+    listToAttrs
+    ;
 
-  apiKeys = [ "evan" "pi" "aethera" ];
+  apiKeys = [
+    "evan"
+    "pi"
+    "aethera"
+  ];
   cfg = config.${namespace}.services.llama-swap;
 
   llama-swap = pkgs.reichard.llama-swap;
   llamaCppPresets =
     let
-      models = (import ./config.nix { inherit pkgs; }).models;
-      llamaCppModels = lib.filterAttrs (_: model: lib.hasInfix "/bin/llama-server" (model.cmd or "")) models;
+      definitions = (import ./lib.nix { inherit pkgs; }).importModels ./models;
+      llamaCppModels = lib.filterAttrs
+        (
+          _: model:
+            builtins.elem model.backend [
+              "llama-cpp"
+              "ik-llama-cpp"
+            ]
+        )
+        definitions;
     in
-    builtins.mapAttrs (_: model: {
-      inherit (model) cmd;
-      name = model.name or "";
-      env = model.env or [ ];
-    }) llamaCppModels;
+    builtins.mapAttrs
+      (_: model: {
+        inherit (model) cmd;
+        name = model.name or "";
+        env = model.env or [ ];
+      })
+      llamaCppModels;
   llamaCppPresetFile = pkgs.writeText "llama-cpp-presets.json" (builtins.toJSON llamaCppPresets);
   llama-cpp-bisect-context = pkgs.writeShellApplication {
     name = "llama-cpp-bisect-context";
@@ -31,10 +50,9 @@ let
       python3
       util-linux
     ];
-    text = builtins.replaceStrings
-      [ "__LLAMA_CPP_PRESETS__" ]
-      [ "${llamaCppPresetFile}" ]
-      (builtins.readFile ./scripts/llama-cpp-bisect-context);
+    text = builtins.replaceStrings [ "__LLAMA_CPP_PRESETS__" ] [ "${llamaCppPresetFile}" ] (
+      builtins.readFile ./scripts/llama-cpp-bisect-context
+    );
   };
 in
 {
@@ -70,10 +88,10 @@ in
         Restart = "on-failure";
         RestartSec = 3;
 
-        # for GPU acceleration
+        # GPU Acceleration
         PrivateDevices = false;
 
-        # hardening
+        # Hardening
         User = "llama-swap";
         Group = "llama-swap";
         CapabilityBoundingSet = "";
@@ -114,16 +132,22 @@ in
 
     # Create Config
     sops = {
-      secrets = (listToAttrs (map (name: {
-        name = "llama_swap_api_keys/${name}";
-        value = {
-          sopsFile = lib.snowfall.fs.get-file "secrets/common/llama-swap.yaml";
+      secrets =
+        (listToAttrs (
+          map
+            (name: {
+              name = "llama_swap_api_keys/${name}";
+              value = {
+                sopsFile = lib.snowfall.fs.get-file "secrets/common/llama-swap.yaml";
+              };
+            })
+            apiKeys
+        ))
+        // {
+          synthetic_apikey = {
+            sopsFile = lib.snowfall.fs.get-file "secrets/common/systems.yaml";
+          };
         };
-      }) apiKeys)) // {
-        synthetic_apikey = {
-          sopsFile = lib.snowfall.fs.get-file "secrets/common/systems.yaml";
-        };
-      };
       templates."llama-swap.json" = {
         restartUnits = [ "llama-swap.service" ];
         owner = "llama-swap";
