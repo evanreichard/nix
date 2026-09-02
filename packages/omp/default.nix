@@ -7,24 +7,24 @@
 
 let
   pname = "omp";
-  version = "18.0.7";
+  version = "18.1.3";
 
   sources = {
     aarch64-darwin = {
       asset = "omp-darwin-arm64";
-      hash = "sha256-dS1GagwiFl+AEPQa6m/X2n6P10TYQfU9Yr+2228hj00=";
+      hash = "sha256-PwHh31qDbGuIKWa8UnqRDojK/CgJbZdWxG5kkYeVAxA=";
     };
     x86_64-darwin = {
       asset = "omp-darwin-x64";
-      hash = "sha256-65NRdacNnnBFdTFeXWz1Zqbdy+AtrmePUAHA/ey+M0w=";
+      hash = "sha256-sMNLMIFxZzOvM1XpZEX+98hYan7w1h7O3CKxccar5dQ=";
     };
     aarch64-linux = {
       asset = "omp-linux-arm64";
-      hash = "sha256-a/QSnvC/WVmSiHmyz5769ADslgiVQAXh6+gYPnZJDpA=";
+      hash = "sha256-+1fTJ2tEJVbhWmllPkAhMYMZz7B4Tn3+SH55ZI1nwxQ=";
     };
     x86_64-linux = {
       asset = "omp-linux-x64";
-      hash = "sha256-TiRorWl05qLt6mIdqCq8qMlexiqDVGMDgcNT3AjHdps=";
+      hash = "sha256-I/kt6GcdsRZRWrk8Xdco5jI46/dQJeJDCoH4qmtMA28=";
     };
   };
 
