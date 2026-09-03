@@ -1,5 +1,6 @@
 { llama-swap
 , buildNpmPackage
+, lib
 ,
 }:
 
@@ -12,7 +13,7 @@ buildNpmPackage (finalAttrs: {
       --replace-fail "../internal/server/ui_dist" "${placeholder "out"}/ui_dist"
   '';
 
-  sourceRoot = "${finalAttrs.src.name}/ui-svelte";
+  sourceRoot = "${finalAttrs.src.name}/ui";
 
   # bundled "ui_dist" doesn't need node_modules
   postInstall = ''
