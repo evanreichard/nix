@@ -19,6 +19,7 @@ in
       graphical = {
         ghostty = enabled;
         ghidra = enabled;
+        omniwm = enabled;
       };
 
       terminal = {
@@ -27,8 +28,12 @@ in
         git = enabled;
         k9s = enabled;
         nvim = enabled;
-        opencode = enabled;
+        omp = enabled;
       };
+    };
+
+    services = {
+      sketchybar = enabled;
     };
 
     security = {

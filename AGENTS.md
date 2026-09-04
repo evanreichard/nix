@@ -8,6 +8,8 @@ Snowfall Lib auto-discovers everything by directory convention — there is no m
 
 **Important:** Files must be tracked by git (`git add`) for the flake to see them.
 
+Home modules receive Snowfall's `lib` (nixpkgs lib + `lib.reichard`), not Home Manager's extended lib: `lib.hm.*` and `config.lib.hm` are both absent. Use plain `lib`/`builtins` in place of helpers like `lib.hm.strings.isPathLike` or `lib.hm.assertions.assertPlatform`.
+
 ## Layout
 
 ### `flake.nix`
@@ -84,6 +86,7 @@ Custom package derivations, auto-discovered by Snowfall Lib and available as `pk
 - `llama-cpp/` — LLaMA C++ inference engine
 - `llama-swap/` — Go: LLM model swap proxy (with UI sub-derivation)
 - `opencode/` — Go: terminal coding tool
+- `omniwm/` — macOS tiling window manager; repackages the signed upstream release
 - `pi-coding-agent/` — Node.js: coding agent CLI
 - `qwen-code/` — Qwen code assistant
 - `stable-diffusion-cpp/` — Stable Diffusion C++ inference

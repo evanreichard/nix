@@ -54,6 +54,7 @@ in
         nvim = enabled;
         opencode = enabled;
         pi = enabled;
+        omp = enabled;
       };
     };
   };

@@ -19,6 +19,7 @@ in
     programs = {
       graphical = {
         ghostty = enabled;
+        omniwm = enabled;
       };
 
       terminal = {
