@@ -51,9 +51,19 @@ Two pi behaviors constrain what a profile must declare. pi forwards an unmapped 
 
 `sd-server` holds every component resident at once, so a 24 GiB card is budgeted against weights *plus* one decode graph. Qwen Image weights already cost ~19.5 GiB (14.4 diffusion Q5_K + 4.8 Qwen2.5-VL TE + 0.24 VAE), and an untiled 1024x1024 `wan_vae` decode asks for 7.6 GiB against the ~5 GiB left — it fails at `decode_first_stage` after sampling has already succeeded, wasting the whole request. Both Qwen entries therefore pass `--vae-tiling`; sd.cpp's auto-fit retry does not rescue this. Chroma Radiance is exempt (pixel-space, no VAE), Z-Image-Turbo has headroom.
 
-Image edit needs `--llm_vision` alongside `--llm`. Without the mmproj, sd.cpp logs `no vision weights detected, vision disabled` and silently drops reference images from LLM conditioning, leaving only the VAE ref latents — edits still run, so the loss shows up as weak prompt grounding rather than an error.
+FLUX.2 Klein 9B is light on weights (14.1 GiB: 9.5 diffusion Q8_0 + 4.4 Qwen3-8B TE + 0.16 `flux2_ae`) and heavy on decode, so it needs `--vae-tiling` for reach rather than for fit. Measured on the 3090 at 4 steps:
 
-Distilled/Lightning merges are configured as `--cfg-scale 1.0 --steps 4 --sampling-method euler_a --scheduler simple`; sd.cpp has no `beta` scheduler, so upstream `euler_ancestral/beta` advice maps to `simple` or `sgm_uniform`. A GGUF carrying the `__index_timestep_zero__` marker turns `zero_cond_t` on by itself.
+| Resolution | Untiled | Tiled |
+|---|---|---|
+| 1024x1024 | 11.3 s, 6,658 MB decode buffer, 20.6 GiB peak | 12.5 s, 1,664 MB buffer, 14.9 GiB peak |
+| 1536x1536 | fails: `vae decode compute failed while processing a tile` | 19.5 s, 16.2 GiB peak |
+| 2048x2048 | same failure | 41.0 s, 18.4 GiB peak |
+
+The decode buffer is flat under tiling, so 1.2 s at 1024x1024 buys every resolution up to klein's 4 MP ceiling. The `/v1/images/edits` path additionally encodes each reference image at ~3.4 GB untiled, which is why edits peak higher than generations at the same size.
+
+Image edit on a vision-capable TE needs `--llm_vision` alongside `--llm`. Without the mmproj, sd.cpp logs `no vision weights detected, vision disabled` and silently drops reference images from LLM conditioning, leaving only the VAE ref latents — edits still run, so the loss shows up as weak prompt grounding rather than an error. FLUX.2 Klein is the exception by design: its TE is text-only Qwen3-8B, no mmproj exists, and reference images reach the model purely as VAE latents.
+
+Distilled/Lightning merges are configured as `--cfg-scale 1.0 --steps 4 --sampling-method euler_a --scheduler simple`; sd.cpp has no `beta` scheduler, so upstream `euler_ancestral/beta` advice maps to `simple` or `sgm_uniform`. A GGUF carrying the `__index_timestep_zero__` marker turns `zero_cond_t` on by itself. FLUX.2 Klein 9B is distilled the same way but is a Flow model, so it takes `euler` with sd.cpp's automatic flow shift; the non-distilled sibling is `klein-base-9B` and would need `--cfg-scale 4.0 --steps 20` instead.
 
 Model flags migrate: `--qwen-image-zero-cond-t` and `--chroma-disable-dit-mask` were replaced by `--model-args qwen_image_zero_cond_t=true` / `--model-args chroma_use_dit_mask=false`, and `--clip-on-cpu`/`--vae-on-cpu` are deprecated in favor of `--backend te=cpu`/`--backend vae=cpu`. Diff `examples/common/common.cpp` against the pinned rev when bumping `packages/stable-diffusion-cpp` — a removed flag is a startup failure, not a warning.
 
