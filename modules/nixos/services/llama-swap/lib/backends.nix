@@ -78,4 +78,76 @@ rec {
         "single"
       ]
     );
+
+  # https://github.com/YanWenKun/ComfyUI-Docker
+  #
+  # The image declares `VOLUME /root` and its entrypoint materializes ComfyUI there on first
+  # start, so the single /root bind mount carries everything mutable. The entrypoint also
+  # passes `--listen --port 8188` already, so CLI_ARGS stays empty.
+  #
+  # One CDI Device, Not CUDA_VISIBLE_DEVICES - same NVML reasoning as the vLLM images above,
+  # and device 1 is the RTX 3090 in PCI order. Exposing one card is what makes
+  # `placement = "cuda0"` safe despite ComfyUI's unpredictable memory use.
+  comfyuiImage = "docker.io/yanwk/comfyui-boot:cu130-slim-20260907";
+  comfyuiCmd =
+    modelId:
+    lib.concatStringsSep " \\\n  " [
+      "${docker} run --rm --device=nvidia.com/gpu=1"
+      "--name ${modelId}"
+      "--init"
+      "-v /mnt/ssd/ComfyUI/storage:/root"
+      "-v /mnt/ssd/StableDiffusion:/mnt/ssd/StableDiffusion:ro"
+      "-p \${PORT}:8188"
+      comfyuiImage
+    ];
+
+  # ComfyUI renders asynchronously - /prompt returns a prompt_id in milliseconds - and the
+  # progress websocket is excluded from swap decisions by the compat.ignoreWebsockets that
+  # /comfyui forces, so llama-swap sees an idle model throughout a render and would evict
+  # mid-sampling. Drain first.
+  #
+  # `docker` stays absolute here and MUST NOT move to runtimeInputs: the `docker` in this
+  # file's `let` is a binary path string, `let` shadows `with pkgs`, and the resulting PATH
+  # entry silently resolves to rootless podman-docker, which cannot see rootful containers.
+  comfyuiStop = pkgs.writeShellApplication {
+    name = "comfyui-stop";
+    runtimeInputs = with pkgs; [
+      coreutils
+      curl
+      jq
+    ];
+    text = ''
+      port="$1"
+      name="$2"
+      deadline=$((SECONDS + 200))
+
+      while [ "$SECONDS" -lt "$deadline" ]; do
+        if ! queued="$(curl -fsS --max-time 5 "http://127.0.0.1:$port/prompt" \
+          | jq -r '.exec_info.queue_remaining // 0')"; then
+          break
+        fi
+        if [ "$queued" = "0" ]; then
+          break
+        fi
+        sleep 2
+      done
+
+      if ${docker} inspect --type container "$name" > /dev/null 2>&1; then
+        ${docker} stop "$name"
+      fi
+    '';
+  };
+
+  # A swap's graceful stop window is healthCheckTimeout, not unloadTimeout (`doSwap` in
+  # llama-swap's internal/router/base.go); unloadTimeout covers the TTL and manual paths.
+  comfyuiModel =
+    model:
+    dockerModel (
+      {
+        checkEndpoint = "/system_stats";
+        unloadTimeout = 240;
+        cmdStop = "${comfyuiStop}/bin/comfyui-stop \${PORT} \${MODEL_ID}";
+      }
+      // model
+    );
 }

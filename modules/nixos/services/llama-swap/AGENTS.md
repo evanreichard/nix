@@ -14,10 +14,10 @@ models/<id>.nix     one file per model; the filename IS the model ID
 
 A model file returns an attrset from `{ pkgs, lib, backends, reasoning }` and adds two
 attributes that are ours rather than llama-swap's: `backend` (`llama-cpp`, `ik-llama-cpp`,
-`ninfer`, `vllm-club3090`, `vllm-syv`, `stable-diffusion`) and `placement` (`cuda0`, `cuda1`,
-`dual`). `config.nix` strips both before rendering. `backend` selects the llama.cpp preset
-list in `default.nix`; `placement` generates the matrix, so a new model file joins the
-concurrency matrix by existing rather than by being added to a table.
+`ninfer`, `vllm-club3090`, `vllm-syv`, `stable-diffusion`, `comfyui`) and `placement`
+(`cuda0`, `cuda1`, `dual`). `config.nix` strips both before rendering. `backend` selects the
+llama.cpp preset list in `default.nix`; `placement` generates the matrix, so a new model file
+joins the concurrency matrix by existing rather than by being added to a table.
 
 The helper entrypoint is `lib.nix`, not `lib/default.nix`: snowfall-lib treats every
 `default.nix` under `modules/nixos` as a NixOS module and would call it with module
@@ -27,8 +27,9 @@ arguments instead of `{ pkgs }`.
 llama.cpp command generator - the flags are the tuning knowledge, and the variance between
 entries (`-np 2 -kvu`, `-ncmoe 26`, `-lm none`, `-ot per_layer_token_embd.weight=CPU`) is
 the point. `lib/backends.nix` holds only invariants: binaries, the `dockerModel` wrapper
-that supplies `cmdStop`/`proxy`/`checkEndpoint`, and `qwen38SyvCmd`, whose whole command is
-environment variables.
+that supplies `cmdStop`/`proxy`/`checkEndpoint`, `qwen38SyvCmd`, whose whole command is
+environment variables, and the `comfyui*` helpers, where the command is invariant because
+ComfyUI takes its configuration from workflows rather than flags.
 
 Any change to model definitions can be proved by rendering the config before and after and
 comparing - the module's output is a single JSON document:
@@ -40,6 +41,9 @@ nix eval --raw '/etc/nixos#nixosConfigurations.lin-va-desktop.config.sops.templa
 ## Model ID Convention
 
 Use `<family>-<size>[-backend/variant][-context][-vl]-<placement>`. Omit `thinking` from IDs, use `vl` for vision-language models, and keep placement as the final suffix (`cuda0`, `cuda1`, or `dual`). Keep quantization and richer behavior details in the display `name` unless they are needed to distinguish two active configs for the same family/placement.
+
+`comfyui_auto` is the one exemption: llama-swap hardcodes that ID for its `/comfyui`
+endpoint, so the file cannot carry a placement suffix.
 
 ## Reasoning Metadata
 
@@ -66,6 +70,34 @@ Image edit on a vision-capable TE needs `--llm_vision` alongside `--llm`. Withou
 Distilled/Lightning merges are configured as `--cfg-scale 1.0 --steps 4 --sampling-method euler_a --scheduler simple`; sd.cpp has no `beta` scheduler, so upstream `euler_ancestral/beta` advice maps to `simple` or `sgm_uniform`. A GGUF carrying the `__index_timestep_zero__` marker turns `zero_cond_t` on by itself. FLUX.2 Klein 9B is distilled the same way but is a Flow model, so it takes `euler` with sd.cpp's automatic flow shift; the non-distilled sibling is `klein-base-9B` and would need `--cfg-scale 4.0 --steps 20` instead.
 
 Model flags migrate: `--qwen-image-zero-cond-t` and `--chroma-disable-dit-mask` were replaced by `--model-args qwen_image_zero_cond_t=true` / `--model-args chroma_use_dit_mask=false`, and `--clip-on-cpu`/`--vae-on-cpu` are deprecated in favor of `--backend te=cpu`/`--backend vae=cpu`. Diff `examples/common/common.cpp` against the pinned rev when bumping `packages/stable-diffusion-cpp` — a removed flag is a startup failure, not a warning.
+
+## ComfyUI Config
+
+llama-swap proxies ComfyUI but does not translate for it: `/v1/images/generations` routes on
+the body's `model` field and ComfyUI serves no such endpoint. So `comfyui_auto` is one
+opaque model ID covering every workflow, driven through `/upstream/comfyui_auto/...`;
+`/comfyui/` is the browser door and the only path that may cold-start it.
+
+The queue drain in `comfyuiStop` is load-bearing — see the comment there. Its 200 s ceiling
+must stay under both `healthCheckTimeout` (the graceful window during a swap) and
+`unloadTimeout` (TTL and manual unloads). A cmdStop that fails does not merely delay the
+swap: llama-swap force-kills the `docker run` client, and the container keeps the VRAM.
+
+`placement = "cuda0"` gives exclusive use of the 3090 while still allowing a cuda1 model
+beside it. Intra-card use is unbudgetable — the graph's loader nodes decide what is
+resident and ComfyUI caches across prompts — so the per-weight arithmetic above has no
+ComfyUI equivalent.
+
+This module launches and swaps ComfyUI; it does not configure it. `/mnt/ssd/ComfyUI/storage`
+holds the ComfyUI tree, custom_nodes, their pip installs, workflows, and models — nothing in
+Nix reconstructs it, so back it up. `/mnt/ssd/StableDiffusion` is mounted read-only so a
+workflow can reach the sd.cpp weights; wiring that up (`extra_model_paths.yaml`, plus
+ComfyUI-GGUF for GGUF loaders) happens in ComfyUI.
+
+Pull `comfyuiImage` before the first swap-in, and pull it with the same
+`${pkgs.docker}/bin/docker` the config calls. An interactive `docker` on this host is
+podman-docker on the *rootless* socket, so the wrong one silently stores a second ~11.8 GiB
+copy that llama-swap cannot use.
 
 ## NInfer Configs
 
