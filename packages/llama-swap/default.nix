@@ -83,6 +83,7 @@ buildGo126Module (finalAttrs: {
         "TestProcessCommand_StopForkingWrapper"
         "TestProcessCommand_StopHonorsGracefulTimeout"
         "TestProcessCommand_StopReapsForkedGrandchild"
+        "TestStartDaemonArgv"
       ];
       skippedTests = forkingTests ++ lib.optionals (stdenv.isDarwin && stdenv.isx86_64) [
         # Fail only on x86_64-darwin intermittently

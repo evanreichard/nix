@@ -34,13 +34,13 @@ let
 in
 effectiveStdenv.mkDerivation (finalAttrs: {
   pname = "stable-diffusion-cpp";
-  version = "master-721-8caa3f9";
+  version = "master-849-d04e895";
 
   src = fetchFromGitHub {
     owner = "leejet";
     repo = "stable-diffusion.cpp";
-    rev = "master-721-8caa3f9";
-    hash = "sha256-voybvJQrG6/Puogf9vBr/3jzHBcl1MnIAsRQtswUw2U=";
+    rev = finalAttrs.version;
+    hash = "sha256-87tEPKu8xq611fa2/tXvWujl3dypniL+DVrczKP34Qs=";
     fetchSubmodules = true;
   };
 
@@ -93,7 +93,6 @@ effectiveStdenv.mkDerivation (finalAttrs: {
     (cmakeBool "SD_VULKAN" vulkanSupport)
     (cmakeBool "SD_OPENCL" openclSupport)
     (cmakeBool "SD_METAL" metalSupport)
-    (cmakeBool "SD_FAST_SOFTMAX" false)
   ]
   ++ optionals cudaSupport [
     (cmakeFeature "CMAKE_CUDA_ARCHITECTURES" cudaPackages.flags.cmakeCudaArchitecturesString)
@@ -106,7 +105,7 @@ effectiveStdenv.mkDerivation (finalAttrs: {
     description = "Stable Diffusion inference in pure C/C++";
     homepage = "https://github.com/leejet/stable-diffusion.cpp";
     license = licenses.mit;
-    mainProgram = "sd";
+    mainProgram = "sd-cli";
     maintainers = with lib.maintainers; [
       dit7ya
       adriangl

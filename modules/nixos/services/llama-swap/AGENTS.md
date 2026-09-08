@@ -47,6 +47,16 @@ Reasoning-capable models use `metadata.reasoning` profiles from `lib/reasoning.n
 
 Two pi behaviors constrain what a profile must declare. pi forwards an unmapped level verbatim (`thinkingLevelMap[level] ?? level`), so every pi level must resolve to a native one or a strict backend answers 400; pi's `lib.nix` fills the gaps with the nearest native level. Separately, pi's default `openai` thinking format can only disable reasoning via a `thinkingLevelMap.off` string, so a profile whose `enabled` control is a top-level `enable_thinking` field gets `compat.thinkingFormat = "qwen"` instead — otherwise switching thinking off silently changes nothing.
 
+## stable-diffusion Configs
+
+`sd-server` holds every component resident at once, so a 24 GiB card is budgeted against weights *plus* one decode graph. Qwen Image weights already cost ~19.5 GiB (14.4 diffusion Q5_K + 4.8 Qwen2.5-VL TE + 0.24 VAE), and an untiled 1024x1024 `wan_vae` decode asks for 7.6 GiB against the ~5 GiB left — it fails at `decode_first_stage` after sampling has already succeeded, wasting the whole request. Both Qwen entries therefore pass `--vae-tiling`; sd.cpp's auto-fit retry does not rescue this. Chroma Radiance is exempt (pixel-space, no VAE), Z-Image-Turbo has headroom.
+
+Image edit needs `--llm_vision` alongside `--llm`. Without the mmproj, sd.cpp logs `no vision weights detected, vision disabled` and silently drops reference images from LLM conditioning, leaving only the VAE ref latents — edits still run, so the loss shows up as weak prompt grounding rather than an error.
+
+Distilled/Lightning merges are configured as `--cfg-scale 1.0 --steps 4 --sampling-method euler_a --scheduler simple`; sd.cpp has no `beta` scheduler, so upstream `euler_ancestral/beta` advice maps to `simple` or `sgm_uniform`. A GGUF carrying the `__index_timestep_zero__` marker turns `zero_cond_t` on by itself.
+
+Model flags migrate: `--qwen-image-zero-cond-t` and `--chroma-disable-dit-mask` were replaced by `--model-args qwen_image_zero_cond_t=true` / `--model-args chroma_use_dit_mask=false`, and `--clip-on-cpu`/`--vae-on-cpu` are deprecated in favor of `--backend te=cpu`/`--backend vae=cpu`. Diff `examples/common/common.cpp` against the pinned rev when bumping `packages/stable-diffusion-cpp` — a removed flag is a startup failure, not a warning.
+
 ## NInfer Configs
 
 The `qwen3.8-27b-ninfer-*` entries run `pkgs.reichard.ninfer-3090` (`packages/ninfer-3090/`) against one 17 GiB artifact at `/mnt/ssd/Ninfer/Models/qwen3_8_27b.ninfer`, fetched by `setup-qwen38-ninfer.sh`. The 64K/C8/vision flags mirror upstream's launchers in `scripts/run-qwen38-{c1,c8,vision}.sh`; the 165K and 240K profiles are derived from upstream's measured allocation boundaries.

@@ -9,15 +9,18 @@
     ${backends.stable-diffusion-cpp}/bin/sd-server \
       --listen-port ''${PORT} \
       --diffusion-fa \
-      --qwen-image-zero-cond-t \
+      --vae-tiling \
+      --model-args qwen_image_zero_cond_t=true \
       --diffusion-model /mnt/ssd/StableDiffusion/QwenImage/qwen-image-edit-2511-Q5_K_M.gguf \
       --vae /mnt/ssd/StableDiffusion/QwenImage/qwen_image_vae.safetensors \
       --llm /mnt/ssd/Models/Qwen2.5/Qwen2.5-VL-7B-Instruct.Q4_K_M.gguf \
+      --llm_vision /mnt/ssd/Models/Qwen2.5/Qwen2.5-VL-7B-Instruct.mmproj-Q8_0.gguf \
       --lora-model-dir /mnt/ssd/StableDiffusion/QwenImage/Loras \
-      --cfg-scale 2.5 \
-      --sampling-method euler \
+      --cfg-scale 1.0 \
+      --sampling-method euler_a \
+      --scheduler simple \
       --flow-shift 3 \
-      --steps 20 \
+      --steps 4 \
       --rng cuda
   '';
   metadata = {
