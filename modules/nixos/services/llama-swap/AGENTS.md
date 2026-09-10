@@ -156,6 +156,17 @@ reserves k+1 recurrent-state slots (~0.88 GiB) before it holds a token of contex
 is not cosmetic — `modules/home/programs/terminal/pi/lib.nix` publishes it as pi's
 `contextWindow`, so it must equal the launcher's `MAX_LEN` for the profile.
 
+`qwen3.8-27b-uncensored-vllm-240k-cuda0` is the same image and profile pointed at an
+abliterated body: `MODEL=/app/models/Qwen3.8-27B-Uncensored-W4A16-AutoRound`
+(leminkozey, syv-ai issue #45 - already AutoRound W4A16 plus the repo's own head requant,
+so no prepare steps and the pinned 4.90 GiB pool stays valid). `MODEL=` is required
+because the launcher prefers the base model's `-fast` dir when `MODEL` is unset; the
+DFlash2 drafter is a separate dir and is shared with the base profiles. Abliteration
+quality is unmeasured on this stack (issue #45 reports ~100 tok/s warm, 45k needle
+retrieved, coherent output); the author skipped `quant_mtp.py`/`build_draft_vocab.py`,
+so `SPEC=mtp` on this checkpoint is slower (int8 lm_head path) - the profile uses
+`SPEC=dflash2` regardless.
+
 ### Constraints
 
 - **`useModelName = "qwen3.8-27b"`.** The launcher hardcodes `--served-model-name`, so
