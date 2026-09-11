@@ -30,7 +30,7 @@ let
 
   sandboxRwBinds = cfg.sandbox.extraRwBinds;
 
-  ompSandbox = import ../agent-shared/sandbox.nix {
+  ompSandboxed = import ../agent-shared/sandbox.nix {
     inherit lib pkgs;
     name = "omp";
     package = pkgs.${namespace}.omp;
@@ -82,7 +82,7 @@ in
     sandbox = {
       # Linux Only - The wrapper is bubblewrap, which needs Linux user namespaces. Leaving this
       # off keeps `pkgs.bubblewrap` out of the closure entirely, so darwin evaluates and builds.
-      enable = lib.mkEnableOption "run omp inside a bubblewrap sandbox" // {
+      enable = lib.mkEnableOption "install `omp-sandboxed`, a bubblewrap-confined omp" // {
         default = pkgs.stdenv.hostPlatform.isLinux;
       };
       shareNet = lib.mkEnableOption "give the sandbox host network access" // {
@@ -103,12 +103,12 @@ in
   };
 
   config = mkIf cfg.enable {
-    # Add Omp to Home Packages - `omp` is the sandboxed wrapper when the sandbox is enabled;
-    # `omp-dangerous` is always the unwrapped binary.
+    # Add Omp to Home Packages - `omp` is always the unwrapped binary; `omp-sandboxed` is the
+    # bubblewrap-confined wrapper, installed when the sandbox is enabled.
     home.packages = [
-      (if cfg.sandbox.enable then ompSandbox.sandboxed else pkgs.${namespace}.omp)
-      ompSandbox.dangerous
-    ];
+      pkgs.${namespace}.omp
+    ]
+    ++ lib.optional cfg.sandbox.enable ompSandboxed;
 
     # Define Omp Configuration - `config.yml` is deliberately absent: omp rewrites it at
     # runtime (theme, model roles, setup state), so it stays user-owned. The guidance, skills,

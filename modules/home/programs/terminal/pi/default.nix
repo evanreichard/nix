@@ -26,7 +26,7 @@ let
 
   sandboxRwBinds = cfg.sandbox.extraRwBinds;
 
-  piSandbox = import ../agent-shared/sandbox.nix {
+  piSandboxed = import ../agent-shared/sandbox.nix {
     inherit lib pkgs;
     name = "pi";
     package = pkgs.${namespace}.pi-coding-agent;
@@ -123,7 +123,7 @@ in
     sandbox = {
       # Linux Only - The wrapper is bubblewrap, which needs Linux user namespaces. Leaving this
       # off keeps `pkgs.bubblewrap` out of the closure entirely, so darwin evaluates and builds.
-      enable = lib.mkEnableOption "run pi inside a bubblewrap sandbox" // {
+      enable = lib.mkEnableOption "install `pi-sandboxed`, a bubblewrap-confined pi" // {
         default = pkgs.stdenv.hostPlatform.isLinux;
       };
       shareNet = lib.mkEnableOption "give the sandbox host network access" // {
@@ -147,13 +147,13 @@ in
     # Enable Glimpse
     ${namespace}.programs.terminal.glimpse.enable = true;
 
-    # Add Pi Coding Agent to Home Packages - `pi` is the sandboxed wrapper when
-    # the sandbox is enabled; `pi-dangerous` is always the unwrapped binary.
+    # Add Pi Coding Agent to Home Packages - `pi` is always the unwrapped binary; `pi-sandboxed`
+    # is the bubblewrap-confined wrapper, installed when the sandbox is enabled.
     home.packages = [
-      (if cfg.sandbox.enable then piSandbox.sandboxed else pkgs.${namespace}.pi-coding-agent)
-      piSandbox.dangerous
+      pkgs.${namespace}.pi-coding-agent
       pkgs.${namespace}.pi-web
-    ];
+    ]
+    ++ lib.optional cfg.sandbox.enable piSandboxed;
 
     # Define Pi Configuration - AGENTS.md, skills, and prompts are agent-agnostic and shared
     # with omp via `../agent-shared/config`; subagents and extensions are pi-only formats.

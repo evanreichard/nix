@@ -3,8 +3,10 @@
 # anything not bound below (SSH keys, browser profiles, other repos) is simply absent rather
 # than merely unwritable.
 #
-# `name` drives the binary name, the `$HOME/.<name>` state bind, and the `<NAME>_SANDBOX` guard,
-# so every agent that keeps its state in a single dotdir shares this wrapper unchanged.
+# The wrapper is installed as `<name>-sandboxed` alongside the unwrapped `<name>`, so confinement is
+# opt-in per invocation. `name` also drives the wrapped binary, the `$HOME/.<name>` state bind,
+# and the `<NAME>_SANDBOX` guard, so every agent that keeps its state in a single dotdir shares
+# this wrapper unchanged.
 { lib
 , pkgs
 , name
@@ -26,11 +28,11 @@ let
     '';
 
   sandboxed = pkgs.writeShellApplication {
-    inherit name;
+    name = "${name}-sandboxed";
     runtimeInputs = [ pkgs.bubblewrap ];
     text = ''
-      # Nested Invocation Guard - Subagents re-exec `${name}`, and bwrap cannot
-      # nest inside its own user namespace.
+      # Nested Invocation Guard - A sandboxed agent re-invoking `${name}-sandboxed`
+      # would need bwrap to nest inside its own user namespace, which it cannot.
       if [ "''${${guardVar}:-0}" = "1" ]; then
         exec ${binary} "$@"
       fi
@@ -78,10 +80,5 @@ let
         ${binary} "$@"
     '';
   };
-
-  dangerous = pkgs.runCommand "${name}-dangerous" { } ''
-    mkdir -p $out/bin
-    ln -s ${binary} $out/bin/${name}-dangerous
-  '';
 in
-{ inherit sandboxed dangerous; }
+sandboxed
