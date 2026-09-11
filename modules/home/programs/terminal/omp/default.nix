@@ -104,11 +104,13 @@ in
 
   config = mkIf cfg.enable {
     # Add Omp to Home Packages - `omp` is always the unwrapped binary; `omp-sandboxed` is the
-    # bubblewrap-confined wrapper, installed when the sandbox is enabled.
+    # bubblewrap-confined wrapper, installed when the sandbox is enabled. `pi-isolate` is Linux
+    # only: it confines bash with bubblewrap and brokers packages through the host's nix.
     home.packages = [
       pkgs.${namespace}.omp
     ]
-    ++ lib.optional cfg.sandbox.enable ompSandboxed;
+    ++ lib.optional cfg.sandbox.enable ompSandboxed
+    ++ lib.optional pkgs.stdenv.hostPlatform.isLinux pkgs.${namespace}.pi-isolate;
 
     # Define Omp Configuration - `config.yml` is deliberately absent: omp rewrites it at
     # runtime (theme, model roles, setup state), so it stays user-owned. The guidance, skills,
