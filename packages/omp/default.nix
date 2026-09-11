@@ -64,7 +64,21 @@ stdenvNoCC.mkDerivation {
       echo "version mismatch: expected 'omp/${version}', got '$actual'" >&2
       exit 1
     fi
-    $out/bin/omp --smoke-test
+    # Smoke test pings a worker that re-executes the whole compiled bundle
+    # with a hardcoded 5s pong deadline; under builder load the cold start can
+    # exceed it. Retry transient starvation - a broken worker still fails all
+    # attempts.
+    attempt=1
+    maxAttempts=3
+    until $out/bin/omp --smoke-test; do
+      if [ "$attempt" -ge "$maxAttempts" ]; then
+        echo "omp --smoke-test failed after $maxAttempts attempts" >&2
+        exit 1
+      fi
+      attempt=$((attempt + 1))
+      echo "omp --smoke-test attempt $attempt/$maxAttempts failed; retrying" >&2
+      sleep 2
+    done
     runHook postInstallCheck
   '';
 
