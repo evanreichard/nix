@@ -1,6 +1,5 @@
 { lib
 , inputs
-, system
 , stdenvNoCC
 , fetchFromGitHub
 , makeBinaryWrapper
@@ -14,7 +13,7 @@
 ,
 }:
 let
-  bun = inputs.nixpkgs-unstable.legacyPackages.${system}.bun;
+  bun = inputs.nixpkgs-unstable.legacyPackages.${stdenvNoCC.hostPlatform.system}.bun;
 in
 stdenvNoCC.mkDerivation (finalAttrs: {
   pname = "opencode";
