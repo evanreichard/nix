@@ -16,8 +16,8 @@ stdenvNoCC.mkDerivation {
 
   src = fetchgit {
     url = "https://gitea.va.reichard.io/evan/pi-isolate.git";
-    rev = "e3e7240a22d8ac7698cd3722ac5d8caebfaa54d2";
-    hash = "sha256-8qQ5Fxn0e8IqhxNOhIPOVkDENORP1P8EPZm/jCJqioE=";
+    rev = "710d19f706fffcc902871cfa3e4c25c1773cd1c0";
+    hash = "sha256-p+RIcsQ55uPiLF6dsuDPhWZcCviPAor4n4Y4UVld4tQ=";
   };
 
   nativeBuildInputs = [ makeWrapper ];
