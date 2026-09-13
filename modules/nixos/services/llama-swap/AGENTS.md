@@ -70,9 +70,9 @@ CUDA0 only, `-ctk/-ctv q8_0`, paired with the largest context that fits 24,576 M
 | context | `-ncmoe` | decode | note |
 |---|---|---|---|
 | 64K | 30 | ~25.7 tok/s | |
-| 164K | 32 | ~22.5 tok/s | deployed; 23,793 MiB, server measures 22.5 decode / 104 prefill |
+| 164K | 32 | ~22.5 tok/s | 23,793 MiB; server measures 22.5 decode / 104 prefill |
 | 229K | 34 | ~20.5 tok/s | |
-| 262K | 35 | ~19.7 tok/s | the model's full window |
+| 262K | 35 | ~19.7 tok/s | deployed, the model's full window; server 20.8 decode / 93 prefill, 23,313 MiB |
 | 262K, both GPUs, `-ncmoe 26 -ts 82,18` | | 20.8 tok/s | +1 tok/s, but blocks every cuda1 model |
 
 Adding the 1080 Ti is not worth it. It holds ~7 layers, but each marginal layer it takes is a
