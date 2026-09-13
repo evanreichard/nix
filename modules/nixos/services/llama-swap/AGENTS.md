@@ -51,37 +51,54 @@ Reasoning-capable models use `metadata.reasoning` profiles from `lib/reasoning.n
 
 Two pi behaviors constrain what a profile must declare. pi forwards an unmapped level verbatim (`thinkingLevelMap[level] ?? level`), so every pi level must resolve to a native one or a strict backend answers 400; pi's `lib.nix` fills the gaps with the nearest native level. Separately, pi's default `openai` thinking format can only disable reasoning via a `thinkingLevelMap.off` string, so a profile whose `enabled` control is a top-level `enable_thinking` field gets `compat.thinkingFormat = "qwen"` instead — otherwise switching thinking off silently changes nothing.
 
-## Qwen3.8-Flash-Next (llama.cpp, dual)
+## Qwen3.8-Flash-Next (llama.cpp, cuda0)
 
-125B-A6B with 512 experts, top-10, 48 blocks of which 12 are full attention (QSA) and 36 are
-gated delta net. The weights are 76 GiB at UD-IQ3_XXS against 35 GiB of VRAM, so ~46 GiB of
-experts live in RAM and the CPU owns the critical path. Everything below is measured on this
-host (5600X, 6 cores, 94 GiB DDR4; CUDA0 = 3090, CUDA1 = 1080 Ti) at 200K context.
+177B total / ~6B active: 512 experts top-10, 48 blocks of which 12 are full attention (QSA)
+and 36 gated delta net, plus a 27 GB PLE n-gram table that `-ot ...=CPU` pins to RAM. The
+weights are 76 GiB at UD-IQ3_XXS against 24 GiB of usable VRAM, so ~45 GiB of experts live in
+RAM and the CPU owns the critical path. Measured on this host (5600X, 6 cores, 94 GiB DDR4).
 
-| Change | Decode | Note |
-|---|---|---|
-| `-ncmoe 26 -ts 80,20` | 7.4 tok/s | 3.7 GiB left idle on the 3090 |
-| `-ncmoe 24 -ts 82,18` | 7.9 tok/s | deployed; 3090 peaks at 24,069 MiB, 1080 Ti at 10,093 |
-| UD-Q3_K_XL, `-ncmoe 29` | 6.9 tok/s | k-quant loses: +6.8 GiB of weights costs 5 GPU layers |
-| `-t 12` (SMT) | 7.9 tok/s | neutral, as the tuning skill predicts |
-| `-lm mmap -t 4` | 4.6-5.2 tok/s | upstream forum flags; experts stream from disk |
+**The CPU backend must be built with AVX2.** ggml sets `GGML_NATIVE_DEFAULT=OFF` whenever
+`SOURCE_DATE_EPOCH` is defined - which Nix always does - and then defaults every instruction
+set option to OFF. Stock `-ncmoe 48` measured **3.1 tok/s** on the baseline build against
+**14.5** once `packages/llama-cpp` passed `-DGGML_AVX2=ON` and friends. Every placement
+conclusion drawn before that fix was wrong by 3-5x; re-measure rather than trusting old notes.
 
-Two constants make the arithmetic reusable: one CPU-resident MoE layer costs ~4.3 ms/token
-(962 MiB of experts at IQ3_XXS, 19.7 MB of them active), and everything else - both GPUs,
-attention, sampling - costs ~23 ms/token. So decode is `1000 / (23 + 4.3 * ncmoe)` and the
-only real lever is VRAM. `llama-fit-params` understates the prefill compute buffer by ~950
-MiB here (it predicts ~1.2 GiB, the server allocates 2.1 GiB on CUDA0), which is exactly the
-gap that made `-ncmoe 28` on Q3_K_XL abort in `graph_reserve`.
+Context is the only lever worth trading. All rows are `llama-bench -d 4096 -lm none -t 6`,
+CUDA0 only, `-ctk/-ctv q8_0`, paired with the largest context that fits 24,576 MiB:
 
-Quant family is *not* the lever it is for dense models. Per byte, Q3_K_XL decodes only ~13%
-cheaper than IQ3_XXS here (4.24 vs 4.35 ms/layer for 9% more bytes), because the MoE path is
-gather- and latency-bound rather than dequant-bound: it sustains ~5 GB/s against a measured
-28.6 GB/s sequential ceiling. Published numbers from Alder Lake boxes (~23 tok/s at the same
-ncmoe) are consistent with AVX-VNNI's `vpdpbusd` path, which Zen 3 does not have.
+| context | `-ncmoe` | decode | note |
+|---|---|---|---|
+| 64K | 30 | ~25.7 tok/s | |
+| 164K | 32 | ~22.5 tok/s | deployed; 23,793 MiB, server measures 22.5 decode / 104 prefill |
+| 229K | 34 | ~20.5 tok/s | |
+| 262K | 35 | ~19.7 tok/s | the model's full window |
+| 262K, both GPUs, `-ncmoe 26 -ts 82,18` | | 20.8 tok/s | +1 tok/s, but blocks every cuda1 model |
+
+Adding the 1080 Ti is not worth it. It holds ~7 layers, but each marginal layer it takes is a
+Pascal layer rather than a 3090 one, and its pipeline latency exceeds what those layers save:
+`-ncmoe 32` on the 3090 alone beat `-ncmoe 26` across both cards. Sizing arithmetic:
+`llama-fit-params` undershoots real usage by a consistent ~390 MiB here, KV costs ~19 KiB per
+token at q8_0, and one CPU-resident MoE layer is 962 MiB of experts (19.7 MB of them active).
+
+Two quants were tried and lost. UD-Q4_K_XL is the only variant whose experts are real
+k-quants (Q4_K gate/up, Q5_1 down) - UD-Q3_K_XL and UD-Q2_K_XL both ship IQ3_XXS/IQ2_XS
+experts despite the names, so check tensor types before downloading 90 GB to test a
+hypothesis. With AVX2 the IQ kernels are fast enough that Q4_K_XL's 35% larger footprint
+(11 more CPU layers) loses outright: 14.9 against 20.1 tok/s.
+
+Threads: 6 (physical cores, the default). 4 gives 18.9, 8 gives 18.9, 12 gives 18.5.
+`-lm none` over mmap: the set is 76 GiB against 94 GiB of RAM, so it stays resident and
+decode stops depending on page-cache state - mmap runs varied 20.3 to 25.0 tok/s for
+identical flags across invocations, which makes fine-grained sweeps meaningless.
 
 `-ctk q8_0 -ctv q8_0` requires llama.cpp >= 0.4.0. Before #27967 the QSA graph asserted on
 `inp->self_k_rot == nullptr` as soon as the K cache was quantized, aborting ~2.5 min into the
 load.
+
+Vision rides `--mmproj-device none`: the projector stays in RAM, costs no VRAM and no text
+decode, and only image requests pay ~17 s of CPU ViT (~6 s if moved to CUDA0, which costs a
+MoE layer). `--image-min-tokens 1024` is upstream's floor for Qwen-VL.
 
 ## stable-diffusion Configs
 
