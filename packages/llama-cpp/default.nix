@@ -33,16 +33,20 @@ in
     # pulled in by vulkan-headers alone.
     buildInputs = (oldAttrs.buildInputs or [ ]) ++ [ pkgs.spirv-headers ];
 
-    # Auto CPU Optimizations
+    # CPU ISA - ggml sets GGML_NATIVE_DEFAULT=OFF whenever SOURCE_DATE_EPOCH is defined, which
+    # Nix always does, and `if (GGML_NATIVE OR NOT GGML_NATIVE_DEFAULT)` then defaults every
+    # instruction-set option to OFF, leaving a baseline x86-64 CPU backend. These are the
+    # Zen 3 set (no AVX512), which is also what ggml's own variant table picks for it.
+    # -march=native is not an option: the builder is not always the target.
     cmakeFlags = (builtins.filter (f: !(pkgs.lib.hasPrefix "-DLLAMA_BUILD_NUMBER" f)) oldAttrs.cmakeFlags) ++ [
       "-DLLAMA_BUILD_NUMBER:STRING=${buildNumber}"
       "-DGGML_CUDA_ENABLE_UNIFIED_MEMORY=1"
       "-DCMAKE_CUDA_ARCHITECTURES=61;86" # GTX 1070 / GTX 1080ti / RTX 3090
+      "-DGGML_SSE42=ON"
+      "-DGGML_AVX=ON"
+      "-DGGML_AVX2=ON"
+      "-DGGML_BMI2=ON"
+      "-DGGML_FMA=ON"
+      "-DGGML_F16C=ON"
     ];
-
-    # Disable Nix's march=native Stripping
-    preConfigure = ''
-      export NIX_ENFORCE_NO_NATIVE=0
-      ${oldAttrs.preConfigure or ""}
-    '';
   })
