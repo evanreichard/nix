@@ -5,12 +5,13 @@
   backend = "llama-cpp";
   placement = "dual";
   macros.ctx = "200000";
-  # Placement - The PLE tensor and 24 MoE layers stay resident in RAM. Measured footprint at
-  # these flags: 23,841 MiB on CUDA0 (3090), 9,911 MiB on CUDA1 (1080 Ti), ~52 GiB RAM.
-  # -ts 82,18 fills the 3090 first because it is the card that decodes fast; the estimator's
-  # 85,15 left 3.7 GiB idle on it.
-  # Q8_0 KV - Needs llama.cpp >= 0.4.0. The QSA path asserted on Hadamard-rotated quantized
-  # caches until #27967; f16 KV at this context costs 2.3 GiB more and buys nothing.
+  # Placement - The PLE tensor and 24 MoE layers stay resident in RAM (~52 GiB). Under load
+  # the 3090 peaks at 24,069 MiB and the 1080 Ti at 10,093; -ts 82,18 fills the fast card
+  # first, which the estimator's 85,15 does not. Measured 7.9 tok/s decode, 144 tok/s prefill.
+  # Decode is CPU-bound at ~4.3 ms per CPU-resident MoE layer - see AGENTS.md before retuning,
+  # k-quants and thread count were both tried and lost.
+  # Q8_0 KV - Needs llama.cpp >= 0.4.0; the QSA graph asserted on quantized K caches until
+  # #27967, and f16 KV at this context costs 2.3 GiB that is worth two GPU layers.
   cmd = ''
     ${backends.llama-cpp}/bin/llama-server \
       --port ''${PORT} \

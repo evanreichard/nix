@@ -51,6 +51,38 @@ Reasoning-capable models use `metadata.reasoning` profiles from `lib/reasoning.n
 
 Two pi behaviors constrain what a profile must declare. pi forwards an unmapped level verbatim (`thinkingLevelMap[level] ?? level`), so every pi level must resolve to a native one or a strict backend answers 400; pi's `lib.nix` fills the gaps with the nearest native level. Separately, pi's default `openai` thinking format can only disable reasoning via a `thinkingLevelMap.off` string, so a profile whose `enabled` control is a top-level `enable_thinking` field gets `compat.thinkingFormat = "qwen"` instead — otherwise switching thinking off silently changes nothing.
 
+## Qwen3.8-Flash-Next (llama.cpp, dual)
+
+125B-A6B with 512 experts, top-10, 48 blocks of which 12 are full attention (QSA) and 36 are
+gated delta net. The weights are 76 GiB at UD-IQ3_XXS against 35 GiB of VRAM, so ~46 GiB of
+experts live in RAM and the CPU owns the critical path. Everything below is measured on this
+host (5600X, 6 cores, 94 GiB DDR4; CUDA0 = 3090, CUDA1 = 1080 Ti) at 200K context.
+
+| Change | Decode | Note |
+|---|---|---|
+| `-ncmoe 26 -ts 80,20` | 7.4 tok/s | 3.7 GiB left idle on the 3090 |
+| `-ncmoe 24 -ts 82,18` | 7.9 tok/s | deployed; 3090 peaks at 24,069 MiB, 1080 Ti at 10,093 |
+| UD-Q3_K_XL, `-ncmoe 29` | 6.9 tok/s | k-quant loses: +6.8 GiB of weights costs 5 GPU layers |
+| `-t 12` (SMT) | 7.9 tok/s | neutral, as the tuning skill predicts |
+| `-lm mmap -t 4` | 4.6-5.2 tok/s | upstream forum flags; experts stream from disk |
+
+Two constants make the arithmetic reusable: one CPU-resident MoE layer costs ~4.3 ms/token
+(962 MiB of experts at IQ3_XXS, 19.7 MB of them active), and everything else - both GPUs,
+attention, sampling - costs ~23 ms/token. So decode is `1000 / (23 + 4.3 * ncmoe)` and the
+only real lever is VRAM. `llama-fit-params` understates the prefill compute buffer by ~950
+MiB here (it predicts ~1.2 GiB, the server allocates 2.1 GiB on CUDA0), which is exactly the
+gap that made `-ncmoe 28` on Q3_K_XL abort in `graph_reserve`.
+
+Quant family is *not* the lever it is for dense models. Per byte, Q3_K_XL decodes only ~13%
+cheaper than IQ3_XXS here (4.24 vs 4.35 ms/layer for 9% more bytes), because the MoE path is
+gather- and latency-bound rather than dequant-bound: it sustains ~5 GB/s against a measured
+28.6 GB/s sequential ceiling. Published numbers from Alder Lake boxes (~23 tok/s at the same
+ncmoe) are consistent with AVX-VNNI's `vpdpbusd` path, which Zen 3 does not have.
+
+`-ctk q8_0 -ctv q8_0` requires llama.cpp >= 0.4.0. Before #27967 the QSA graph asserted on
+`inp->self_k_rot == nullptr` as soon as the K cache was quantized, aborting ~2.5 min into the
+load.
+
 ## stable-diffusion Configs
 
 `sd-server` holds every component resident at once, so a 24 GiB card is budgeted against weights *plus* one decode graph. Qwen Image weights already cost ~19.5 GiB (14.4 diffusion Q5_K + 4.8 Qwen2.5-VL TE + 0.24 VAE), and an untiled 1024x1024 `wan_vae` decode asks for 7.6 GiB against the ~5 GiB left — it fails at `decode_first_stage` after sampling has already succeeded, wasting the whole request. Both Qwen entries therefore pass `--vae-tiling`; sd.cpp's auto-fit retry does not rescue this. Chroma Radiance is exempt (pixel-space, no VAE), Z-Image-Turbo has headroom.
