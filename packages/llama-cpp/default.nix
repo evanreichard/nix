@@ -2,15 +2,15 @@
 let
   # Tracks upstream stable vX.Y.Z tags (since v0.1.0); bN tags are nightlies.
   # For HEAD builds use YYYYMMDD (e.g. "20260519").
-  version = "0.3.0";
-  # b-tag shipped by the v0.3.0 release.
-  buildNumber = "10621";
+  version = "0.4.0";
+  # b-tag shipped by the v0.4.0 release.
+  buildNumber = "10809";
 
   src = pkgs.fetchFromGitHub {
     owner = "ggml-org";
     repo = "llama.cpp";
-    rev = "c1d0e7a004015f23bc0233470b747b596f29b264";
-    hash = "sha256-eUHLOgWFy8N4vmrolnUxJYHPmtxmEmNGR4qL46mQs7A=";
+    rev = "5266f24da75dc449bd56cbed7addb9c8e4a6a73e";
+    hash = "sha256-n540xQnFJOwpyRUXtHrv4/kHU3hguVJQUvanx2ZChR4=";
     leaveDotGit = true;
     postFetch = ''
       git -C "$out" rev-parse --short HEAD > $out/COMMIT
@@ -27,13 +27,6 @@ in
 }).overrideAttrs
   (oldAttrs: {
     inherit version src;
-    patches = (oldAttrs.patches or [ ]) ++ [
-      (pkgs.fetchpatch {
-        url = "https://github.com/ggml-org/llama.cpp/pull/27742.diff";
-        hash = "sha256-EYLqNZQyvaNggDfaXCkh2+Aq7SjtzU9OwyAQuKW9V9o=";
-      })
-    ];
-
     npmDepsHash = "sha256-2Q7XhaLAArmviOLdQsNbYTfdyDE5pW9lR26cRHEVl9k=";
     # Add SPIR-V Headers for Vulkan Backend
     # Newer llama.cpp requires spirv/unified1/spirv.hpp which isn't
