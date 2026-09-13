@@ -153,10 +153,11 @@ in
           }
           // optionalAttrs (staticBody false != { }) { extraBody = staticBody false; }
         else if enabledLocation == "request" then
-          # Top-Level Toggle - NInfer takes `enable_thinking`, `preserve_thinking`, and
-          # `reasoning_effort` as request fields and rejects every other chat-template kwarg, so
-          # the toggle rides `extraBody` (mirroring the bundled Qwen3.8 catalog entries) instead
-          # of omp's `qwen` dialect, which also injects `chat_template_kwargs.reasoning_effort`.
+          # Top-Level Toggle - a profile whose controls live in the request body takes
+          # `enable_thinking`, `preserve_thinking` and `reasoning_effort` as request fields and
+          # rejects chat-template kwargs, so the toggle rides `extraBody` (mirroring the bundled
+          # Qwen3.8 catalog entries) instead of omp's `qwen` dialect, which also injects
+          # `chat_template_kwargs.reasoning_effort`.
           {
             thinkingFormat = "openai";
             supportsReasoningEffort = routable && levelControl.location == "request";

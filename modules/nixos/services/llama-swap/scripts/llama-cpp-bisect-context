@@ -42,7 +42,7 @@ Examples:
     --cmd-template 'llama-server --port ${PORT} -m model.gguf -c ${CTX} -ngl 99' \
     --low 32768 --high 196608
 
-  llama-cpp-bisect-context qwen3.6-27b-ik-cuda0 --low 32768 --high 180000
+  llama-cpp-bisect-context qwen3.8-flash-next-dual --low 32768 --high 180000
   llama-cpp-bisect-context --cmd-file ./server-command.sh --low 32768 --high 196608
 EOF
 }

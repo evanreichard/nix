@@ -37,9 +37,9 @@ in
       levelIndex = listToAttrs (lib.imap0 (index: level: nameValuePair level index) piReasoningLevels);
 
       # Nearest Native Level - pi forwards an unmapped level verbatim (`map[level] ?? level`),
-      # so a null entry means a strict backend like NInfer answers 400 instead of falling back.
-      # Resolving every pi level to a real native one keeps the whole UI ladder usable; ties go
-      # to the higher effort.
+      # so a null entry means a strict backend answers 400 instead of falling back. Resolving
+      # every pi level to a real native one keeps the whole UI ladder usable; ties go to the
+      # higher effort.
       nearestNativeLevel =
         nativeLevels: level:
         let
@@ -106,7 +106,7 @@ in
           # Top-Level Thinking Toggle - pi's "openai" format can only disable thinking through a
           # `thinkingLevelMap.off` string, which hybrid profiles do not have, so turning thinking
           # off would silently do nothing. Its "qwen" format sends `enable_thinking` alongside
-          # `reasoning_effort`, which is exactly the pair NInfer accepts at the top level.
+          # `reasoning_effort`, which is the pair a profile with request-located controls needs.
           sendsTopLevelThinkingToggle =
             enabledControl != null
             && enabledControl.location == "request"

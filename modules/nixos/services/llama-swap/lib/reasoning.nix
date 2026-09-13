@@ -34,32 +34,6 @@ in
     };
   };
 
-  qwen36IkLlamaCpp = {
-    mode = "hybrid";
-    defaults = {
-      enabled = true;
-      preserve = true;
-    };
-    controls = {
-      enabled = chatTemplateControl "enable_thinking";
-      preserve = chatTemplateControl "preserve_thinking";
-      budgetTokens = requestBudgetControl "thinking_budget_tokens" // { unlimited = -1; };
-    };
-  };
-
-  qwen36Vllm = {
-    mode = "hybrid";
-    defaults = {
-      enabled = true;
-      preserve = false;
-    };
-    controls = {
-      enabled = chatTemplateControl "enable_thinking";
-      preserve = chatTemplateControl "preserve_thinking";
-      budgetTokens = requestBudgetControl "thinking_token_budget";
-    };
-  };
-
   qwen38LlamaCpp = {
     mode = "hybrid";
     defaults = {
@@ -102,28 +76,6 @@ in
         ];
       };
       preserve = chatTemplateControl "preserve_thinking";
-    };
-  };
-
-  # NInfer takes enable_thinking, preserve_thinking, and reasoning_effort as top-level
-  # request fields; chat_template_kwargs rejects every key except preserve_thinking.
-  # Effort default comes from the artifact's chat template, so no level default is recorded.
-  qwen38Ninfer = {
-    mode = "hybrid";
-    defaults = {
-      enabled = true;
-      preserve = true;
-    };
-    controls = {
-      enabled = requestControl "enable_thinking";
-      preserve = requestControl "preserve_thinking";
-      level = requestControl "reasoning_effort" // {
-        values = [
-          "low"
-          "medium"
-          "xhigh"
-        ];
-      };
     };
   };
 

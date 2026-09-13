@@ -12,7 +12,6 @@ in
 rec {
   llama-cpp = pkgs.reichard.llama-cpp;
   ik-llama-cpp = pkgs.reichard.ik-llama-cpp;
-  ninfer = pkgs.reichard.ninfer-3090;
   stable-diffusion-cpp = pkgs.reichard.stable-diffusion-cpp.override {
     cudaSupport = true;
   };
