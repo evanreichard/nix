@@ -1,18 +1,13 @@
 # https://huggingface.co/unsloth/Qwen3.6-35B-A3B-MTP-GGUF/tree/main
 #
-# Pairs With flash-next - 10,946 MiB on the 1080 Ti and ~13 GiB RAM, so it stays resident
-# beside qwen3.8-flash-next-cuda0 (23,313 MiB on the 3090, ~37 GiB RAM). Measured together:
-# 38.7 tok/s here and 20.9 there, neither degraded. Only simultaneous decode would contend,
-# since both draw on the same six cores.
+# Pairs With flash-next - 10,946 MiB and ~13 GiB RAM, so both stay resident; measured together
+# at 38.7 tok/s here and 20.9 there. Only simultaneous decode contends, over the same 6 cores.
 #
-# MTP Pays Now - Speculation was a large loss on the pre-AVX2 CPU backend (10.4 against 29.0
-# tok/s). With working kernels the draft head wins: 39.0 against 33.4 tok/s at identical
-# placement. It costs ~1.1 GiB of VRAM, which is why ncmoe is 28 rather than 26 - at 26 the
-# draft context fails in graph_reserve. Needs the MTP-GGUF build, not the base repo's.
+# MTP - The draft head wins on an AVX2 backend (39.0 against 33.4) after losing badly without
+# one. Needs the MTP-GGUF build and ~1.1 GiB for the draft context, hence ncmoe 28, not 26.
 #
-# Q4_K_M Over IQ4_NL Is Now Marginal - The old 15.3-against-29.0 gap was an artifact of the
-# baseline-ISA build. With AVX2 the IQ kernels catch up and IQ4_NL's 4.2 GiB smaller footprint
-# buys three GPU layers: 36.6 against 32.6 tok/s unspeculated. Q4_K_M stays for the quality.
+# Q4_K_M holds for quality only: IQ4_NL is 4.2 GiB smaller, buys three GPU layers and measures
+# 36.6 against 32.6 unspeculated.
 { pkgs, lib, backends, reasoning }:
 {
   name = "Qwen3.6 35B (CUDA1, UD-Q4, MTP)";

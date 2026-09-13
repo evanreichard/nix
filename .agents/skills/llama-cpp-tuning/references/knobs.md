@@ -27,6 +27,9 @@ Flags as of llama.cpp b10600-era builds. Confirm against `llama-server --help` o
 | `-kvu` | Unified KV across slots | With `-np N`, avoids per-slot reservation |
 | `-np N` | Parallel slots | Throughput for concurrent clients |
 | `-nkvo` | Keep KV off GPU | Last resort to fit context |
+| `--mmproj PATH` | Load a vision projector | Adds image input |
+| `--mmproj-device none` | Keep the projector in RAM | Vision at no VRAM and no text-decode cost; images pay CPU ViT instead (~17 s vs ~6 s on a 3090) |
+| `--image-min-tokens`, `--image-max-tokens` | Per-image token budget | 1024 is upstream's floor for Qwen-VL; image tokens consume context |
 
 ## Compute
 
@@ -57,8 +60,12 @@ Treat quant format as a performance knob wherever weights live on the CPU.
 
 | Family | GPU decode | CPU decode | Use |
 | --- | --- | --- | --- |
-| IQ (`IQ4_XS`, `IQ4_NL`, `IQ2_*`) | fine | **expensive** — non-linear codebook lookups | Best quality per byte when fully GPU-resident |
+| IQ (`IQ4_XS`, `IQ4_NL`, `IQ2_*`) | fine | ~1.8x a k-quant per byte on an AVX2 build (7.3 vs 12.9 GB/s); far worse without it | Best quality per byte; wins on CPU too when it is >1.8x smaller |
 | K (`Q4_K`, `Q5_K`, `Q6_K`) | fine | cheap | Default whenever layers land on CPU |
 | Legacy (`Q4_0`, `Q8_0`) | fine | cheapest, repack-friendly | Maximum CPU throughput; lower quality per byte |
 
-Bigger files are acceptable, and often faster, when bandwidth is spare and CPU cycles are not.
+Bigger files are acceptable, and often faster, when bandwidth is spare and CPU cycles are not — but the crossover depends on the build's ISA, and the family in a filename is not the family in the tensors. Dump the GGUF tensor types before trusting either.
+
+## Context as a lever
+
+Under MoE offload, KV and expert layers compete for the same VRAM, so context is paid for in CPU layers. One 3090, Qwen3.8-Flash-Next: 64K/`-ncmoe 30`/25.7 tok/s, 164K/32/22.5, 262K/35/19.7. Choose a point on that curve instead of defaulting to the model's maximum.

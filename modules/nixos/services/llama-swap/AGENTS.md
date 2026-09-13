@@ -53,52 +53,32 @@ Two pi behaviors constrain what a profile must declare. pi forwards an unmapped 
 
 ## Qwen3.8-Flash-Next (llama.cpp, cuda0)
 
-177B total / ~6B active: 512 experts top-10, 48 blocks of which 12 are full attention (QSA)
-and 36 gated delta net, plus a 27 GB PLE n-gram table that `-ot ...=CPU` pins to RAM. The
-weights are 76 GiB at UD-IQ3_XXS against 24 GiB of usable VRAM, so ~45 GiB of experts live in
-RAM and the CPU owns the critical path. Measured on this host (5600X, 6 cores, 94 GiB DDR4).
+177B total / ~6B active, 48 layers, plus a 27 GB PLE n-gram table that `-ot ...=CPU` pins to
+RAM. 76 GiB of weights against 24 GiB of VRAM, so the CPU owns the critical path and needs an
+AVX2 backend - without it this model runs 3.1 tok/s instead of 14.5, and any tuning note
+written on such a build is void. See the `llama-cpp-tuning` skill.
 
-**The CPU backend must be built with AVX2.** ggml sets `GGML_NATIVE_DEFAULT=OFF` whenever
-`SOURCE_DATE_EPOCH` is defined - which Nix always does - and then defaults every instruction
-set option to OFF. Stock `-ncmoe 48` measured **3.1 tok/s** on the baseline build against
-**14.5** once `packages/llama-cpp` passed `-DGGML_AVX2=ON` and friends. Every placement
-conclusion drawn before that fix was wrong by 3-5x; re-measure rather than trusting old notes.
+Context is the lever: KV competes with expert layers, so it is paid for in `-ncmoe`.
+`llama-bench -d 4096 -lm none`, CUDA0 only, q8_0 KV, each row at the largest context fitting
+24,576 MiB:
 
-Context is the only lever worth trading. All rows are `llama-bench -d 4096 -lm none -t 6`,
-CUDA0 only, `-ctk/-ctv q8_0`, paired with the largest context that fits 24,576 MiB:
+| context | `-ncmoe` | decode |
+|---|---|---|
+| 64K | 30 | ~25.7 tok/s |
+| 164K | 32 | ~22.5 tok/s |
+| 262K | 35 | ~19.7 tok/s (deployed; server 20.8 decode / 93 prefill, 23,313 MiB) |
 
-| context | `-ncmoe` | decode | note |
-|---|---|---|---|
-| 64K | 30 | ~25.7 tok/s | |
-| 164K | 32 | ~22.5 tok/s | 23,793 MiB; server measures 22.5 decode / 104 prefill |
-| 229K | 34 | ~20.5 tok/s | |
-| 262K | 35 | ~19.7 tok/s | deployed, the model's full window; server 20.8 decode / 93 prefill, 23,313 MiB |
-| 262K, both GPUs, `-ncmoe 26 -ts 82,18` | | 20.8 tok/s | +1 tok/s, but blocks every cuda1 model |
+The 1080 Ti loses here: its marginal layers are Pascal layers and the extra hop outweighs
+them, so `-ncmoe 32` alone beat `-ncmoe 26 -ts 82,18` across both cards, and CUDA1 is free for
+a second model. Sizing: the estimator undershoots ~390 MiB, KV is ~19 KiB/token at q8_0, one
+CPU MoE layer is 962 MiB.
 
-Adding the 1080 Ti is not worth it. It holds ~7 layers, but each marginal layer it takes is a
-Pascal layer rather than a 3090 one, and its pipeline latency exceeds what those layers save:
-`-ncmoe 32` on the 3090 alone beat `-ncmoe 26` across both cards. Sizing arithmetic:
-`llama-fit-params` undershoots real usage by a consistent ~390 MiB here, KV costs ~19 KiB per
-token at q8_0, and one CPU-resident MoE layer is 962 MiB of experts (19.7 MB of them active).
+UD-Q4_K_XL is the only variant with real k-quant experts and still loses (14.9 against 20.1)
+on 35% more bytes; UD-Q3_K_XL and UD-Q2_K_XL ship IQ experts despite their names.
 
-Two quants were tried and lost. UD-Q4_K_XL is the only variant whose experts are real
-k-quants (Q4_K gate/up, Q5_1 down) - UD-Q3_K_XL and UD-Q2_K_XL both ship IQ3_XXS/IQ2_XS
-experts despite the names, so check tensor types before downloading 90 GB to test a
-hypothesis. With AVX2 the IQ kernels are fast enough that Q4_K_XL's 35% larger footprint
-(11 more CPU layers) loses outright: 14.9 against 20.1 tok/s.
-
-Threads: 6 (physical cores, the default). 4 gives 18.9, 8 gives 18.9, 12 gives 18.5.
-`-lm none` over mmap: the set is 76 GiB against 94 GiB of RAM, so it stays resident and
-decode stops depending on page-cache state - mmap runs varied 20.3 to 25.0 tok/s for
-identical flags across invocations, which makes fine-grained sweeps meaningless.
-
-`-ctk q8_0 -ctv q8_0` requires llama.cpp >= 0.4.0. Before #27967 the QSA graph asserted on
-`inp->self_k_rot == nullptr` as soon as the K cache was quantized, aborting ~2.5 min into the
-load.
-
-Vision rides `--mmproj-device none`: the projector stays in RAM, costs no VRAM and no text
-decode, and only image requests pay ~17 s of CPU ViT (~6 s if moved to CUDA0, which costs a
-MoE layer). `--image-min-tokens 1024` is upstream's floor for Qwen-VL.
+`-ctk q8_0` requires llama.cpp >= 0.4.0 - before #27967 the QSA graph asserted on quantized K
+caches. Vision rides `--mmproj-device none`: no VRAM, no text-decode cost, ~17 s of CPU ViT
+per image.
 
 ## stable-diffusion Configs
 

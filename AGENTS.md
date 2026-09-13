@@ -2,6 +2,11 @@
 
 This is a multi-host NixOS/nix-darwin configuration managed with [Snowfall Lib](https://github.com/snowfallorg/lib). It declaratively configures NixOS (Linux), nix-darwin (macOS), and Home Manager across many machines from a single flake.
 
+**Writing AGENTS.md files:** record only what an agent cannot read off the code — measured
+constants, upstream constraints, and decisions whose rationale is invisible in the diff.
+Nix modules are self-describing, so narrating structure or restating flags is cost without
+value. Prefer replacing a stale note over appending a newer one; a session log is not a guide.
+
 ## Snowfall Lib Conventions
 
 Snowfall Lib auto-discovers everything by directory convention — there is no manual wiring. The namespace is `reichard`, so all custom options live under `reichard.*` (e.g. `reichard.services.tailscale`, `reichard.programs.terminal.nvim`). Modules use `lib.reichard.enabled` / `lib.reichard.disabled` helpers from `lib/module/default.nix`.

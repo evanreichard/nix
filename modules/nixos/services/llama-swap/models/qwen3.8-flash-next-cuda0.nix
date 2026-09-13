@@ -5,16 +5,11 @@
   backend = "llama-cpp";
   placement = "cuda0";
   macros.ctx = "262144";
-  # One Card, Not Two - The 1080 Ti holds ~7 layers but adds more pipeline latency than those
-  # layers cost on the CPU, and every marginal layer it takes is a slow Pascal layer instead
-  # of a 3090 one. Dropping it measured 22.5 tok/s against 21.9 dual, and frees CUDA1 for a
-  # second resident model. At this context: 20.8 tok/s decode, 93 prefill, 23,313 MiB, ~37 GiB RAM.
-  # Context Is The Lever - ncmoe 35 is what the model's full 262K window costs; 164K would
-  # allow ncmoe 32 for ~22.5 tok/s and 64K ncmoe 30 for ~25.7. See AGENTS.md for the matrix.
-  # Q8_0 KV - Needs llama.cpp >= 0.4.0; the QSA graph asserted on quantized K caches until
-  # #27967, and f16 KV costs 2.3 GiB here for nothing.
-  # Vision On The CPU - --mmproj-device none keeps the projector in RAM, so VRAM and text
-  # decode are untouched and only requests carrying an image pay (~17 s of CPU ViT).
+  # One Card - The 1080 Ti's marginal layers are Pascal layers and its extra hop costs more
+  # than they save, so it loses to the 3090 alone and CUDA1 stays free for a second model.
+  # ncmoe 35 is what the full 262K window costs; AGENTS.md has the context/speed matrix.
+  # Q8_0 KV needs llama.cpp >= 0.4.0 (#27967). --mmproj-device none keeps the projector in
+  # RAM, so vision costs no VRAM and only image requests pay.
   cmd = ''
     ${backends.llama-cpp}/bin/llama-server \
       --port ''${PORT} \
