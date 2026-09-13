@@ -1,20 +1,21 @@
-# https://huggingface.co/unsloth/Qwen3.6-35B-A3B-GGUF/tree/main
+# https://huggingface.co/unsloth/Qwen3.6-35B-A3B-MTP-GGUF/tree/main
 #
-# Q4_K_M Over IQ4_NL - Only 22 of 48 layers fit on the 1080 Ti, so half the experts run on
-# the CPU, where IQ4_NL's lookup-table dequant dominates: it measured 15.3 tok/s against
-# 29.0 tok/s for the physically larger Q4_K_M under identical placement. Decode is CPU-bound
-# at roughly 26 GB/s of the ~45 GB/s this DDR4 sustains, so spending bandwidth to save CPU
-# cycles is the correct trade on Pascal.
+# Pairs With flash-next - 10,946 MiB on the 1080 Ti and ~13 GiB RAM, so it stays resident
+# beside qwen3.8-flash-next-cuda0 (23,313 MiB on the 3090, ~37 GiB RAM). Measured together:
+# 38.7 tok/s here and 20.9 there, neither degraded. Only simultaneous decode would contend,
+# since both draw on the same six cores.
 #
-# No Speculation - Verification activates the union of experts across the entire draft, so
-# each drafted token multiplies CPU-side expert reads. MTP measured 10.4 tok/s and n-gram at
-# its default draft length 18.7 tok/s, both far below plain decode.
+# MTP Pays Now - Speculation was a large loss on the pre-AVX2 CPU backend (10.4 against 29.0
+# tok/s). With working kernels the draft head wins: 39.0 against 33.4 tok/s at identical
+# placement. It costs ~1.1 GiB of VRAM, which is why ncmoe is 28 rather than 26 - at 26 the
+# draft context fails in graph_reserve. Needs the MTP-GGUF build, not the base repo's.
 #
-# ncmoe 26 - Leaves ~490 MiB spare at 128K. Denser placements gain ~2% and approach the
-# ~300 MiB floor where cuBLAS failed to allocate its workspace during testing.
+# Q4_K_M Over IQ4_NL Is Now Marginal - The old 15.3-against-29.0 gap was an artifact of the
+# baseline-ISA build. With AVX2 the IQ kernels catch up and IQ4_NL's 4.2 GiB smaller footprint
+# buys three GPU layers: 36.6 against 32.6 tok/s unspeculated. Q4_K_M stays for the quality.
 { pkgs, lib, backends, reasoning }:
 {
-  name = "Qwen3.6 35B (CUDA1, UD-Q4)";
+  name = "Qwen3.6 35B (CUDA1, UD-Q4, MTP)";
   backend = "llama-cpp";
   placement = "cuda1";
   macros.ctx = "131072";
@@ -32,9 +33,11 @@
       --presence-penalty 0.0 \
       -ctk q8_0 \
       -ctv q8_0 \
+      --spec-type draft-mtp \
+      --spec-draft-n-max 3 \
       -dev CUDA0 \
       -ngl all \
-      -ncmoe 26 \
+      -ncmoe 28 \
       -fit off \
       -lm none \
       --chat-template-kwargs "{\"preserve_thinking\": true}"
