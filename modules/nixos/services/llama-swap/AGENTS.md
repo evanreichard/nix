@@ -73,6 +73,11 @@ them, so `-ncmoe 32` alone beat `-ncmoe 26 -ts 82,18` across both cards, and CUD
 a second model. Sizing: the estimator undershoots ~390 MiB, KV is ~19 KiB/token at q8_0, one
 CPU MoE layer is 962 MiB.
 
+Prefill is PCIe-bound, not CPU-bound: it streams CPU-resident experts to the GPU each batch.
+The 3090 sits on gen3 x4 and the 1080 Ti on x8 (B450-F, CPU root ports 00:03.2 / 00:03.1),
+which caps pp512 at 115 here against 284 for the 35B on the wider slot. Swapping the cards
+physically is the fix; `-ub` and `-nopo 1` are not (measured no effect and -30%).
+
 UD-Q4_K_XL is the only variant with real k-quant experts and still loses (14.9 against 20.1)
 on 35% more bytes; UD-Q3_K_XL and UD-Q2_K_XL ship IQ experts despite their names.
 
