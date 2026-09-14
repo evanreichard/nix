@@ -6,8 +6,10 @@
   placement = "cuda0";
   macros.ctx = "262144";
   # One Card - The 1080 Ti's marginal layers are Pascal layers and its extra hop costs more
-  # than they save, so it loses to the 3090 alone and CUDA1 stays free for a second model.
-  # ncmoe 35 is what the full 262K window costs; AGENTS.md has the context/speed matrix.
+  # than they save for decode, and CUDA1 stays free for a second model. AGENTS.md has the
+  # context/speed matrix and the dual-GPU alternative, which is 1.6x on prefill.
+  # -ub 1024 - Prefill streams CPU-resident experts over a gen3 x4 link, so a wider ubatch
+  # amortises the transfer: 151 tok/s against 93. Its buffer costs two MoE layers (ncmoe 37).
   # Q8_0 KV needs llama.cpp >= 0.4.0 (#27967). --mmproj-device none keeps the projector in
   # RAM, so vision costs no VRAM and only image requests pay.
   cmd = ''
@@ -32,7 +34,9 @@
       -dev CUDA0 \
       -ngl all \
       -ot per_layer_token_embd.weight=CPU \
-      -ncmoe 35 \
+      -ncmoe 37 \
+      -ub 1024 \
+      -b 2048 \
       -fit off \
       -lm none \
       --cache-reuse 256

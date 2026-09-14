@@ -75,8 +75,17 @@ CPU MoE layer is 962 MiB.
 
 Prefill is PCIe-bound, not CPU-bound: it streams CPU-resident experts to the GPU each batch.
 The 3090 sits on gen3 x4 and the 1080 Ti on x8 (B450-F, CPU root ports 00:03.2 / 00:03.1),
-which caps pp512 at 115 here against 284 for the 35B on the wider slot. Swapping the cards
-physically is the fix; `-ub` and `-nopo 1` are not (measured no effect and -30%).
+and the slots cannot be swapped for cooling reasons. Two knobs recover most of it - a wider
+`-ub` amortises each transfer, and a second GPU adds lanes and removes CPU layers:
+
+| placement | ctx | `-ncmoe` | `-ub` | server prefill | decode |
+|---|---|---|---|---|---|
+| CUDA0 | 262K | 35 | 512 | 93 tok/s | 20.8 |
+| CUDA0 | 262K | 37 | 1024 | 151 tok/s | 19.8 (deployed) |
+| dual `-ts 82,18` | 131K | 24 | 1024 | 239 tok/s | 22.3 |
+
+The dual row is the fastest but occupies CUDA1, so nothing pairs beside it. `-ub 2048` needs
+~3.8 GiB more and only fits below 64K; `-nopo 1` stops the streaming and measured -30%.
 
 UD-Q4_K_XL is the only variant with real k-quant experts and still loses (14.9 against 20.1)
 on 35% more bytes; UD-Q3_K_XL and UD-Q2_K_XL ship IQ experts despite their names.
