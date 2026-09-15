@@ -24,7 +24,7 @@ Levers, in order:
 
 1. `-sm layer` (default) and tune `-ts` to the ratio that keeps both cards inside their VRAM budget. `-sm row` splits individual tensors and adds interconnect traffic each layer — try it only when one card is severely underused.
 2. Size `-ts` by VRAM, then verify with `nvidia-smi`. The estimator's split does not account for the compute buffer landing on one card.
-3. **Decide whether to keep the slow card; do not assume.** Its layers are slow layers and each hop adds latency. A 1080 Ti beside a 3090 was worth +25% on a baseline-ISA build and lost to the 3090 alone once the CPU kernels worked. Measure both at the `-ncmoe` each placement forces, and count a freed card as capacity for a second model.
+3. **Decide whether to keep the slow card; do not assume.** Measure both placements at the layer split each one permits; a slower card can add more device-hop latency than compute capacity, and a freed card can host a second model.
 4. Watch per-GPU utilization. If both sit low, the CPU or the hops between devices dominate, not the GPUs.
 5. `-mg` selects which card holds the shared/output tensors.
 

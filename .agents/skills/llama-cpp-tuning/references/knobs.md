@@ -60,7 +60,7 @@ Treat quant format as a performance knob wherever weights live on the CPU.
 
 | Family | GPU decode | CPU decode | Use |
 | --- | --- | --- | --- |
-| IQ (`IQ4_XS`, `IQ4_NL`, `IQ2_*`) | fine | ~1.8x a k-quant per byte on an AVX2 build (7.3 vs 12.9 GB/s); far worse without it | Best quality per byte; wins on CPU too when it is >1.8x smaller |
+| IQ (`IQ4_XS`, `IQ4_NL`, `IQ2_*`) | fine | higher decode cost per byte than k-quants | Best quality per byte; useful when the smaller file moves more layers onto the GPU |
 | K (`Q4_K`, `Q5_K`, `Q6_K`) | fine | cheap | Default whenever layers land on CPU |
 | Legacy (`Q4_0`, `Q8_0`) | fine | cheapest, repack-friendly | Maximum CPU throughput; lower quality per byte |
 
