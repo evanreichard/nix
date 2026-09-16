@@ -14,7 +14,7 @@ Built from the `earendil-works/pi-mono` monorepo with `buildNpmPackage`, pinned 
 
 ## Build Order
 
-`buildPhase` builds the workspace packages in dependency order — `telemetry protocol tui client ai agent coding-agent`. Replacing it with a single monorepo-wide build leaves `packages/*/dist` absent and the installed CLI fails to import.
+`buildPhase` builds the workspace packages in dependency order — `chord telemetry protocol tui ai client agent server coding-agent`. Replacing it with a single monorepo-wide build leaves `packages/*/dist` absent and the installed CLI fails to import. A new `@earendil-works/*` import in an already-listed package means a new entry here, ordered before its consumer.
 
 ## Runtime Layout
 
