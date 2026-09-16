@@ -1,6 +1,6 @@
 # https://github.com/syv-ai/qwen38-27b-rtx3090
 #
-# Patched vLLM 0.27.1 with the DFlash2 block drafter: seven drafts proposed in one
+# vLLM 0.28.0's native DFlash2 block drafter: seven drafts proposed in one
 # non-autoregressive pass instead of MTP's four chained ones, plus lookup drafting that
 # fills the verify block straight from the request's own context. Upstream measures 133
 # tok/s at C1 on chat prompts and up to 382 where the answer quotes the prompt, against

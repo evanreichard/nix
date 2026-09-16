@@ -10,7 +10,7 @@
 # start blocks until the server reports it is listening, then prints VRAM use.
 # Cold `-lm none` loads read the whole file into RAM and can take minutes.
 
-source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/../common.sh"
 
 CMD="${1:-}"; shift || true
 [ -n "$CMD" ] || die "usage: serve.sh {start|stop|status} [...]"
@@ -28,8 +28,8 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-LOG="/tmp/llama-tune-${LLAMA_PORT}.log"
-PROC_PAT="[l]lama-server.*--port ${LLAMA_PORT}"
+LOG="/tmp/llama-tune-${INFER_PORT}.log"
+PROC_PAT="[l]lama-server.*--port ${INFER_PORT}"
 
 stop_server() {
   # PROC_PAT brackets the first letter so the pattern never matches the ssh
@@ -40,7 +40,7 @@ stop_server() {
     sleep 1
   done
   sleep 2
-  echo "stopped (port ${LLAMA_PORT})"
+  echo "stopped (port ${INFER_PORT})"
   rexec "nvidia-smi --query-gpu=index,memory.used --format=csv,noheader" 2>/dev/null || true
 }
 
@@ -59,7 +59,7 @@ case "$CMD" in
     # `env` is required: nohup would treat a bare VAR=value as the command name.
     prefix=""
     [ -n "$VISIBLE" ] && prefix="env CUDA_VISIBLE_DEVICES=${VISIBLE} "
-    cmdline="${prefix}${LLAMA_SERVER_BIN} --host 127.0.0.1 --port ${LLAMA_PORT} -m ${MODEL} ${FLAGS[*]} --perf"
+    cmdline="${prefix}${LLAMA_SERVER_BIN} --host 127.0.0.1 --port ${INFER_PORT} -m ${MODEL} ${FLAGS[*]} --perf"
 
     echo "# target=$(target_label)"
     echo "# ${cmdline}"

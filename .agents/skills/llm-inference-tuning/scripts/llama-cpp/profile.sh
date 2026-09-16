@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Sample CPU, GPU, memory and I/O utilization during decode, then map saturation to useful flags.
 
-source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/../common.sh"
 
 TOKENS=400; SECONDS_TO_SAMPLE=12
 parse_common_args "$@"
@@ -14,11 +14,11 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-PAYLOAD="/tmp/llama-tune-profile-${LLAMA_PORT}.json"
+PAYLOAD="/tmp/llama-tune-profile-${INFER_PORT}.json"
 printf '{"model":"profile","max_tokens":%s,"temperature":0.6,"messages":[{"role":"user","content":"Write a detailed technical explanation of write-ahead logging, checkpointing, and crash recovery in database engines."}]}' \
   "$TOKENS" | rput "$PAYLOAD"
 
-rexec "curl -sS http://127.0.0.1:${LLAMA_PORT}/v1/chat/completions -H 'Content-Type: application/json' --data-binary @${PAYLOAD} > /tmp/llama-tune-profile-out.json 2>&1 &" >/dev/null
+rexec "curl -sS http://127.0.0.1:${INFER_PORT}/v1/chat/completions -H 'Content-Type: application/json' --data-binary @${PAYLOAD} > /tmp/llama-tune-profile-out.json 2>&1 &" >/dev/null
 sleep 3
 
 cpu=$(rexec "vmstat 1 ${SECONDS_TO_SAMPLE}" | tail -n +4 | awk '

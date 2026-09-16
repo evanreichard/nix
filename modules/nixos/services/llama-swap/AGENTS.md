@@ -10,6 +10,8 @@ lib/reasoning.nix   reasoning profiles
 lib/matrix.nix      concurrency matrix, derived from placement
 peers.nix           remote OpenAI-compatible backends
 models/<id>.nix     one file per model; the filename IS the model ID
+scripts/            llama-cpp-bisect-context, wrapped into a package by default.nix
+setup-qwen38-vllm.sh  one-time preparation of the syv-ai model directory
 ```
 
 A model file returns an attrset from `{ pkgs, lib, backends, reasoning }` and adds two
@@ -56,7 +58,7 @@ Two pi behaviors constrain what a profile must declare. pi forwards an unmapped 
 177B total / ~6B active, 48 layers, plus a 27 GB PLE n-gram table that `-ot ...=CPU` pins to
 RAM. 76 GiB of weights against 24 GiB of VRAM, so the CPU owns the critical path and needs an
 AVX2 backend - without it this model runs 3.1 tok/s instead of 14.5, and any tuning note
-written on such a build is void. See the `llama-cpp-tuning` skill.
+written on such a build is void. See the `llm-inference-tuning` skill.
 
 Context is the lever: KV competes with expert layers, so it is paid for in `-ncmoe`.
 `llama-bench -d 4096 -lm none`, CUDA0 only, q8_0 KV, each row at the largest context fitting
@@ -147,8 +149,9 @@ copy that llama-swap cannot use.
 The four `qwen3.8-27b-vllm-*` entries run one prebuilt image from
 [syv-ai/qwen38-27b-rtx3090](https://github.com/syv-ai/qwen38-27b-rtx3090) against one
 prepared model directory at `/mnt/ssd/vLLM/Models/Qwen3.8-27B-*`, fetched by
-`setup-qwen38-vllm.sh`. The image carries patched vLLM 0.27.1, the DFlash2 block drafter
-support and the KVarN KV cache; nothing is built from nixpkgs.
+`setup-qwen38-vllm.sh`. The image carries patched vLLM 0.28.0, whose DFlash2 block drafter
+support is native (the 0.27.1 backport is gone), plus the KVarN KV cache; nothing is built
+from nixpkgs.
 
 `qwen38SyvCmd` in `lib/backends.nix` renders the whole `docker run` from a model ID and a list of
 environment variables. Profiles differ only by `CTX` and `VISION` — the container's
@@ -156,7 +159,10 @@ environment variables. Profiles differ only by `CTX` and `VISION` — the contai
 count and max-model-len from those, so serving flags do not belong in the model file.
 
 Pools below are what this 3090 resolved at boot, not upstream's published figures (they
-agree except `CTX=fast`, where prefix caching costs a state page):
+agree except `CTX=fast`, where prefix caching costs a state page). All four were re-verified
+on the 0.28.0 image (`sha-bae2023`) booting byte-identical, with the launcher's argv carrying
+`--kv-cache-memory=5583457484` and `--sse-keep-alive-interval 30`, and `draft_sample_method`
+`probabilistic` confirmed by `draft_logits=True` in the boot log.
 
 | Model ID | Env | KV | Pool | Slots | `macros.ctx` |
 |---|---|---|---|---|---|
@@ -164,6 +170,16 @@ agree except `CTX=fast`, where prefix caching costs a state page):
 | `qwen3.8-27b-vllm-128k-cuda0` | `CTX=long` | int8 per-token-head (TRITON_ATTN) | 136,429 tok / 5.2 GiB | 4 | 131072 |
 | `qwen3.8-27b-vllm-240k-cuda0` | `CTX=huge` | KVarN 4/2-bit | 268,169 tok / 4.90 GiB | 2 | 245760 |
 | `qwen3.8-27b-vllm-64k-vl-cuda0` | `CTX=fast VISION=1` | bf16 (FLASH_ATTN) | 68,605 tok / 5.2 GiB | 8 | 65536 |
+
+Throughput on that same image, one greedy request per probe with thinking off — a regression
+baseline, not a capacity plan, since single requests move ±25%:
+
+| Profile | 384-tok decode | copy-shaped probe, 210 tok | decode at depth |
+|---|---|---|---|
+| `CTX=fast` | 129 tok/s (itl 7.6 ms) | 300 tok/s | 129 @ 15.6k |
+| `CTX=long` | 121 (8.1 ms) | 229 | 90 @ 33.8k (cold prefill 744 tok/s) |
+| `CTX=huge` | 113 | 204 | 61 @ 39k |
+| `CTX=fast VISION=1` | 123 (8.2 ms) | 298 | 127 @ 15.6k |
 
 All four set `SPEC=dflash2 PREFIX_CACHE=1`. DFlash2 is a one-stream mode: a resident request
 reserves k+1 recurrent-state slots (~0.88 GiB) before it holds a token of context, so
@@ -189,9 +205,10 @@ so `SPEC=mtp` on this checkpoint is slower (int8 lm_head path) - the profile use
 - **`PREPARE=0`.** The image's entrypoint otherwise downloads and requantizes 19.5 GiB
   inside a model swap. `VERIFY` stays on: it fails in seconds on a missing or unpatched
   model directory. Run `setup-qwen38-vllm.sh` before the first switch.
-- **`healthCheckTimeout = 900`** per model, against the global 500. Measured here: 360 s
-  cold (empty `/mnt/ssd/vLLM/Cache/qwen38-syv`, paying torch.compile, CUDA graph capture
-  and FlashInfer JIT), 65-108 s once that cache is warm.
+- **`healthCheckTimeout = 900`** per model, against the global 500. Measured here: 81 s for a
+  warm `CTX=fast` re-boot, 188-289 s for every profile's first boot after an image bump — a
+  new vLLM version invalidates torch.compile, CUDA graph capture and FlashInfer JIT together —
+  and 360 s from a genuinely empty `/mnt/ssd/vLLM/Cache/qwen38-syv`.
 - **One CDI device, not `CUDA_VISIBLE_DEVICES`.** vLLM reads compute capability through
   NVML, which enumerates in PCI order and ignores `CUDA_VISIBLE_DEVICES`, so `--device=
   nvidia.com/gpu=all -e CUDA_VISIBLE_DEVICES=0` makes it see the 1080 Ti and refuse with
@@ -202,7 +219,17 @@ so `SPEC=mtp` on this checkpoint is slower (int8 lm_head path) - the profile use
   runs `prepare` twice: once with `FAST_VARIANT=0`, then again after placing those shards
   itself (link where possible, copy otherwise — ~19 GiB of duplication here).
 - **The image tag is pinned to a commit** (`sha-<7>`), in `lib/backends.nix` (`qwen38SyvImage`) and
-  in `setup-qwen38-vllm.sh` (`IMAGE`). The pool constants are calibrated per commit against
-  24 GiB, so both move together and the model directory is re-prepared after a bump.
+  in `setup-qwen38-vllm.sh` (`IMAGE`). Both move together. The model directory only needs
+  re-preparing when the bump moves the launcher's `KV_MEM` bytes or touches `prepare/`, which is
+  two lines of a `compare/<old>...main` diff: the 453104e → bae2023 bump (vLLM 0.27.1 → 0.28.0)
+  changed neither and the prepared artifacts verified clean in the new image.
+- **`draft_sample_method` is not optional on 0.28.** The 0.28 DFlash2 speculator inherits the
+  upstream base class, which allocates its draft-logits buffer only when the config asks for it;
+  unset, the rejection test loses its denominator and acceptance gets strictly stricter (upstream
+  measures 101 against 122 tok/s at k=15). The launcher sets `probabilistic`, and the boot log
+  prints `draft_logits=True` when it took effect — check that line after a bump.
+- **Streaming is keep-alive-patched.** The launcher's `SSE_KEEP_ALIVE` default of 30 s inserts
+  SSE comment lines into a streaming response so a proxy idle timeout cannot cut a long prefill.
+  The flag exists only in trees carrying `patches/sse-keep-alive.patch`, which this image does.
 - **`CTX=huge` is lossy** (GSM8K 95.2% against 96.5% for bf16). Take it for requests that
   would not otherwise fit, not for speed.

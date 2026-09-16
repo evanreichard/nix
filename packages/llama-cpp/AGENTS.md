@@ -1,35 +1,28 @@
 # llama-cpp — Agent Notes
 
-Override of `pkgs.llama-cpp` with CUDA + Vulkan + BLAS, custom CMake flags, and an optional fork pin.
+Override of `pkgs.llama-cpp` with CUDA + Vulkan + BLAS, custom CMake flags, and a pinned upstream commit. The fork of the same engine lives in `packages/ik-llama-cpp/`, which calls upstream's `.devops/nix/package.nix` directly and carries its own CUDA/Vulkan plumbing.
 
-## Pitfalls
+## `version` and `buildNumber` Are Separate Fields
 
-### `version` must be numeric
+Upstream nixpkgs passes `version` into `-DLLAMA_BUILD_NUMBER`, and `build-info.cpp` emits that as a C integer — so the semver `"0.4.0"` would break the build. The override decouples them:
 
-Upstream `pkgs/by-name/ll/llama-cpp/package.nix` passes `version` straight through as a C integer via:
+- `version` — human-facing: the upstream `vX.Y.Z` tag. (`bN` tags are nightlies; HEAD builds use `YYYYMMDD`, per the comment in `default.nix`.)
+- `buildNumber` — the b-tag shipped with that release; this is what reaches `LLAMA_BUILD_NUMBER`.
+- The `cmakeFlags` override filters upstream's `-DLLAMA_BUILD_NUMBER` and re-adds it as `:STRING`. Keep the filter; deleting it puts the semver string back into `build-info.cpp` and the build dies on an undeclared identifier.
 
-```nix
-(cmakeFeature "LLAMA_BUILD_NUMBER" finalAttrs.version)
-```
+`npmDepsHash` pins the bundled webui's npm dependencies — it only moves when the pinned commit's webui dependencies do.
 
-`build-info.cpp` then emits `int LLAMA_BUILD_NUMBER = <version>;`. A non-numeric `version` (e.g. `"mtp-clean-08b1474"`) breaks the build with:
+## `leaveDotGit` + `postFetch`
 
-```
-error: '<value>' was not declared in this scope
-    int LLAMA_BUILD_NUMBER = <value>;
-```
+`.git` is kept only long enough to record the short SHA into `$out/COMMIT`, then stripped. Preserve the pattern when changing `src` so downstream tooling that reads `COMMIT` keeps working.
 
-**Convention:**
-- Upstream tag pins: use the bare build number, e.g. `version = "9048";` with `tag = "b${version}";`.
-- Fork / arbitrary commit pins: use a `YYYYMMDD` date derived from the commit's author/commit date (`gh api repos/<owner>/<repo>/commits/<sha>` → `.commit.committer.date`).
+## Bumping the Pinned Commit
 
-### `leaveDotGit` + `postFetch`
+1. `git ls-remote https://github.com/ggml-org/llama.cpp refs/tags/<tag>` → full SHA.
+2. `nix run nixpkgs#nix-prefetch-github -- ggml-org llama.cpp --rev <sha> --leave-dot-git` → hash. `--leave-dot-git` is required; the fetch keeps `.git`, so the hash differs from a plain fetch.
+3. Set `src.rev` / `src.hash`, then `version` and `buildNumber` from the tag.
+4. Refresh `npmDepsHash` (see the `update-package-hashes` skill).
 
-We keep `.git` only long enough to record the short SHA into `$out/COMMIT`, then strip it. Preserve this pattern when changing `src` so downstream tooling that reads `COMMIT` keeps working.
+## Benchmark Validity Depends on the CPU ISA Flags
 
-## Refreshing the pinned commit (fork)
-
-1. `git ls-remote https://github.com/<owner>/llama.cpp refs/heads/<branch>` → get the full SHA.
-2. `nix run nixpkgs#nix-prefetch-github -- <owner> llama.cpp --rev <sha> --leave-dot-git` → get the hash.
-3. Look up the commit date: `curl -s https://api.github.com/repos/<owner>/llama.cpp/commits/<sha> | jq -r '.commit.committer.date'`.
-4. Update `src.{owner,rev,hash}` and set `version = "YYYYMMDD"`.
+The explicit `-DGGML_AVX2=ON`-style set is load-bearing, for the reason spelled out on `cmakeFlags` in `default.nix`: without it the build silently targets baseline x86-64. Any measurement taken against such a build is not comparable to the tuning tables in `modules/nixos/services/llama-swap/AGENTS.md`.

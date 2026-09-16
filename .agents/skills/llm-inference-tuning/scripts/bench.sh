@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
-# Benchmark a running llama-server across the workload shapes that stress
-# different bottlenecks. Reports prompt (pp) and generation (tg) tok/s.
+# Benchmark a running server across the workload shapes that stress different
+# bottlenecks. Reports prompt (pp) and generation (tg) tok/s.
 #
 # Usage:
-#   bench.sh [--host H] [--port 8082] [--cases short,copy,prefill,deep]
-#            [--tokens 384] [--depth 40000] [--repeat 2]
+#   bench.sh [--host H] [--port 8082] [--model NAME] [--extra-json '{}']
+#            [--cases short,copy,prefill,deep] [--tokens 384] [--depth 40000] [--repeat 2]
+#
+# --model is the name the server answers to: any string on llama.cpp, the served
+# id (or llama-swap alias) on vLLM. --extra-json merges into every request body,
+# which is where a vLLM stack's thinking-off switch lives.
 #
 # Cases:
 #   short   - 400-word prose. Baseline single-stream decode.
@@ -18,10 +22,13 @@
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 
 CASES="short,copy,prefill,deep"; TOKENS=384; DEPTH=40000; REPEAT=2
+MODEL="bench"; EXTRA_JSON="null"
 parse_common_args "$@"
 set -- "${REST[@]}"
 while [ $# -gt 0 ]; do
   case "$1" in
+    --model) MODEL="$2"; shift 2 ;;
+    --extra-json) EXTRA_JSON="$2"; shift 2 ;;
     --cases) CASES="$2"; shift 2 ;;
     --tokens) TOKENS="$2"; shift 2 ;;
     --depth) DEPTH="$2"; shift 2 ;;
@@ -30,7 +37,7 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-PAYLOAD="/tmp/llama-tune-payload-${LLAMA_PORT}.json"
+PAYLOAD="/tmp/infer-tune-payload-${INFER_PORT}.json"
 
 # Emit a JSON string body (escaped) for a prompt built from a repeated unit.
 build_prompt() {
@@ -71,15 +78,13 @@ build_prompt() {
 
 run_case() {
   local name="$1" prompt="$2" maxtok="$3"
-  printf '{"model":"bench","max_tokens":%s,"temperature":0.6,"top_p":0.95,"top_k":20,"min_p":0.0,"messages":[{"role":"user","content":"%s"}]}' \
-    "$maxtok" "$prompt" | rput "$PAYLOAD"
+  printf '{"model":"%s","max_tokens":%s,"temperature":0.6,"top_p":0.95,"top_k":20,"min_p":0.0,"messages":[{"role":"user","content":"%s"}]}' \
+    "$MODEL" "$maxtok" "$prompt" | jq -s --argjson x "$EXTRA_JSON" '.[0] * ($x // {})' | rput "$PAYLOAD"
 
   for i in $(seq 1 "$REPEAT"); do
     local resp pp tg n
-    resp=$(rexec "curl -sS http://127.0.0.1:${LLAMA_PORT}/v1/chat/completions -H 'Content-Type: application/json' --data-binary @${PAYLOAD}")
-    pp=$(printf '%s' "$resp" | json_num prompt_per_second)
-    tg=$(printf '%s' "$resp" | json_num predicted_per_second)
-    n=$(printf '%s' "$resp" | json_num predicted_n)
+    resp=$(rexec "curl -sS http://127.0.0.1:${INFER_PORT}/v1/chat/completions -H 'Content-Type: application/json' --data-binary @${PAYLOAD}")
+    read -r pp tg n <<< "$(metrics_of "$resp")"
     if [ -z "$tg" ]; then
       echo "  ${name} run${i}: no timings — response head: $(printf '%s' "$resp" | head -c 200)"
       continue
@@ -88,7 +93,7 @@ run_case() {
   done
 }
 
-echo "# target=$(target_label) port=${LLAMA_PORT} repeat=${REPEAT}"
+echo "# target=$(target_label) port=${INFER_PORT} model=${MODEL} repeat=${REPEAT}"
 echo "# warmup"
 run_case warmup "Say hello." 32 >/dev/null 2>&1 || true
 

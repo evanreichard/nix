@@ -51,7 +51,7 @@ rec {
   # cards makes it read the 1080 Ti and refuse: "quantization method compressed-tensors is
   # not supported for the current GPU". CDI device 1 is the RTX 3090 here (PCI order), and
   # handing the container exactly one card leaves NVML and torch agreeing.
-  qwen38SyvImage = "ghcr.io/syv-ai/qwen38-27b-rtx3090:sha-453104e";
+  qwen38SyvImage = "ghcr.io/syv-ai/qwen38-27b-rtx3090:sha-bae2023";
   qwen38SyvCmd =
     modelId: env:
     lib.concatStringsSep " \\\n  " (

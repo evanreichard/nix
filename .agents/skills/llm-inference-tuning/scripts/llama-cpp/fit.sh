@@ -8,7 +8,7 @@
 # Prints estimated per-device totals (model + context + compute) and a verdict.
 # The estimator runs in seconds and loads no weights, so sweep freely.
 
-source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/../common.sh"
 
 MODEL=""; CTX=""; DEV=""; NCMOE=""; VRAM=""; HEADROOM=600; EXTRA=()
 parse_common_args "$@"

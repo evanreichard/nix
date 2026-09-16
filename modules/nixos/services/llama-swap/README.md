@@ -27,7 +27,7 @@ docker run --rm --name qwen38-syv-test --device=nvidia.com/gpu=1 --ipc=host \
   -v /mnt/ssd/vLLM/Models:/app/models \
   -v /mnt/ssd/vLLM/Cache/qwen38-syv:/cache \
   -p 8081:18020 \
-  ghcr.io/syv-ai/qwen38-27b-rtx3090:sha-453104e single
+  ghcr.io/syv-ai/qwen38-27b-rtx3090:sha-bae2023 single
 ```
 
 | Profile | Env |
@@ -40,10 +40,11 @@ docker run --rm --name qwen38-syv-test --device=nvidia.com/gpu=1 --ipc=host \
 CDI device 1 is the RTX 3090 (PCI order); `nvidia.com/gpu=all` plus
 `CUDA_VISIBLE_DEVICES=0` does not work here — `AGENTS.md` explains why.
 
-A cold start pays torch.compile, CUDA graph capture and FlashInfer JIT (measured 360 s);
-the `/cache` mount brings later starts to 65-108 s. The startup log prints the attention
-backend, the pinned pool and the token capacity it resolved — check those against the
-table in `AGENTS.md` before trusting a geometry change.
+A cold start pays torch.compile, CUDA graph capture and FlashInfer JIT — after an image
+version bump that is 188-289 s for a profile's first boot; the `/cache` mount brings later
+starts to 81 s (`CTX=fast`). The startup log prints the attention backend, the pinned pool
+and the token capacity it resolved — check those against the table in `AGENTS.md` before
+trusting a geometry change.
 
 Only one process can own the GPU, so unload the resident llama-swap model first:
 

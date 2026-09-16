@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Setup script for the syv-ai patched-vLLM Qwen3.8-27B stack on a single 3090.
 #
-# Everything the server needs - vLLM 0.27.1, the patch set, the KVarN KV cache - is
+# Everything the server needs - vLLM 0.28.0, the patch set, the KVarN KV cache - is
 # baked into the image; this script only prepares the model directory it mounts.
 # Preparation is CPU-only (no GPU, safe to run while llama-swap is serving) and costs
 # a ~19.5 GiB download plus a few minutes of requantization.
@@ -14,7 +14,7 @@ set -euo pipefail
 
 # Keep in sync with qwen38SyvImage in config.nix: the launcher's pinned KV pool
 # constants are calibrated per commit, so config and prepared artifacts move together.
-IMAGE="${QWEN38_SYV_IMAGE:-ghcr.io/syv-ai/qwen38-27b-rtx3090:sha-453104e}"
+IMAGE="${QWEN38_SYV_IMAGE:-ghcr.io/syv-ai/qwen38-27b-rtx3090:sha-bae2023}"
 
 MODEL_DIR="${QWEN38_SYV_MODEL_DIR:-/mnt/ssd/vLLM/Models}"
 CACHE_DIR="${QWEN38_SYV_CACHE_DIR:-/mnt/ssd/vLLM/Cache/qwen38-syv}"
