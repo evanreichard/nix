@@ -67,7 +67,7 @@ which talks to the rootful one. Containers started by llama-swap are therefore i
 
 ```bash
 D=$(nix eval --raw /etc/nixos#nixosConfigurations.lin-va-desktop.pkgs.docker)/bin/docker
-$D ps; $D logs --tail 20 qwen3.8-27b-vllm-240k-cuda0
+$D ps; $D logs --tail 20 qwen3.8-27b-vllm-256k-cuda0
 ```
 
 ### 3. Smoke tests
@@ -116,5 +116,5 @@ curl -s localhost:8081/v1/models -H "Authorization: Bearer $LLAMA_SWAP_KEY" | jq
 ```
 
 Requests then use the llama-swap alias as the model name
-(`qwen3.8-27b-vllm-240k-cuda0`), which `useModelName` rewrites to the name the container
+(`qwen3.8-27b-vllm-256k-cuda0`), which `useModelName` rewrites to the name the container
 actually serves. Delete `/tmp/ls.json` afterwards — it contains plaintext API keys.

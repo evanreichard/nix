@@ -146,30 +146,42 @@ copy that llama-swap cannot use.
 
 ## syv-ai vLLM Configs (Qwen3.8-27B)
 
-The four `qwen3.8-27b-vllm-*` entries run one prebuilt image from
-[syv-ai/qwen38-27b-rtx3090](https://github.com/syv-ai/qwen38-27b-rtx3090) against one
-prepared model directory at `/mnt/ssd/vLLM/Models/Qwen3.8-27B-*`, fetched by
+The six `qwen3.8-27b-{uncensored-,}vllm-*` entries run one prebuilt image from
+[syv-ai/qwen38-27b-rtx3090](https://github.com/syv-ai/qwen38-27b-rtx3090) against prepared
+model directories at `/mnt/ssd/vLLM/Models/Qwen3.8-27B-*`, fetched by
 `setup-qwen38-vllm.sh`. The image carries patched vLLM 0.28.0, whose DFlash2 block drafter
 support is native (the 0.27.1 backport is gone), plus the KVarN KV cache; nothing is built
-from nixpkgs.
+from nixpkgs. Three context tiers, each in a base and an uncensored body, and every one of
+them is a vision profile (`VISION=1`) — the `vl` marker is gone from the IDs because it no
+longer distinguishes anything; the `vision` tag carries it instead.
 
 `qwen38SyvCmd` in `lib/backends.nix` renders the whole `docker run` from a model ID and a list of
-environment variables. Profiles differ only by `CTX` and `VISION` — the container's
-`single-user/start_qwen.sh` derives attention backend, KV dtype, pinned pool bytes, slot
-count and max-model-len from those, so serving flags do not belong in the model file.
+environment variables. Profiles differ only by `CTX`, `MAX_LEN`, `VISION` and `MODEL` — the
+container's `single-user/start_qwen.sh` derives attention backend, KV dtype, pinned pool
+bytes, slot count and max-model-len from those, so serving flags do not belong in the model
+file.
 
 Pools below are what this 3090 resolved at boot, not upstream's published figures (they
-agree except `CTX=fast`, where prefix caching costs a state page). All four were re-verified
-on the 0.28.0 image (`sha-bae2023`) booting byte-identical, with the launcher's argv carrying
-`--kv-cache-memory=5583457484` and `--sse-keep-alive-interval 30`, and `draft_sample_method`
+agree except `CTX=fast`, where prefix caching costs a state page). The 0.28.0 image
+(`sha-bae2023`) boots byte-identical, with the launcher's argv carrying
+`--kv-cache-memory=` and `--sse-keep-alive-interval 30`, and `draft_sample_method`
 `probabilistic` confirmed by `draft_logits=True` in the boot log.
+
+The pinned pool is *not* independent of `MAX_LEN`: raising `CTX=huge` from 245,760 to
+262,144 changes the resolved mamba page padding and with it the token count, from 268,169
+to 272,781 on the same 4.90 GiB pin — which is what makes the full 262,144 fit at 1.04x.
+Both figures were read off a boot on 2026-09-16; do not carry one profile's pool over to
+another.
 
 | Model ID | Env | KV | Pool | Slots | `macros.ctx` |
 |---|---|---|---|---|---|
-| `qwen3.8-27b-vllm-64k-cuda0` | `CTX=fast` | bf16 (FLASH_ATTN) | 68,605 tok / 5.2 GiB | 8 | 65536 |
-| `qwen3.8-27b-vllm-128k-cuda0` | `CTX=long` | int8 per-token-head (TRITON_ATTN) | 136,429 tok / 5.2 GiB | 4 | 131072 |
-| `qwen3.8-27b-vllm-240k-cuda0` | `CTX=huge` | KVarN 4/2-bit | 268,169 tok / 4.90 GiB | 2 | 245760 |
-| `qwen3.8-27b-vllm-64k-vl-cuda0` | `CTX=fast VISION=1` | bf16 (FLASH_ATTN) | 68,605 tok / 5.2 GiB | 8 | 65536 |
+| `qwen3.8-27b-vllm-64k-cuda0` | `CTX=fast VISION=1` | bf16 (FLASH_ATTN) | 68,605 tok / 5.2 GiB | 8 | 65536 |
+| `qwen3.8-27b-vllm-128k-cuda0` | `CTX=long VISION=1` | int8 per-token-head (TRITON_ATTN) | 136,429 tok / 5.2 GiB | 4 | 131072 |
+| `qwen3.8-27b-vllm-256k-cuda0` | `CTX=huge MAX_LEN=262144 VISION=1` | KVarN 4/2-bit | 272,781 tok / 4.90 GiB | 2 | 262144 |
+
+Each has a `qwen3.8-27b-uncensored-vllm-<tier>-cuda0` twin that adds only that tier's env
+plus `MODEL=/app/models/Qwen3.8-27B-Uncensored-W4A16-AutoRound`; the geometry is identical
+because the body is the same recipe at the same shapes.
 
 Throughput on that same image, one greedy request per probe with thinking off — a regression
 baseline, not a capacity plan, since single requests move ±25%:
@@ -179,24 +191,32 @@ baseline, not a capacity plan, since single requests move ±25%:
 | `CTX=fast` | 129 tok/s (itl 7.6 ms) | 300 tok/s | 129 @ 15.6k |
 | `CTX=long` | 121 (8.1 ms) | 229 | 90 @ 33.8k (cold prefill 744 tok/s) |
 | `CTX=huge` | 113 | 204 | 61 @ 39k |
-| `CTX=fast VISION=1` | 123 (8.2 ms) | 298 | 127 @ 15.6k |
 
-All four set `SPEC=dflash2 PREFIX_CACHE=1`. DFlash2 is a one-stream mode: a resident request
+All six set `SPEC=dflash2 PREFIX_CACHE=1 VISION=1`. DFlash2 is a one-stream mode: a resident request
 reserves k+1 recurrent-state slots (~0.88 GiB) before it holds a token of context, so
 `MAX_SEQS` is an admission limit and decode halves at two concurrent streams. `macros.ctx`
 is not cosmetic — `modules/home/programs/terminal/pi/lib.nix` publishes it as pi's
 `contextWindow`, so it must equal the launcher's `MAX_LEN` for the profile.
 
-`qwen3.8-27b-uncensored-vllm-240k-cuda0` is the same image and profile pointed at an
-abliterated body: `MODEL=/app/models/Qwen3.8-27B-Uncensored-W4A16-AutoRound`
-(leminkozey, syv-ai issue #45 - already AutoRound W4A16 plus the repo's own head requant,
-so no prepare steps and the pinned 4.90 GiB pool stays valid). `MODEL=` is required
-because the launcher prefers the base model's `-fast` dir when `MODEL` is unset; the
-DFlash2 drafter is a separate dir and is shared with the base profiles. Abliteration
-quality is unmeasured on this stack (issue #45 reports ~100 tok/s warm, 45k needle
-retrieved, coherent output); the author skipped `quant_mtp.py`/`build_draft_vocab.py`,
-so `SPEC=mtp` on this checkpoint is slower (int8 lm_head path) - the profile uses
-`SPEC=dflash2` regardless.
+The uncensored twins point at an abliterated body —
+`MODEL=/app/models/Qwen3.8-27B-Uncensored-W4A16-AutoRound` (leminkozey, syv-ai issue #45),
+already AutoRound W4A16 plus this repo's own head requant, so no prepare steps and every
+tier's pinned pool stays valid. `MODEL=` is required because the launcher prefers the base
+model's `-fast` dir when `MODEL` is unset, which would silently serve the base checkpoint;
+the DFlash2 drafter is a separate dir shared with the base profiles. Abliteration quality is
+unmeasured on this stack (issue #45 reports ~100 tok/s warm, a 45k needle retrieved,
+coherent output, no refusals). The author skipped `quant_mtp.py`/`build_draft_vocab.py`, so
+`SPEC=mtp` on this checkpoint is slower (int8 lm_head path) — the profiles use `SPEC=dflash2`
+regardless, as the base ones do.
+
+The uncensored dir is the *base* variant, not the base profiles' `-fast` one: model loading
+reads **15.62 GiB against 15.02 GiB**, the delta being the int8 lm_head that `-fast` ships as
+int4-GPTQ. The KV pool resolves identically (272,781 tokens at 256k) because it is pinned, so
+that 0.6 GiB comes out of the transient margin — `qwen3.8-27b-uncensored-vllm-256k-cuda0` is
+the profile that runs closest to the VRAM floor. One engine death was seen on its first boot
+(HTTP 500 four seconds into a 200k request, container gone) and did not reproduce on two
+fresh boots of the same marker-then-200k sequence, so it is read as the 0.28.0 silent-death /
+stall class tracked upstream in syv-ai issues #107 and #94 rather than as a profile defect.
 
 ### Constraints
 
@@ -214,6 +234,15 @@ so `SPEC=mtp` on this checkpoint is slower (int8 lm_head path) - the profile use
   nvidia.com/gpu=all -e CUDA_VISIBLE_DEVICES=0` makes it see the 1080 Ti and refuse with
   "quantization method compressed-tensors is not supported for the current GPU".
   `--device=nvidia.com/gpu=1` is the 3090 and leaves NVML and torch agreeing.
+- **`VISION=1` costs no VRAM on either tier.** `VISION_OFFLOAD` (on by default) holds the
+  tower's 0.858 GiB in pinned host RAM and copies each module to the GPU for its own forward,
+  so a `-vl` profile resolves the same pool as its text sibling (136,429 tokens at 128k,
+  272,781 at 256k) and an image costs ~333 ms of encode instead of the ~1.1 GiB transient
+  margin the captured split-KV verify buffer needs. Measured in one request per tier: the
+  int8 tier returned a 33k-depth marker sentence, a 67k-depth needle and an image marker from
+  a 100k prompt at a 248 s TTFT (4.4 s on a cached-prefix repeat, byte-identical); the KVarN
+  tier returned a 100k-depth needle and an image marker from a 200,369-token prompt at 294 s.
+  The cap is one image and 2048 image tokens per prompt.
 - **`/mnt/ssd` is exFAT, which has no hardlinks.** `prepare/fetch_fast_variant.py` shares
   the six unchanged shards by `os.link` and dies with `EPERM`, so `setup-qwen38-vllm.sh`
   runs `prepare` twice: once with `FAST_VARIANT=0`, then again after placing those shards

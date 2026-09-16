@@ -1,5 +1,5 @@
 local llm_endpoint = "https://llm-api.va.reichard.io"
-local llm_assistant_model = "qwen3.8-27b-vllm-240k-cuda0"
+local llm_assistant_model = "qwen3.8-27b-vllm-256k-cuda0"
 local llm_infill_model = "qwen3.5-4b-cuda1"
 local current_fim = "llama"
 
