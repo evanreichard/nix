@@ -1,7 +1,7 @@
 # https://huggingface.co/unsloth/Qwen3-Coder-Next-GGUF/tree/main
 { pkgs, lib, backends, reasoning }:
 {
-  name = "Qwen3 Coder Next 80B (Dual GPU)";
+  name = "Qwen3 Coder Next 80B (UD-Q4_K_XL)";
   backend = "llama-cpp";
   placement = "dual";
   macros.ctx = "131072";

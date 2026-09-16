@@ -6,7 +6,7 @@
 ,
 }:
 {
-  name = "Gemma 4 26B (VL, CUDA0)";
+  name = "Gemma 4 26B (UD-Q4_K_XL)";
   backend = "llama-cpp";
   placement = "cuda0";
   macros.ctx = "196608";

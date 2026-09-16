@@ -6,7 +6,7 @@
 # f16 KV; quantized KV is avoided here because dense math is where it visibly degrades.
 { pkgs, lib, backends, reasoning }:
 {
-  name = "Qwen3.6 35B (VL, 64K, CUDA0)";
+  name = "Qwen3.6 35B VL (UD-IQ4_NL)";
   backend = "llama-cpp";
   placement = "cuda0";
   macros.ctx = "65536";

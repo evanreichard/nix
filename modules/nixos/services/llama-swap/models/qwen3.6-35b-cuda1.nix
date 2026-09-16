@@ -9,7 +9,7 @@
 # 23.2 tok/s decode, 7 MiB free after the run - full-depth requests approach the VRAM ceiling.
 { pkgs, lib, backends, reasoning }:
 {
-  name = "Qwen3.6 35B (CUDA1, UD-IQ4, MTP, 262K)";
+  name = "Qwen3.6 35B (UD-IQ4_XS)";
   backend = "llama-cpp";
   placement = "cuda1";
   macros.ctx = "262144";

@@ -2,7 +2,7 @@
 # 212K retains 577 MiB after sustained generation; 216K fell below the 500 MiB workspace margin after deep-context use.
 { pkgs, lib, backends, reasoning }:
 {
-  name = "Qwen3.5 9B (VL, 212K, CUDA1)";
+  name = "Qwen3.5 9B (IQ4_XS)";
   backend = "llama-cpp";
   placement = "cuda1";
   macros.ctx = "217088";

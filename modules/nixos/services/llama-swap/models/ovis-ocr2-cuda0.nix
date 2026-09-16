@@ -7,7 +7,7 @@
 # 2.7 GiB total at this geometry, so it is a filler model rather than a resident one.
 { pkgs, lib, backends, reasoning }:
 {
-  name = "OvisOCR2 0.8B (OCR, 100K, CUDA0)";
+  name = "OvisOCR2 0.8B (Q8_0)";
   backend = "llama-cpp";
   placement = "cuda0";
   macros.ctx = "102400";

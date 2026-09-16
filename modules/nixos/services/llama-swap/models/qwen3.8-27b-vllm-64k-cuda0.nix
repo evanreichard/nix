@@ -11,7 +11,7 @@
 # split-KV verify buffer. The KV pool is byte-identical to what it is with VISION=0.
 { pkgs, lib, backends, reasoning }:
 backends.dockerModel {
-  name = "Qwen3.8 27B (vLLM, DFlash2, VL, 64K, CUDA0)";
+  name = "Qwen3.8 27B (KV-BF16)";
   backend = "vllm-syv";
   placement = "cuda0";
   healthCheckTimeout = 900;

@@ -1,7 +1,7 @@
 # https://huggingface.co/unsloth/Qwen3.6-35B-A3B-MTP-GGUF/tree/main
 { pkgs, lib, backends, reasoning }:
 {
-  name = "Qwen3.6 35B (Dual GPU, UD-Q6)";
+  name = "Qwen3.6 35B (UD-Q6_K)";
   backend = "llama-cpp";
   placement = "dual";
   # macros.ctx = "215000";

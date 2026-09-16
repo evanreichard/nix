@@ -16,7 +16,7 @@
 # Abliterated model: 0% refusal on HarmBench. Upstream insists on OS-level sandboxing.
 { pkgs, lib, backends, reasoning }:
 {
-  name = "CyberTiel Coder 35B (CUDA1, UD-IQ4, MTP, 262K)";
+  name = "CyberTiel Coder 35B (UD-IQ4_XS)";
   backend = "llama-cpp";
   placement = "cuda1";
   macros.ctx = "262144";

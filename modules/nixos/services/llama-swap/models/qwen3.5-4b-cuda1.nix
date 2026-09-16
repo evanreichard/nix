@@ -1,7 +1,7 @@
 # https://huggingface.co/unsloth/Qwen3.5-4B-GGUF/tree/main
 { pkgs, lib, backends, reasoning }:
 {
-  name = "Qwen3.5 4B (CUDA1)";
+  name = "Qwen3.5 4B (IQ4_XS)";
   backend = "llama-cpp";
   placement = "cuda1";
   macros.ctx = "131072";

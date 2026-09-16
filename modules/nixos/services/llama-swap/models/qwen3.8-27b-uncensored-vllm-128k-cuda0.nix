@@ -11,7 +11,7 @@
 # to pinned host RAM so the pool is unchanged. One image per prompt, 2048 image tokens.
 { pkgs, lib, backends, reasoning }:
 backends.dockerModel {
-  name = "Qwen3.8 27B Uncensored (vLLM, DFlash2, VL, 128K, CUDA0)";
+  name = "Qwen3.8 27B Uncensored (KV-INT8)";
   backend = "vllm-syv";
   placement = "cuda0";
   healthCheckTimeout = 900;

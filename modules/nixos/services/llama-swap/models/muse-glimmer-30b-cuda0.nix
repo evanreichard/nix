@@ -1,7 +1,7 @@
 # Muse-Glimmer 30B with DFlash speculative decoding
 { pkgs, lib, backends, reasoning }:
 {
-  name = "Muse-Glimmer 30B (VL, CUDA0, DFlash)";
+  name = "Muse-Glimmer 30B (UD-Q4_K_XL)";
   backend = "llama-cpp";
   placement = "cuda0";
   macros.ctx = "262144";

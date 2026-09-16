@@ -17,7 +17,7 @@
 # 396-image-token picture) returned both markers at a 294 s TTFT.
 { pkgs, lib, backends, reasoning }:
 backends.dockerModel {
-  name = "Qwen3.8 27B (vLLM, DFlash2, VL, KVarN, 256K, CUDA0)";
+  name = "Qwen3.8 27B (KV-KVARN)";
   backend = "vllm-syv";
   placement = "cuda0";
   healthCheckTimeout = 900;

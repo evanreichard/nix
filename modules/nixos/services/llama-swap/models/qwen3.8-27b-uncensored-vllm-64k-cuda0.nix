@@ -14,7 +14,7 @@
 # image tokens; the tower's 0.858 GiB stays in pinned host RAM via VISION_OFFLOAD.
 { pkgs, lib, backends, reasoning }:
 backends.dockerModel {
-  name = "Qwen3.8 27B Uncensored (vLLM, DFlash2, VL, 64K, CUDA0)";
+  name = "Qwen3.8 27B Uncensored (KV-BF16)";
   backend = "vllm-syv";
   placement = "cuda0";
   healthCheckTimeout = 900;

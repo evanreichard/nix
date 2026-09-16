@@ -1,7 +1,7 @@
 # https://huggingface.co/unsloth/Qwen3.8-Flash-Next-GGUF/tree/main/UD-IQ3_XXS
 { pkgs, lib, backends, reasoning }:
 {
-  name = "Qwen3.8 Flash Next 177B-A6B (CUDA0, UD-IQ3)";
+  name = "Qwen3.8 Flash Next 177B-A6B (UD-IQ3_XXS)";
   backend = "llama-cpp";
   placement = "cuda0";
   macros.ctx = "262144";

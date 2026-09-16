@@ -32,10 +32,12 @@ docker run --rm --name qwen38-syv-test --device=nvidia.com/gpu=1 --ipc=host \
 
 | Profile | Env |
 | --- | --- |
-| 64K bf16 | `CTX=fast` |
-| 128K int8 | `CTX=long` |
-| 240K KVarN | `CTX=huge` |
-| 64K vision | `CTX=fast VISION=1` |
+| 64K bf16 | `CTX=fast VISION=1` |
+| 128K int8 | `CTX=long VISION=1` |
+| 256K KVarN | `CTX=huge MAX_LEN=262144 VISION=1` |
+
+Each has an uncensored twin adding `MODEL=/app/models/Qwen3.8-27B-Uncensored-W4A16-AutoRound`;
+all six carry the vision tower, offloaded to pinned host RAM.
 
 CDI device 1 is the RTX 3090 (PCI order); `nvidia.com/gpu=all` plus
 `CUDA_VISIBLE_DEVICES=0` does not work here — `AGENTS.md` explains why.

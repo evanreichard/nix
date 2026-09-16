@@ -1,6 +1,6 @@
 { pkgs, lib, backends, reasoning }:
 {
-  name = "Qwen3.8 27B (CUDA0, UD-Q4)";
+  name = "Qwen3.8 27B (UD-Q4_K_XL)";
   backend = "llama-cpp";
   placement = "cuda0";
   macros.ctx = "110000";

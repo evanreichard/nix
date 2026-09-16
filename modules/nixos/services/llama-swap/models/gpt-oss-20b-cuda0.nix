@@ -1,7 +1,7 @@
 # https://huggingface.co/mradermacher/gpt-oss-20b-heretic-v2-i1-GGUF/tree/main
 { pkgs, lib, backends, reasoning }:
 {
-  name = "GPT OSS 20B (CUDA0)";
+  name = "GPT OSS 20B (MXFP4_MOE)";
   backend = "llama-cpp";
   placement = "cuda0";
   macros.ctx = "131072";

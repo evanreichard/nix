@@ -15,7 +15,7 @@
 # against the cached prefix answered in 4.4 s.
 { pkgs, lib, backends, reasoning }:
 backends.dockerModel {
-  name = "Qwen3.8 27B (vLLM, DFlash2, VL, 128K, CUDA0)";
+  name = "Qwen3.8 27B (KV-INT8)";
   backend = "vllm-syv";
   placement = "cuda0";
   healthCheckTimeout = 900;

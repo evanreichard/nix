@@ -4,7 +4,7 @@
 # which is why the 3090 copy needs no separate sizing.
 { pkgs, lib, backends, reasoning }:
 {
-  name = "OvisOCR2 0.8B (OCR, 100K, CUDA1)";
+  name = "OvisOCR2 0.8B (Q8_0)";
   backend = "llama-cpp";
   placement = "cuda1";
   macros.ctx = "102400";

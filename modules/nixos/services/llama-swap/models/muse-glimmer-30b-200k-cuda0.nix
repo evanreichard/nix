@@ -9,7 +9,7 @@
 # 262144 fits but peaks at 23.7 GiB; 200000 trades unused depth for ~1.3 GiB of slack.
 { pkgs, lib, backends, reasoning }:
 {
-  name = "Muse-Glimmer 30B (VL, 200K, CUDA0, DFlash)";
+  name = "Muse-Glimmer 30B (UD-Q4_K_XL)";
   backend = "llama-cpp";
   placement = "cuda0";
   macros.ctx = "200000";
