@@ -23,6 +23,11 @@ backends.dockerModel {
     "CTX=huge"
     "MAX_LEN=262144"
     "VISION=1"
+    # One stream at a time: the pool holds one full-length request, and a second
+    # resident stream doubled the KVarN dequant transients until the allocator
+    # OOM-killed the engine mid-decode (2026-09-17, 174k continuation). MAX_SEQS=1
+    # makes a second request queue; probe-verified admission control.
+    "MAX_SEQS=1"
     "MODEL=/app/models/Qwen3.8-27B-Uncensored-W4A16-AutoRound"
   ];
   metadata = {

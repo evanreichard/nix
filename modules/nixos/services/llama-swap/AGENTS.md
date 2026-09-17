@@ -177,7 +177,7 @@ another.
 |---|---|---|---|---|---|
 | `qwen3.8-27b-vllm-64k-cuda0` | `CTX=fast VISION=1` | bf16 (FLASH_ATTN) | 68,605 tok / 5.2 GiB | 8 | 65536 |
 | `qwen3.8-27b-vllm-128k-cuda0` | `CTX=long VISION=1` | int8 per-token-head (TRITON_ATTN) | 136,429 tok / 5.2 GiB | 4 | 131072 |
-| `qwen3.8-27b-vllm-256k-cuda0` | `CTX=huge MAX_LEN=262144 VISION=1` | KVarN 4/2-bit | 272,781 tok / 4.90 GiB | 2 | 262144 |
+| `qwen3.8-27b-vllm-256k-cuda0` | `CTX=huge MAX_LEN=262144 VISION=1 MAX_SEQS=1` | KVarN 4/2-bit | 272,781 tok / 4.90 GiB | 1 (pin) | 262144 |
 
 Each has a `qwen3.8-27b-uncensored-vllm-<tier>-cuda0` twin that adds only that tier's env
 plus `MODEL=/app/models/Qwen3.8-27B-Uncensored-W4A16-AutoRound`; the geometry is identical
@@ -194,7 +194,12 @@ baseline, not a capacity plan, since single requests move ±25%:
 
 All six set `SPEC=dflash2 PREFIX_CACHE=1 VISION=1`. DFlash2 is a one-stream mode: a resident request
 reserves k+1 recurrent-state slots (~0.88 GiB) before it holds a token of context, so
-`MAX_SEQS` is an admission limit and decode halves at two concurrent streams. `macros.ctx`
+`MAX_SEQS` is an admission limit and decode halves at two concurrent streams. The 256k tier
+pins `MAX_SEQS=1` (launcher default is 2): with two resident streams deep on the 1.04x pool,
+KVarN's decode path OOM-killed the engine mid-generation — a 174k-token continuation at 91%
+KV usage died allocating a 2 MiB dequant tile with 1 MiB free (2026-09-17). With the pin, a
+second request queues; probe-verified: pool resolves identically at 272,781 tokens, `CG`
+shrinks 16 → 8, scheduler never shows `Running: 2`. `macros.ctx`
 is not cosmetic — `modules/home/programs/terminal/pi/lib.nix` publishes it as pi's
 `contextWindow`, so it must equal the launcher's `MAX_LEN` for the profile.
 

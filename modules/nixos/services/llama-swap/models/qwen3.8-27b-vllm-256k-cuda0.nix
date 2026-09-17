@@ -27,6 +27,10 @@ backends.dockerModel {
     "CTX=huge"
     "MAX_LEN=262144"
     "VISION=1"
+    # Same single-stream limit as the uncensored twin: the pool holds one
+    # full-length request, and two resident streams OOM-killed the engine in
+    # KVarN's decode path (2026-09-17, 174k continuation). A second request queues.
+    "MAX_SEQS=1"
   ];
   metadata = {
     tags = [
