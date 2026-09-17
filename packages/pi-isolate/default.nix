@@ -12,19 +12,19 @@
 
 stdenvNoCC.mkDerivation {
   pname = "pi-isolate";
-  version = "unstable-2026-09-11";
+  version = "unstable-2026-09-16";
 
   src = fetchgit {
     url = "https://gitea.va.reichard.io/evan/pi-isolate.git";
-    rev = "710d19f706fffcc902871cfa3e4c25c1773cd1c0";
-    hash = "sha256-p+RIcsQ55uPiLF6dsuDPhWZcCviPAor4n4Y4UVld4tQ=";
+    rev = "beebc5c889ece21526fb554857a32111c23a04a3";
+    hash = "sha256-mDWndBAtk3Bj2sf6T0jdm9w8Ud4v7XBHpCSdix7dRGw=";
   };
 
   nativeBuildInputs = [ makeWrapper ];
 
   # Layout Contract - `bin/pi-isolate` derives the prefix from its own path, and the extension
-  # reads `../bin/isolated-bash`, `../flake.lock`, and `../flake.nix` relative to `src/`, so
-  # those trees have to stay siblings under one prefix.
+  # reads `../bin/isolated-bash`, `../bin/isolated-container`, `../flake.lock`, and `../flake.nix`
+  # relative to `src/`, so those trees have to stay siblings under one prefix.
   installPhase = ''
     runHook preInstall
 
@@ -32,6 +32,7 @@ stdenvNoCC.mkDerivation {
     cp -r src config prompts "$out/"
     cp flake.lock flake.nix "$out/"
     install -Dm555 bin/isolated-bash "$out/bin/isolated-bash"
+    install -Dm555 bin/isolated-container "$out/bin/isolated-container"
     install -Dm555 bin/pi-isolate "$out/bin/pi-isolate"
 
     # Omp and Nix Stay User-Provided - nix has to be the host installation that owns the store,
@@ -57,6 +58,7 @@ stdenvNoCC.mkDerivation {
     test -f "$out/src/index.ts"
     test -f "$out/flake.lock"
     test -x "$out/bin/isolated-bash"
+    test -x "$out/bin/isolated-container"
     runHook postInstallCheck
   '';
 
