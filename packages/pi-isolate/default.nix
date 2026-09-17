@@ -12,12 +12,12 @@
 
 stdenvNoCC.mkDerivation {
   pname = "pi-isolate";
-  version = "unstable-2026-09-16";
+  version = "unstable-2026-09-17";
 
   src = fetchgit {
     url = "https://gitea.va.reichard.io/evan/pi-isolate.git";
-    rev = "beebc5c889ece21526fb554857a32111c23a04a3";
-    hash = "sha256-mDWndBAtk3Bj2sf6T0jdm9w8Ud4v7XBHpCSdix7dRGw=";
+    rev = "1220e6b1bd0c2c1521ef761d82c8f8913662b858";
+    hash = "sha256-zan8AZ0LALZcYqVZ2hgyKpYTYUOYm9xW9SRcso4yZKk=";
   };
 
   nativeBuildInputs = [ makeWrapper ];
