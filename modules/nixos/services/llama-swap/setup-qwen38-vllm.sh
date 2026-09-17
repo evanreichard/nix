@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Setup script for the syv-ai patched-vLLM Qwen3.8-27B stack on a single 3090.
+# Setup script for the HyperQwen patched-vLLM Qwen3.8-27B stack on a single 3090.
 #
 # Everything the server needs - vLLM 0.28.0, the patch set, the KVarN KV cache - is
 # baked into the image; this script only prepares the model directory it mounts.
@@ -12,12 +12,12 @@
 
 set -euo pipefail
 
-# Keep in sync with qwen38SyvImage in config.nix: the launcher's pinned KV pool
+# Keep in sync with hyperQwenImage in lib/backends.nix: the launcher's pinned KV pool
 # constants are calibrated per commit, so config and prepared artifacts move together.
-IMAGE="${QWEN38_SYV_IMAGE:-ghcr.io/syv-ai/qwen38-27b-rtx3090:sha-bae2023}"
+IMAGE="${HYPERQWEN_IMAGE:-ghcr.io/syv-ai/hyperqwen:sha-6a15595}"
 
-MODEL_DIR="${QWEN38_SYV_MODEL_DIR:-/mnt/ssd/vLLM/Models}"
-CACHE_DIR="${QWEN38_SYV_CACHE_DIR:-/mnt/ssd/vLLM/Cache/qwen38-syv}"
+MODEL_DIR="${HYPERQWEN_MODEL_DIR:-/mnt/ssd/vLLM/Models}"
+CACHE_DIR="${HYPERQWEN_CACHE_DIR:-/mnt/ssd/vLLM/Cache/hyperqwen}"
 
 # ---------- Preflight Checks ----------
 if ! command -v docker &>/dev/null; then
@@ -97,7 +97,7 @@ echo "  │   ├── Qwen3.8-27B-W4A16-AutoRound/          (base, requantized
 echo "  │   ├── Qwen3.8-27B-W4A16-AutoRound-fast/     (int4-GPTQ heads; launcher prefers this)"
 echo "  │   └── Qwen3.8-27B-DFlash2-W4A16/            (block drafter, SPEC=dflash2)"
 echo "  └── Cache/"
-echo "      └── qwen38-syv/                           (torch.compile, Triton, FlashInfer JIT)"
+echo "      └── hyperqwen/                           (torch.compile, Triton, FlashInfer JIT)"
 echo ""
 echo "Served by llama-swap as:"
 echo "  qwen3.8-27b-vllm-64k-cuda0                    (bf16 KV, 8 slots, lossless, fastest)"

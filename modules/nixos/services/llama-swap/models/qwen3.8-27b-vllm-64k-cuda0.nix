@@ -12,12 +12,12 @@
 { pkgs, lib, backends, reasoning }:
 backends.dockerModel {
   name = "Qwen3.8 27B (KV-BF16)";
-  backend = "vllm-syv";
+  backend = "vllm-hyperqwen";
   placement = "cuda0";
   healthCheckTimeout = 900;
   useModelName = "qwen3.8-27b";
   macros.ctx = "65536";
-  cmd = backends.qwen38SyvCmd "qwen3.8-27b-vllm-64k-cuda0" [
+  cmd = backends.hyperQwenCmd "qwen3.8-27b-vllm-64k-cuda0" [
     "CTX=fast"
     "VISION=1"
   ];

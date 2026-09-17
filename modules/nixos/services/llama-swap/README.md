@@ -22,12 +22,12 @@ The container's launcher takes environment variables, not flags. Swap `CTX`/`VIS
 match the profile under test; everything else is identical to what the model files render.
 
 ```bash
-docker run --rm --name qwen38-syv-test --device=nvidia.com/gpu=1 --ipc=host \
+docker run --rm --name hyperqwen-test --device=nvidia.com/gpu=1 --ipc=host \
   -e PREPARE=0 -e SPEC=dflash2 -e PREFIX_CACHE=1 -e CTX=huge \
   -v /mnt/ssd/vLLM/Models:/app/models \
-  -v /mnt/ssd/vLLM/Cache/qwen38-syv:/cache \
+  -v /mnt/ssd/vLLM/Cache/hyperqwen:/cache \
   -p 8081:18020 \
-  ghcr.io/syv-ai/qwen38-27b-rtx3090:sha-bae2023 single
+  ghcr.io/syv-ai/hyperqwen:sha-6a15595 single
 ```
 
 | Profile | Env |
@@ -100,8 +100,8 @@ curl -s localhost:8081/v1/chat/completions -H 'Content-Type: application/json' -
 upstream benchmark suite runs against the same endpoint:
 
 ```bash
-docker exec qwen38-syv-test bash verify.sh
-docker exec qwen38-syv-test bash bench/run_benchmarks.sh single
+docker exec hyperqwen-test bash verify.sh
+docker exec hyperqwen-test bash bench/run_benchmarks.sh single
 ```
 
 ## Testing through llama-swap instead

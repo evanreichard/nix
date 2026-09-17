@@ -14,12 +14,12 @@
 { pkgs, lib, backends, reasoning }:
 backends.dockerModel {
   name = "Qwen3.8 27B Uncensored (KV-KVARN)";
-  backend = "vllm-syv";
+  backend = "vllm-hyperqwen";
   placement = "cuda0";
   healthCheckTimeout = 900;
   useModelName = "qwen3.8-27b";
   macros.ctx = "262144";
-  cmd = backends.qwen38SyvCmd "qwen3.8-27b-uncensored-vllm-256k-cuda0" [
+  cmd = backends.hyperQwenCmd "qwen3.8-27b-uncensored-vllm-256k-cuda0" [
     "CTX=huge"
     "MAX_LEN=262144"
     "VISION=1"

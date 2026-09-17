@@ -11,12 +11,12 @@ lib/matrix.nix      concurrency matrix, derived from placement
 peers.nix           remote OpenAI-compatible backends
 models/<id>.nix     one file per model; the filename IS the model ID
 scripts/            llama-cpp-bisect-context, wrapped into a package by default.nix
-setup-qwen38-vllm.sh  one-time preparation of the syv-ai model directory
+setup-qwen38-vllm.sh  one-time preparation of the HyperQwen model directory
 ```
 
 A model file returns an attrset from `{ pkgs, lib, backends, reasoning }` and adds two
 attributes that are ours rather than llama-swap's: `backend` (`llama-cpp`, `ik-llama-cpp`,
-`vllm-syv`, `stable-diffusion`, `comfyui`) and `placement`
+`vllm-hyperqwen`, `stable-diffusion`, `comfyui`) and `placement`
 (`cuda0`, `cuda1`, `dual`). `config.nix` strips both before rendering. `backend` selects the
 llama.cpp preset list in `default.nix`; `placement` generates the matrix, so a new model file
 joins the concurrency matrix by existing rather than by being added to a table.
@@ -29,7 +29,7 @@ arguments instead of `{ pkgs }`.
 llama.cpp command generator - the flags are the tuning knowledge, and the variance between
 entries (`-np 2 -kvu`, `-ncmoe 26`, `-lm none`, `-ot per_layer_token_embd.weight=CPU`) is
 the point. `lib/backends.nix` holds only invariants: binaries, the `dockerModel` wrapper
-that supplies `cmdStop`/`proxy`/`checkEndpoint`, `qwen38SyvCmd`, whose whole command is
+that supplies `cmdStop`/`proxy`/`checkEndpoint`, `hyperQwenCmd`, whose whole command is
 environment variables, and the `comfyui*` helpers, where the command is invariant because
 ComfyUI takes its configuration from workflows rather than flags.
 
@@ -144,10 +144,12 @@ Pull `comfyuiImage` before the first swap-in, and pull it with the same
 podman-docker on the *rootless* socket, so the wrong one silently stores a second ~11.8 GiB
 copy that llama-swap cannot use.
 
-## syv-ai vLLM Configs (Qwen3.8-27B)
+## HyperQwen vLLM Configs (Qwen3.8-27B)
 
 The six `qwen3.8-27b-{uncensored-,}vllm-*` entries run one prebuilt image from
-[syv-ai/qwen38-27b-rtx3090](https://github.com/syv-ai/qwen38-27b-rtx3090) against prepared
+[syv-ai/HyperQwen](https://github.com/syv-ai/HyperQwen) (renamed from
+`syv-ai/qwen38-27b-rtx3090`; the GHCR package kept the old name, so its later tags are
+stale) against prepared
 model directories at `/mnt/ssd/vLLM/Models/Qwen3.8-27B-*`, fetched by
 `setup-qwen38-vllm.sh`. The image carries patched vLLM 0.28.0, whose DFlash2 block drafter
 support is native (the 0.27.1 backport is gone), plus the KVarN KV cache; nothing is built
@@ -155,17 +157,17 @@ from nixpkgs. Three context tiers, each in a base and an uncensored body, and ev
 them is a vision profile (`VISION=1`) — the `vl` marker is gone from the IDs because it no
 longer distinguishes anything; the `vision` tag carries it instead.
 
-`qwen38SyvCmd` in `lib/backends.nix` renders the whole `docker run` from a model ID and a list of
+`hyperQwenCmd` in `lib/backends.nix` renders the whole `docker run` from a model ID and a list of
 environment variables. Profiles differ only by `CTX`, `MAX_LEN`, `VISION` and `MODEL` — the
 container's `single-user/start_qwen.sh` derives attention backend, KV dtype, pinned pool
 bytes, slot count and max-model-len from those, so serving flags do not belong in the model
 file.
 
 Pools below are what this 3090 resolved at boot, not upstream's published figures (they
-agree except `CTX=fast`, where prefix caching costs a state page). The 0.28.0 image
-(`sha-bae2023`) boots byte-identical, with the launcher's argv carrying
-`--kv-cache-memory=` and `--sse-keep-alive-interval 30`, and `draft_sample_method`
-`probabilistic` confirmed by `draft_logits=True` in the boot log.
+agree except `CTX=fast`, where prefix caching costs a state page). The pinned image
+(`sha-6a15595`, 2026-09-17) reproduces `CTX=fast` byte-for-byte — 68,605 tokens at
+`65,536` max-model-len, `draft_logits=True`, k=7 — with the launcher's argv still carrying
+`--kv-cache-memory=` and `--sse-keep-alive-interval 30`.
 
 The pinned pool is *not* independent of `MAX_LEN`: raising `CTX=huge` from 245,760 to
 262,144 changes the resolved mamba page padding and with it the token count, from 268,169
@@ -229,11 +231,13 @@ stall class tracked upstream in syv-ai issues #107 and #94 rather than as a prof
   llama-swap rewrites the request body instead of the server being told the alias.
 - **`PREPARE=0`.** The image's entrypoint otherwise downloads and requantizes 19.5 GiB
   inside a model swap. `VERIFY` stays on: it fails in seconds on a missing or unpatched
-  model directory. Run `setup-qwen38-vllm.sh` before the first switch.
+  model directory. Run `setup-qwen38-vllm.sh` before the first switch and after any bump that
+  touches the image's `prepare/`: its state check skips the requisition work, its template steps
+  do not.
 - **`healthCheckTimeout = 900`** per model, against the global 500. Measured here: 81 s for a
   warm `CTX=fast` re-boot, 188-289 s for every profile's first boot after an image bump — a
   new vLLM version invalidates torch.compile, CUDA graph capture and FlashInfer JIT together —
-  and 360 s from a genuinely empty `/mnt/ssd/vLLM/Cache/qwen38-syv`.
+  and 360 s from a genuinely empty `/mnt/ssd/vLLM/Cache/hyperqwen`.
 - **One CDI device, not `CUDA_VISIBLE_DEVICES`.** vLLM reads compute capability through
   NVML, which enumerates in PCI order and ignores `CUDA_VISIBLE_DEVICES`, so `--device=
   nvidia.com/gpu=all -e CUDA_VISIBLE_DEVICES=0` makes it see the 1080 Ti and refuse with
@@ -252,11 +256,15 @@ stall class tracked upstream in syv-ai issues #107 and #94 rather than as a prof
   the six unchanged shards by `os.link` and dies with `EPERM`, so `setup-qwen38-vllm.sh`
   runs `prepare` twice: once with `FAST_VARIANT=0`, then again after placing those shards
   itself (link where possible, copy otherwise — ~19 GiB of duplication here).
-- **The image tag is pinned to a commit** (`sha-<7>`), in `lib/backends.nix` (`qwen38SyvImage`) and
+- **The image tag is pinned to a commit** (`sha-<7>`), in `lib/backends.nix` (`hyperQwenImage`) and
   in `setup-qwen38-vllm.sh` (`IMAGE`). Both move together. The model directory only needs
   re-preparing when the bump moves the launcher's `KV_MEM` bytes or touches `prepare/`, which is
   two lines of a `compare/<old>...main` diff: the 453104e → bae2023 bump (vLLM 0.27.1 → 0.28.0)
-  changed neither and the prepared artifacts verified clean in the new image.
+  changed neither and the prepared artifacts verified clean in the new image. bae2023 → 6a15595
+  also left `KV_MEM` and every requant step alone; what moved was `prepare/`, whose two template
+  rewrites (tool-call array hardening, effort-vocabulary translation) run unconditionally, so
+  that bump cost one `prepare` run over the existing dirs and no re-download. Pass `-e MODEL=`
+  for a checkpoint prepared outside the script, or its template is skipped.
 - **`draft_sample_method` is not optional on 0.28.** The 0.28 DFlash2 speculator inherits the
   upstream base class, which allocates its draft-logits buffer only when the config asks for it;
   unset, the rejection test loses its denominator and acceptance gets strictly stricter (upstream

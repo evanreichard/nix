@@ -26,7 +26,7 @@ locally.
 |           | Models                               | Definitions                                                                       |
 | --------- | ------------------------------------ | --------------------------------------------------------------------------------- |
 | llama.cpp | `/mnt/ssd/Models/**/*.gguf`          | `modules/nixos/services/llama-swap/models/*.nix`, flags in each model's own `cmd` |
-| vLLM      | `/mnt/ssd/vLLM/Models/Qwen3.8-27B-*` | same directory, `backend = "vllm-syv"`, env vars only                             |
+| vLLM      | `/mnt/ssd/vLLM/Models/Qwen3.8-27B-*` | same directory, `backend = "vllm-hyperqwen"`, env vars only                        |
 
 llama-swap fronts both, and its module guide — `modules/nixos/services/llama-swap/AGENTS.md`
 — holds the invariants of every deployed model, including the vLLM profiles' geometry tables.
@@ -38,7 +38,7 @@ Read it before changing a model file.
 | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
 | `references/llama-cpp.md` | The whole llama.cpp workflow: deployment shapes, flag reference, bottleneck guide                                                        |
 | `references/vllm.md`      | vLLM generically: the levers, what the boot log resolves, endpoints, measurement, diagnosis                                              |
-| `references/syv-ai.md`    | This repo's vLLM image under llama-swap: what is ours to change, how to boot and verify a profile, the bump procedure. Assumes `vllm.md` |
+| `references/hyperqwen.md` | This repo's vLLM image under llama-swap: what is ours to change, how to boot and verify a profile, the bump procedure. Assumes `vllm.md` |
 
 ## Scripts
 

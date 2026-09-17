@@ -31,7 +31,7 @@ rec {
     }
     // model;
 
-  # https://github.com/syv-ai/qwen38-27b-rtx3090
+  # https://github.com/syv-ai/HyperQwen (renamed from syv-ai/qwen38-27b-rtx3090)
   #
   # One prebuilt image and one prepared model directory back every `qwen3.8-27b-vllm-*`
   # profile. The launcher inside derives attention backend, KV dtype, pinned pool size,
@@ -51,8 +51,8 @@ rec {
   # cards makes it read the 1080 Ti and refuse: "quantization method compressed-tensors is
   # not supported for the current GPU". CDI device 1 is the RTX 3090 here (PCI order), and
   # handing the container exactly one card leaves NVML and torch agreeing.
-  qwen38SyvImage = "ghcr.io/syv-ai/qwen38-27b-rtx3090:sha-bae2023";
-  qwen38SyvCmd =
+  hyperQwenImage = "ghcr.io/syv-ai/hyperqwen:sha-6a15595";
+  hyperQwenCmd =
     modelId: env:
     lib.concatStringsSep " \\\n  " (
       [
@@ -71,9 +71,9 @@ rec {
       )
       ++ [
         "-v /mnt/ssd/vLLM/Models:/app/models"
-        "-v /mnt/ssd/vLLM/Cache/qwen38-syv:/cache"
+        "-v /mnt/ssd/vLLM/Cache/hyperqwen:/cache"
         "-p \${PORT}:18020"
-        qwen38SyvImage
+        hyperQwenImage
         "single"
       ]
     );

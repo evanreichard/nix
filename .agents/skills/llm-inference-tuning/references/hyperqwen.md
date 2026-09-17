@@ -1,12 +1,14 @@
-# syv-ai vLLM under llama-swap
+# HyperQwen vLLM under llama-swap
 
 Read `vllm.md` first: the levers are its levers, and the image's launcher pulls most of them
 for us. This doc is only what is specific to this repo's deployment.
 
 The stack: one prebuilt image
-([syv-ai/qwen38-27b-rtx3090](https://github.com/syv-ai/qwen38-27b-rtx3090)) carrying a patched
+([syv-ai/HyperQwen](https://github.com/syv-ai/HyperQwen), renamed from
+`syv-ai/qwen38-27b-rtx3090`; the GHCR package kept the old name, so its tags post-rename are
+stale) carrying a patched
 vLLM plus the DFlash2 drafter and the KVarN KV cache, run against one prepared model directory,
-served by llama-swap as the `qwen3.8-27b-vllm-*` profiles. `qwen38SyvCmd` in
+served by llama-swap as the `qwen3.8-27b-vllm-*` profiles. `hyperQwenCmd` in
 `modules/nixos/services/llama-swap/lib/backends.nix` renders one `docker run` from a model id
 plus `-e` values.
 
@@ -34,8 +36,8 @@ again.
 D=$(nix eval --raw /etc/nixos#nixosConfigurations.lin-va-desktop.pkgs.docker)/bin/docker
 $D run --rm -d --name qwen38-probe --device=nvidia.com/gpu=1 --ipc=host \
   -e PREPARE=0 -e SPEC=dflash2 -e PREFIX_CACHE=1 -e REQ_METRICS=1 -e CTX=fast \
-  -v /mnt/ssd/vLLM/Models:/app/models -v /mnt/ssd/vLLM/Cache/qwen38-syv:/cache \
-  -p 8081:18020 ghcr.io/syv-ai/qwen38-27b-rtx3090:sha-bae2023 single
+  -v /mnt/ssd/vLLM/Models:/app/models -v /mnt/ssd/vLLM/Cache/hyperqwen:/cache \
+  -p 8081:18020 ghcr.io/syv-ai/hyperqwen:sha-6a15595 single
 $D logs -f qwen38-probe        # 188-289 s on the first boot after a bump, 81 s warm
 ```
 
@@ -48,7 +50,9 @@ $D exec qwen38-probe sh -c 'tr "\0" " " < /proc/1/cmdline' | tr " " "\n" | grep 
 ```
 
 `PREPARE=0` keeps the image's 19.5 GiB download out of a swap; `VERIFY` stays on and fails in
-seconds if the model directory is missing or was prepared by an older layout.
+seconds if the model directory is missing or was prepared by an older layout. The launcher
+sources `resolve_config.sh`, which refuses an unknown `CTX`/`SPEC` and prints the resolved
+knobs — read `[effective-config]`, not the engine's args line, for `MODEL`/`MAX_LEN`/`MAX_SEQS`.
 
 ## Benchmark it
 
@@ -76,13 +80,22 @@ the `deep` case before believing a short-prompt figure.
 
 ## Bumping the image tag
 
-Two files, in lockstep: `qwen38SyvImage` in `lib/backends.nix` and `IMAGE` in
+Two files, in lockstep: `hyperQwenImage` in `lib/backends.nix` and `IMAGE` in
 `setup-qwen38-vllm.sh`. Then check the bump before touching the model directory: diff the new
 tag for `KV_MEM` and `prepare/`. If neither moved, the prepared artifacts stay valid (the
 0.27.1 → 0.28.0 bump was one of those) and only the first boot per profile re-pays
 torch.compile, CUDA graph capture and FlashInfer JIT — a new vLLM version invalidates all
 three, so budget 188-289 s against `healthCheckTimeout`. Update the module `AGENTS.md` numbers
 when a pool or a baseline actually moves.
+
+A bump that touches `prepare/` needs one `prepare` run over the mounted dirs even when nothing
+is missing: the state check decides the requisition work, but the template steps (array
+tool-call harden, effort-vocabulary translate) rewrite every dir's `chat_template.jinja`
+unconditionally. Pass `-e MODEL=<dir>` for a checkpoint prepared outside the script — ours is
+the uncensored body — or its template is skipped.
+
+`bae2023 → 6a15595` moved neither `KV_MEM` (5261334938 / 5583457484) nor a requant step, but
+added those two template steps, which rewrote all three dirs.
 
 ## Quirks
 
