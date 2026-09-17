@@ -151,6 +151,9 @@ in
         // optionalAttrs (model.macros.ctx or null != null) {
           contextWindow = lib.toInt model.macros.ctx;
         }
+        // optionalAttrs (model.metadata.maxTokens or null != null) {
+          maxTokens = model.metadata.maxTokens;
+        }
         // optionalAttrs (hasType "vision" model) {
           input = [
             "text"

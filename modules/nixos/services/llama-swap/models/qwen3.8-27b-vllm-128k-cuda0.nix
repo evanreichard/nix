@@ -33,5 +33,7 @@ backends.dockerModel {
       "reasoning"
     ];
     reasoning = reasoning.qwen38Vllm;
+    # Agent completion ceiling; the model context remains profile-specific.
+    maxTokens = 32768;
   };
 }
