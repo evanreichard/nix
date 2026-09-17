@@ -64,6 +64,10 @@ in
 
   # NVIDIA GPU Power Limit
   systemd.services = {
+    llama-swap = {
+      path = [ config.hardware.nvidia.package.bin ];
+    };
+
     nvidia-persistence-mode = {
       description = "Enable NVIDIA GPU Persistence Mode";
       after = [ "nvidia-modules-load.service" ];
