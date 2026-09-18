@@ -42,5 +42,6 @@ backends.dockerModel {
     reasoning = reasoning.qwen38Vllm;
     # Agent completion ceiling; the model context remains 262144 tokens.
     maxTokens = 32768;
+    streamIdleTimeoutMs = 900000;
   };
 }

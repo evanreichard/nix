@@ -130,6 +130,9 @@ in
         let
           reasoning = model.metadata.reasoning or null;
           reasoningCompat = if reasoning == null then { } else mkReasoningCompat reasoning;
+          streamTimeoutAttrs = optionalAttrs (model.metadata.streamIdleTimeoutMs or null != null) {
+            streamIdleTimeoutMs = model.metadata.streamIdleTimeoutMs;
+          };
           reasoningAttrs =
             if reasoning != null then
               {
@@ -137,7 +140,7 @@ in
                 thinkingLevelMap = mkThinkingLevelMap reasoning;
               }
               // optionalAttrs (reasoningCompat != { }) {
-                compat = reasoningCompat;
+                compat = reasoningCompat // streamTimeoutAttrs;
               }
             else
               optionalAttrs (hasType "reasoning" model) {

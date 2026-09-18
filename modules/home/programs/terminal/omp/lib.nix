@@ -181,12 +181,15 @@ in
         name: model:
         let
           reasoning = model.metadata.reasoning or null;
+          streamTimeoutAttrs = optionalAttrs (model.metadata.streamIdleTimeoutMs or null != null) {
+            streamIdleTimeoutMs = model.metadata.streamIdleTimeoutMs;
+          };
           reasoningAttrs =
             if reasoning != null then
               {
                 reasoning = true;
                 thinking = mkThinking reasoning;
-                compat = mkCompat reasoning;
+                compat = mkCompat reasoning // streamTimeoutAttrs;
               }
             else
               optionalAttrs (hasTag "reasoning" model) {
