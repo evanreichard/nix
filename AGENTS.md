@@ -116,7 +116,8 @@ Custom package derivations, auto-discovered by Snowfall Lib and available as `pk
 - `open-proxy/` — Go: forwards `open`/`xdg-open` from a VM to its host
 - `opencode/` — Bun: terminal coding agent
 - `pi-coding-agent/` — Node: pi coding agent CLI
-- `pi-isolate/` — network-isolated bash and brokered Nix installs for omp
+- `pi-isolate/` — network-isolated bash and brokered Nix installs for pi and omp (`pi-isolate`/`omp-isolate`).
+  Its standalone launcher requires the upstream Bun pin because older repo-wide unstable Bun lacks `process.execve`.
 - `pi-web/` — Node: local web UI for the pi coding agent
 - `qwen-code/` — Node: Qwen code assistant
 - `slack-cli/` — Python: reads Slack messages from the local Chromium IndexedDB cache (Darwin)

@@ -105,7 +105,8 @@ in
   config = mkIf cfg.enable {
     # Add Omp to Home Packages - `omp` is always the unwrapped binary; `omp-sandboxed` is the
     # bubblewrap-confined wrapper, installed when the sandbox is enabled. `pi-isolate` is Linux
-    # only: it confines bash with bubblewrap and brokers packages through the host's nix.
+    # only and ships both `pi-isolate` and `omp-isolate`: they confine bash with bubblewrap and
+    # broker packages through the host's nix.
     home.packages = [
       pkgs.${namespace}.omp
     ]

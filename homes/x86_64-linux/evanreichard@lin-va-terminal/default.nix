@@ -2,6 +2,7 @@
 , config
 , namespace
 , osConfig
+, pkgs
 , ...
 }:
 let
@@ -9,6 +10,10 @@ let
 in
 {
   home.stateVersion = "26.05";
+
+  home.packages = with pkgs; [
+    bubblewrap
+  ];
 
   reichard = {
     user = {
