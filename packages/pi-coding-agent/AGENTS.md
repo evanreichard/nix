@@ -20,6 +20,10 @@ Built from the `earendil-works/pi-mono` monorepo with `buildNpmPackage`, pinned 
 
 `installPhase` copies `node_modules` and `packages/` into `$out/lib/pi-coding-agent` and writes `$out/bin/pi` as a one-line ESM shim importing `packages/coding-agent/dist/cli.js`. The wrapper adds `nodejs_22` plus `firefox`/`geckodriver` for the browser automation behind web-fetch; the `pixman`/`cairo`/`pango`/`libjpeg`/`giflib`/`librsvg` inputs serve that same path.
 
+## Backwards Compatibility
+
+Add backwards-compatibility code only with explicit permission from the user in the current conversation. When a task looks like it calls for a compatibility layer, alias, re-export, fallback, or deprecated path, stop and ask for that permission first; the default is a clean cutover that updates every caller. Autonomous compatibility code is what makes these derivations and their patches hard to read.
+
 ## Lockfile
 
 There is no package-local lockfile step: the derivation builds against the tagged release's own `package-lock.json` plus `npmDepsHash`, so refresh that hash from the FOD mismatch after a version bump. (The obsolete `update-lockfile.mjs` that used to enrich a package-local lockfile has been removed. `packages/pi-web/` keeps a live version of that workflow with its own `update-lockfile.sh`.)
