@@ -2,15 +2,15 @@
 let
   # Tracks upstream stable vX.Y.Z tags (since v0.1.0); bN tags are nightlies.
   # For HEAD builds use YYYYMMDD (e.g. "20260519").
-  version = "0.4.0";
-  # b-tag shipped by the v0.4.0 release.
-  buildNumber = "10809";
+  version = "0.4.1";
+  # b-tag shipped by the v0.4.1 release.
+  buildNumber = "10964";
 
   src = pkgs.fetchFromGitHub {
     owner = "ggml-org";
     repo = "llama.cpp";
-    rev = "5266f24da75dc449bd56cbed7addb9c8e4a6a73e";
-    hash = "sha256-n540xQnFJOwpyRUXtHrv4/kHU3hguVJQUvanx2ZChR4=";
+    rev = "29aaf1c27faa48292357cea2120d94114a545006";
+    hash = "sha256-121VMXyWuTto6H+TOOzweKD+oGfMNt9fCptWCtK4TKo=";
     leaveDotGit = true;
     postFetch = ''
       git -C "$out" rev-parse --short HEAD > $out/COMMIT

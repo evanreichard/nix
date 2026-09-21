@@ -69,6 +69,8 @@ let
   basePackages = [
     "bash"
     "bun"
+    "nodejs"
+    "which"
     "coreutils"
     "findutils"
     "fd"
@@ -84,9 +86,13 @@ let
     "strace"
     "patchelf"
     "binwalk"
+    "radare2"
     "jq"
     "glibc"
     "nix-ld"
+    "bubblewrap"
+    "iproute2"
+    "util-linux"
   ];
 
   referenceFor = attribute: if attribute == "bun" then bunReference else nixpkgsReference;
@@ -140,12 +146,12 @@ let
 in
 buildNpmPackage {
   pname = "pi-isolate";
-  version = "unstable-2026-09-19";
+  version = "unstable-2026-09-21";
 
   src = fetchgit {
     url = "https://gitea.va.reichard.io/evan/pi-isolate.git";
-    rev = "ad40d62bf3a25216153212416e5c9c7ae6465421";
-    hash = "sha256-l0RbKgtF/WOAte0vnlRd5xMco53LXG4foTkgUXIVBhk=";
+    rev = "706fbc3d61b4f1da693b778f74af6713659071fb";
+    hash = "sha256-+1DX6mC+3M49e13p/Z5KQSKoW0OrQkP8v/Oh75HnwGs=";
   };
 
   npmDepsHash = "sha256-2t8RgXkeQ3jgBk/O307vTcXAn3kKCos801YiuZ/WESY=";

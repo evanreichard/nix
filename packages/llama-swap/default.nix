@@ -1,6 +1,6 @@
 { lib
 , stdenv
-, buildGo126Module
+, buildGo127Module
 , fetchFromGitHub
 , versionCheckHook
 , callPackage
@@ -11,15 +11,15 @@
 let
   canExecute = stdenv.buildPlatform.canExecute stdenv.hostPlatform;
 in
-buildGo126Module (finalAttrs: {
+buildGo127Module (finalAttrs: {
   pname = "llama-swap";
-  version = "252";
+  version = "256";
 
   src = fetchFromGitHub {
     owner = "mostlygeek";
     repo = "llama-swap";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-meuWcSFOgKC2ZESP7jn9mmqRJo1aKw+lMeioh2bVHQY=";
+    hash = "sha256-midZ5/eq4ULDhCC3wtzman0OdH5bHMIO8FsmzizU8sc=";
     # populate values that require us to use git. By doing this in postFetch we
     # can delete .git afterwards and maintain better reproducibility of the src.
     leaveDotGit = true;
@@ -32,7 +32,7 @@ buildGo126Module (finalAttrs: {
     '';
   };
 
-  vendorHash = "sha256-MhR8B2+Yb/xqrTlIxaVHLoQf1eTOO49c65l72IAuZyU=";
+  vendorHash = "sha256-R9VOAmoRXet7zoEYo7LW/awJludS4AxRlFDR6skPxbo=";
 
   # UI embed is build-tag gated since v244: without `embed_ui`, embed_notag.go
   # compiles in an empty FS and /ui/ serves 404.
