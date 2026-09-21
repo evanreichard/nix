@@ -9,6 +9,10 @@ let
 
   helpers = import ./lib.nix { inherit lib; };
   llamaSwapConfig = import ./../../../../nixos/services/llama-swap/config.nix { inherit pkgs; };
+  providerRegistry = builtins.fromJSON (
+    builtins.readFile ./../../../../nixos/services/llama-swap/providers/providers.json
+  );
+  providerRoot = ./../../../../nixos/services/llama-swap/providers;
 
   cfg = config.${namespace}.programs.terminal.pi;
 
@@ -178,8 +182,8 @@ in
       };
     };
 
-    # Pi Models Config - Each provider gets its own adapter file; the map below merges all
-    # provider definitions into one models.json during the sops template evaluation.
+    # Pi Models Config - Provider metadata is read from the shared llama-swap registry and
+    # converted into pi's models.json format during sops template evaluation.
     sops = lib.mkIf config.${namespace}.security.sops.enable {
       secrets = {
         "llama_swap_api_keys/pi" = {
@@ -209,15 +213,18 @@ in
         path = "${config.home.homeDirectory}/.pi/agent/models.json";
         content =
           let
-            providerSources = {
-              synthetic = {
-                file = ./providers/synthetic.json;
-                baseUrl = "https://api.synthetic.new/openai/v1";
-                api = "openai-completions";
-                apiKey = config.sops.placeholder.synthetic_apikey;
-                filter = model: lib.hasPrefix "hf:" model.id;
-              };
-            };
+            providerSources = lib.mapAttrs
+              (_: provider: {
+                file = (toString providerRoot) + "/${provider.modelsFile}";
+                baseUrl = provider.baseUrl;
+                api = provider.api;
+                apiKey = config.sops.placeholder.${provider.sopsSecret};
+                filter =
+                  if provider ? modelIds
+                  then model: builtins.elem model.id provider.modelIds
+                  else _: true;
+              })
+              providerRegistry;
             generatedProviders = lib.mapAttrs
               (_: provider: {
                 inherit (provider) baseUrl api apiKey;

@@ -8,9 +8,9 @@ lib.nix             helper entrypoint - NOT lib/default.nix, see below
 lib/backends.nix    server binaries, docker scaffolding, the one cmd builder
 lib/reasoning.nix   reasoning profiles
 lib/matrix.nix      concurrency matrix, derived from placement
-peers.nix           remote OpenAI-compatible backends
-models/<id>.nix     one file per model; the filename IS the model ID
-scripts/            llama-cpp-bisect-context, wrapped into a package by default.nix
+peers.nix           remote OpenAI-compatible backends, derived from providers/
+providers/          shared provider registry and raw `/models` snapshots
+scripts/            provider snapshot updater and llama-cpp-bisect-context
 setup-qwen38-vllm.sh  one-time preparation of the HyperQwen model directory
 ```
 

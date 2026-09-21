@@ -9,6 +9,7 @@ let
 
   llamaSwapLib = import ./lib.nix { inherit pkgs; };
   definitions = llamaSwapLib.importModels ./models;
+  peerDefinitions = import ./peers.nix { inherit lib; };
 in
 {
   healthCheckTimeout = 500;
@@ -26,5 +27,7 @@ in
 
   matrix = llamaSwapLib.mkMatrix definitions;
 
-  peers = import ./peers.nix;
+  peers = lib.mapAttrs
+    (_: peer: removeAttrs peer [ "apiKeySecret" "apiKeySopsFile" ])
+    peerDefinitions;
 }

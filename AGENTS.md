@@ -67,6 +67,7 @@ Reusable NixOS, Home Manager, and Darwin modules. This is where most of the conf
 ### `modules/nixos/services/llama-swap/` — Model Catalogue
 
 Owns every deployed inference model: `models/*.nix` definitions (llama.cpp presets and vLLM profiles on the HyperQwen backend), `lib/backends.nix`, and the service config. Its own `AGENTS.md` is authoritative for model invariants — geometry, VRAM budgets, health-check timeouts, image pins — and is much longer than this file; read it before changing a model. `modules/home/programs/terminal/pi/lib.nix` and `omp/lib.nix` derive the agent model lists from this same catalogue, including `macros.ctx` → `contextWindow`, so those two sides must move together.
+External OpenAI-compatible provider manifests and raw `/models` snapshots live under `providers/`; `scripts/update-providers.sh` refreshes them. The registry is the shared source for llama-swap peers and Pi's direct provider models.
 
 ### `modules/home/programs/terminal/nvim/` — Neovim Configuration
 

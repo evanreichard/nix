@@ -1,0 +1,19 @@
+{
+  "synthetic": {
+    "modelsFile": "synthetic.json",
+    "baseUrl": "https://api.synthetic.new/openai/v1",
+    "api": "openai-completions",
+    "apiKeyEnv": "SYNTHETIC_API_KEY",
+    "sopsFile": "secrets/common/systems.yaml",
+    "sopsSecret": "synthetic_apikey",
+    "modelIds": [
+      "hf:Qwen/Qwen3.8-27B",
+      "hf:deepseek-ai/DeepSeek-V4.1-Flash",
+      "hf:moonshotai/Kimi-K3",
+      "hf:nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4",
+      "hf:openai/gpt-oss-120b",
+      "hf:zai-org/GLM-4.7-Flash",
+      "hf:zai-org/GLM-5.3-Flash"
+    ]
+  }
+}
