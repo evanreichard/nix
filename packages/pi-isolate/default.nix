@@ -93,6 +93,10 @@ let
     "bubblewrap"
     "iproute2"
     "util-linux"
+    "gzip"
+    "xz"
+    "unzip"
+    "xxd"
   ];
 
   referenceFor = attribute: if attribute == "bun" then bunReference else nixpkgsReference;
@@ -150,14 +154,25 @@ buildNpmPackage {
 
   src = fetchgit {
     url = "https://gitea.va.reichard.io/evan/pi-isolate.git";
-    rev = "706fbc3d61b4f1da693b778f74af6713659071fb";
-    hash = "sha256-+1DX6mC+3M49e13p/Z5KQSKoW0OrQkP8v/Oh75HnwGs=";
+    rev = "657f4618db782710f09a5d121625219b3fd8547e";
+    hash = "sha256-tnCdCchEVy0CftA5DHF2ZHO21gE8y22bva+kJt5xf6A=";
   };
 
-  npmDepsHash = "sha256-2t8RgXkeQ3jgBk/O307vTcXAn3kKCos801YiuZ/WESY=";
-  # Omit Pi's shrinkwrap marker so Nix's offline npm cache can hoist the recorded graph, and skip
-  # lifecycle scripts - `prepare` would run the build before Bun is even on PATH.
-  npmFlags = [ "--ignore-scripts" "--install-strategy=hoisted" ];
+  # The Pi package lock omits integrity for these nested registry packages. Fill the published
+  # values before fetchNpmDeps parses the lock, and use the duplicate-aware cache fetcher.
+  postPatch = ''
+    ${pkgs.jq}/bin/jq '
+      .packages["node_modules/@earendil-works/pi-coding-agent/node_modules/@earendil-works/chord"].integrity = "sha512-t8QOTf0GTHrsDSfcdtXuA9RCkh6mnR4l25N0SM/sgH7Ih25jH4tGXNbkGs9MWpV5xTu9MRPj4A7Zn1UEwQm9+g=="
+      | .packages["node_modules/@earendil-works/pi-coding-agent/node_modules/@earendil-works/pi-agent-core"].integrity = "sha512-c5b2FMdJ7C++HBa6AyBmusdf96gdgRqpF7J+UCq2yVGB28UETJvJ190HkgDWUaLPnOQQPbanjKMAm/TgRmFE2w=="
+      | .packages["node_modules/@earendil-works/pi-coding-agent/node_modules/@earendil-works/pi-ai"].integrity = "sha512-lbRm+EMY6Jx3l+HLpbqbm9Yrhkc5u7EffLk2id+zJQEoBuR5I+tijGiZU8zlnuuCclmQOgH0PVjL9PLbeqJ9MQ=="
+      | .packages["node_modules/@earendil-works/pi-coding-agent/node_modules/@earendil-works/pi-telemetry"].integrity = "sha512-IEUMnV6mgHyOMfAxa4CKXoBKKfHM8KxNjbXWM4Bps/iLJcFMf8hQsEZ+95VnVTc7C0cU77Rmdxt773C35jb5AA=="
+      | .packages["node_modules/@earendil-works/pi-coding-agent/node_modules/@earendil-works/pi-tui"].integrity = "sha512-7gTC0XOgQfVWg4yGxwHINBpCnGl9p4KEC7PXIc8gAwc/cyxSW4VuFQrp+r1YD3oM+rBkoepKwAt6w6+VJ7BCaw=="
+    ' package-lock.json > package-lock.json.tmp
+    mv package-lock.json.tmp package-lock.json
+  '';
+
+  npmDepsFetcherVersion = 2;
+  npmDepsHash = "sha256-imZ1VH87/NJXzYRRtYsMU1r/DzlOw2LDSGXycxtRuwc=";
 
   nativeBuildInputs = [ makeWrapper bun pkgs.jq ];
 
