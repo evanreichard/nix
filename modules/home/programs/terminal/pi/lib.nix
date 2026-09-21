@@ -11,6 +11,53 @@ let
     ;
 in
 {
+  toPiOpenAIModels =
+    { catalogue
+    , filter ? (_: true)
+    }:
+    let
+      pricePerMillion = value:
+        (builtins.fromJSON (lib.removePrefix "$" value)) * 1000000;
+
+      thinkingLevelMap = efforts:
+        lib.genAttrs [ "off" "minimal" "low" "medium" "high" "xhigh" "max" ]
+          (level:
+            let
+              native = if level == "off" then "none" else level;
+            in
+            if builtins.elem native efforts then native else null
+          );
+
+      toPiModel = model:
+        let
+          pricing = if model ? pricing then model.pricing else { };
+          efforts =
+            if model ? reasoning_parameters
+            then model.reasoning_parameters.efforts or [ ]
+            else [ ];
+        in
+        {
+          id = model.id;
+          name = model.name or model.id;
+          input = model.input_modalities or [ "text" ];
+          contextWindow = model.context_length or 128000;
+          maxTokens = model.max_output_length or 16384;
+          cost = {
+            input = pricePerMillion (pricing.prompt or "0");
+            output = pricePerMillion (pricing.completion or "0");
+            cacheRead = pricePerMillion (pricing.input_cache_reads or "0");
+            cacheWrite = pricePerMillion (pricing.input_cache_writes or "0");
+          };
+        }
+        // optionalAttrs (builtins.elem "reasoning" (model.supported_features or [ ])) {
+          reasoning = true;
+          thinkingLevelMap = thinkingLevelMap efforts;
+        };
+    in
+    map toPiModel (
+      lib.sort (a: b: a.id < b.id) (builtins.filter filter catalogue.data)
+    );
+
   toPiModels =
     llamaSwapConfig:
     let

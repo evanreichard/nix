@@ -43,7 +43,6 @@ let
     "https://gitea.va.reichard.io/evan/pi-web.git@main"
     "https://gitea.va.reichard.io/evan/pi-subagents.git@main"
     "https://gitea.va.reichard.io/evan/pi-statusline.git@main"
-    "npm:@aliou/pi-synthetic"
   ];
 
   piPackagesJson = pkgs.writeText "pi-packages.json" (builtins.toJSON piPackages);
@@ -179,8 +178,8 @@ in
       };
     };
 
-    # Pi Models Config - Inject llama-swap API key from sops into models.json
-    # so pi can authenticate against the llm-api endpoint.
+    # Pi Models Config - Each provider gets its own adapter file; the map below merges all
+    # provider definitions into one models.json during the sops template evaluation.
     sops = lib.mkIf config.${namespace}.security.sops.enable {
       secrets = {
         "llama_swap_api_keys/pi" = {
@@ -208,16 +207,37 @@ in
       };
       templates."pi-models.json" = {
         path = "${config.home.homeDirectory}/.pi/agent/models.json";
-        content = builtins.toJSON {
-          providers = {
-            "llama-swap" = {
-              baseUrl = "https://llm-api.va.reichard.io/v1";
-              api = "openai-completions";
-              apiKey = config.sops.placeholder."llama_swap_api_keys/pi";
-              models = helpers.toPiModels llamaSwapConfig;
+        content =
+          let
+            providerSources = {
+              synthetic = {
+                file = ./providers/synthetic.json;
+                baseUrl = "https://api.synthetic.new/openai/v1";
+                api = "openai-completions";
+                apiKey = config.sops.placeholder.synthetic_apikey;
+                filter = model: lib.hasPrefix "hf:" model.id;
+              };
+            };
+            generatedProviders = lib.mapAttrs
+              (_: provider: {
+                inherit (provider) baseUrl api apiKey;
+                models = helpers.toPiOpenAIModels {
+                  catalogue = builtins.fromJSON (builtins.readFile provider.file);
+                  inherit (provider) filter;
+                };
+              })
+              providerSources;
+          in
+          builtins.toJSON {
+            providers = generatedProviders // {
+              "llama-swap" = {
+                baseUrl = "https://llm-api.va.reichard.io/v1";
+                api = "openai-completions";
+                apiKey = config.sops.placeholder."llama_swap_api_keys/pi";
+                models = helpers.toPiModels llamaSwapConfig;
+              };
             };
           };
-        };
       };
     };
 
