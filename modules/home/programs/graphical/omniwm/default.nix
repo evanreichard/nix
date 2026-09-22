@@ -19,9 +19,9 @@ in
 
     autoStart = mkBoolOpt true "Whether to run OmniWM from a launchd agent at login.";
 
-    settings = mkOpt (types.either types.path tomlFormat.type) { } ''
+    settings = mkOpt (types.either types.path tomlFormat.type) ./config/settings.toml ''
       Contents of `$XDG_CONFIG_HOME/omniwm/settings.toml`, either a TOML file path
-      or an attrset serialized to TOML. Leave empty to let the GUI own the file.
+      or an attrset serialized to TOML. Set to `{ }` to let the GUI own the file.
     '';
   };
 
