@@ -2,9 +2,9 @@
 
 Everything llama.cpp-specific: which levers exist for a given deployment shape, what the
 flags do, and how to read the bottleneck. Confirm flag names against `llama-server --help`
-on the target — they churn (`--draft-max` became `--spec-draft-n-max`). llama.cpp addresses
-the host's cards as `CUDA0` (GTX 1080 Ti) and `CUDA1` (RTX 3090); `CUDA_VISIBLE_DEVICES=1`
-isolates the 1080 Ti and remaps it to `CUDA0`.
+on the target — they churn (`--draft-max` became `--spec-draft-n-max`). On this host,
+llama.cpp reports `CUDA0` as the RTX 3090 and `CUDA1` as the GTX 1080 Ti; this is the
+reverse of `nvidia-smi`/CDI indices. Confirm with `llama-server --list-devices`.
 
 ## Workflow
 

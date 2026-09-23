@@ -14,8 +14,9 @@ Everything runs on `10.0.20.100` (`lin-va-desktop`), over ssh as your user:
 `ssh -o BatchMode=yes 10.0.20.100 '<cmd>'`, and every script takes `--host`. Omit it to run
 locally.
 
-- GPU 0 is the GTX 1080 Ti, GPU 1 the RTX 3090 — PCI order, the order NVML reports and the
-  order device indices follow (`--device=nvidia.com/gpu=1`, `CUDA_VISIBLE_DEVICES`).
+- `nvidia-smi`/CDI indices are GPU 0 = GTX 1080 Ti and GPU 1 = RTX 3090. With both
+  exposed, llama.cpp reports the reverse CUDA order (`CUDA0` = RTX 3090, `CUDA1` = GTX
+  1080 Ti); confirm with `llama-server --list-devices` before setting `-dev` or `-ts`.
 - One process owns a GPU at a time, and llama-swap keeps its last model resident — check
   `nvidia-smi` on the host before starting anything.
 - **Anything root needs the user**: `nixos-rebuild`, `systemctl stop llama-swap`, reading

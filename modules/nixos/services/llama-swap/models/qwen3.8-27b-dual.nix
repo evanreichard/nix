@@ -3,7 +3,7 @@
   name = "Qwen3.8 27B (UD-Q6_K_XL)";
   backend = "llama-cpp";
   placement = "dual";
-  macros.ctx = "120000";
+  macros.ctx = "163840";
   cmd = ''
     ${backends.llama-cpp}/bin/llama-server \
       --port ''${PORT} \
