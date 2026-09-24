@@ -3,7 +3,6 @@ monitorDwindleOverrides = []
 monitorGapOverrides = []
 monitorNiriOverrides = []
 monitorOrientationOverrides = []
-monitorRoutingOverrides = []
 schemaVersion = 2
 
 [appearance]
@@ -36,7 +35,7 @@ useGlobalGaps = true
 [focus]
 crossesMonitorAtEdge = false
 followsMouse = false
-followsWindowToMonitor = false
+followsWindowToMonitor = true
 lockModifier = "off"
 moveCrossesMonitorAtEdge = false
 moveMouseToFocusedWindow = false
@@ -136,7 +135,7 @@ position = "center"
 widthPercent = 50.0
 
 [routing]
-mode = "macOS"
+mode = "custom"
 
 [scratchpads]
 
@@ -154,7 +153,7 @@ enabled = true
 excludedBundleIDs = []
 height = 28.0
 hideEmptyWorkspaces = true
-hideInNativeFullscreen = false
+hideInNativeFullscreen = true
 notchActiveZoneWidth = 180.0
 notchMode = "moveBelowMenuBar"
 position = "overlappingMenuBar"
@@ -1000,6 +999,18 @@ id = "toggleOverview"
 binding = "Unassigned"
 id = "toggleSystemStats"
 
+[[monitorRoutingOverrides]]
+gridColumn = 1
+gridRow = 0
+monitorDisplayUUID = "D16681B1-58F3-4486-9E63-348175CC98E0"
+monitorName = "LG HDR WQHD"
+
+[[monitorRoutingOverrides]]
+gridColumn = 0
+gridRow = 0
+monitorDisplayUUID = "E8CE4A0E-377D-4367-83B8-0A8C93AE8A1F"
+monitorName = "DELL P3425WE"
+
 [[workspaces]]
 id = "CBAB90E8-8087-46E5-A692-8092E0AC481C"
 layoutType = "default"
@@ -1046,7 +1057,7 @@ layoutType = "default"
 name = "6"
 
 [workspaces.monitorAssignment]
-type = "main"
+type = "secondary"
 
 [[workspaces]]
 id = "165CAB8F-D02E-4536-8EF4-A5D335E186C5"
@@ -1054,7 +1065,7 @@ layoutType = "default"
 name = "7"
 
 [workspaces.monitorAssignment]
-type = "main"
+type = "secondary"
 
 [[workspaces]]
 id = "0E18F6B0-345A-4078-8B21-33641F07A861"
@@ -1062,7 +1073,7 @@ layoutType = "default"
 name = "8"
 
 [workspaces.monitorAssignment]
-type = "main"
+type = "secondary"
 
 [[workspaces]]
 id = "32049E3C-2264-4B32-B12C-0C3AE5E16C16"
@@ -1070,4 +1081,12 @@ layoutType = "default"
 name = "9"
 
 [workspaces.monitorAssignment]
-type = "main"
+type = "secondary"
+
+[[workspaces]]
+id = "DDB4F73B-DDFA-4EA4-A499-12AB11384112"
+layoutType = "default"
+name = "10"
+
+[workspaces.monitorAssignment]
+type = "secondary"

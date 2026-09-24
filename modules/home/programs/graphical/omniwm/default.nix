@@ -26,10 +26,12 @@ in
   };
 
   config = mkIf cfg.enable {
-    assertions = [{
-      assertion = pkgs.stdenv.hostPlatform.isDarwin;
-      message = "${namespace}.programs.graphical.omniwm is only supported on darwin.";
-    }];
+    assertions = [
+      {
+        assertion = pkgs.stdenv.hostPlatform.isDarwin;
+        message = "${namespace}.programs.graphical.omniwm is only supported on darwin.";
+      }
+    ];
 
     home.packages = [ cfg.package ];
 
