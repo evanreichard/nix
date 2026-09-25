@@ -114,6 +114,7 @@ Image edit on a vision-capable TE needs `--llm_vision` alongside `--llm`. Withou
 
 Distilled/Lightning merges are configured as `--cfg-scale 1.0 --steps 4 --sampling-method euler_a --scheduler simple`; sd.cpp has no `beta` scheduler, so upstream `euler_ancestral/beta` advice maps to `simple` or `sgm_uniform`. A GGUF carrying the `__index_timestep_zero__` marker turns `zero_cond_t` on by itself. FLUX.2 Klein 9B is distilled the same way but is a Flow model, so it takes `euler` with sd.cpp's automatic flow shift; the non-distilled sibling is `klein-base-9B` and would need `--cfg-scale 4.0 --steps 20` instead.
 
+Viggle's LoRA targets separate Qwen Image 2.1 `img_mlp.gate_layer` and `img_mlp.proj` weights; sd.cpp's quantized `gate_up` bases leave those adapter tensors unused, so use the original unfused Safetensors shards via their index file. Diffusers' six raw sigma nodes need a trailing `0.0` in sd.cpp's boundary format to retain six denoising calls.
 Model flags migrate: `--qwen-image-zero-cond-t` and `--chroma-disable-dit-mask` were replaced by `--model-args qwen_image_zero_cond_t=true` / `--model-args chroma_use_dit_mask=false`, and `--clip-on-cpu`/`--vae-on-cpu` are deprecated in favor of `--backend te=cpu`/`--backend vae=cpu`. Diff `examples/common/common.cpp` against the pinned rev when bumping `packages/stable-diffusion-cpp` — a removed flag is a startup failure, not a warning.
 
 ## ComfyUI Config
