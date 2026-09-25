@@ -20,7 +20,30 @@ in
     ];
   };
 
+  hardware.bluetooth.enable = true;
+
   services = {
+    pipewire.wireplumber.extraConfig."51-smsl-a2dp" = {
+      "monitor.bluez.rules" = [
+        {
+          matches = [
+            { "device.name" = "bluez_card.00_02_5B_00_FF_0C"; }
+          ];
+          actions."update-props" = {
+            "bluez5.auto-connect" = [ "a2dp_sink" ];
+          };
+        }
+        {
+          matches = [
+            { "node.name" = "~bluez_output\\.00_02_5B_00_FF_0C.*"; }
+          ];
+          actions."update-props" = {
+            "node.description" = "SMSL AO300";
+            "priority.session" = 2000;
+          };
+        }
+      ];
+    };
     xserver.enable = true;
     displayManager = {
       autoLogin = {
