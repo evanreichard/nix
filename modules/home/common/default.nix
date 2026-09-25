@@ -6,7 +6,6 @@
     jq
     mosh
     ncdu
-    reichard.codexis
     ripgrep
     sqlite-interactive
     unzip

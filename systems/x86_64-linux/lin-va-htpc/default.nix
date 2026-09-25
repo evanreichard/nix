@@ -1,10 +1,40 @@
-{ namespace, lib, ... }:
+{ namespace
+, lib
+, pkgs
+, ...
+}:
 let
   inherit (lib.${namespace}) enabled;
 in
 {
-  system.stateVersion = "25.05";
+  system.stateVersion = "26.05";
   time.timeZone = "America/New_York";
+
+  users.users.kodi = {
+    isNormalUser = true;
+    extraGroups = [
+      "audio"
+      "video"
+    ];
+  };
+
+  services = {
+    xserver.enable = true;
+    displayManager = {
+      autoLogin = {
+        enable = true;
+        user = "kodi";
+      };
+      defaultSession = "kodi";
+    };
+    xserver.desktopManager.kodi = {
+      enable = true;
+      package = pkgs.kodi.withPackages (_: [
+        pkgs.reichard.jellyfin
+        pkgs.reichard.pm4k
+      ]);
+    };
+  };
 
   reichard = {
     nix = enabled;
@@ -33,32 +63,18 @@ in
       };
     };
 
-    hardware = {
-      opengl = {
-        enable = true;
-        enable32Bit = true;
-        enableIntel = true;
-      };
+    security = {
+      sops = enabled;
+    };
+
+    hardware.opengl = {
+      enable = true;
+      enableIntel = true;
     };
 
     services = {
       avahi = enabled;
       openssh = enabled;
-      ydotool = enabled;
-      octoprint = {
-        enable = true;
-        openFirewall = true;
-      };
-    };
-
-    virtualisation = {
-      podman = enabled;
-    };
-
-    programs = {
-      graphical = {
-        wms.hyprland = enabled;
-      };
     };
   };
 }
