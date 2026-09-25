@@ -1,0 +1,19 @@
+diff --git a/plugin.py b/plugin.py
+--- a/plugin.py
++++ b/plugin.py
+@@ -1,13 +1,15 @@
+ from __future__ import absolute_import
+ import sys
++from kodi_six import xbmcplugin
+ from lib.kodi_util import ensureHome, xbmc
+ 
+ 
+ def main():
+     try:
+         data = sys.argv[2].lstrip('?')
+ 
+         if data == "stub":
++            xbmcplugin.endOfDirectory(int(sys.argv[1]), succeeded=True, cacheToDisc=False)
+             return
+     except:
+         pass

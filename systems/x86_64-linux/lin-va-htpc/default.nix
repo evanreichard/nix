@@ -10,6 +10,8 @@ in
   system.stateVersion = "26.05";
   time.timeZone = "America/New_York";
 
+  environment.sessionVariables.INSTALLATION_DIR_AVOID_WRITE = "1";
+
   users.users.kodi = {
     isNormalUser = true;
     extraGroups = [

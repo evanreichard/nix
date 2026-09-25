@@ -14,6 +14,7 @@ buildKodiAddon rec {
     rev = version;
     hash = "sha256-AwTdxazfLwsxY8ikpQAu2ao1mkS26VewBOSvYuBZUsc=";
   };
+  patches = [ ./stub-end-directory.patch ];
 
   propagatedBuildInputs = [
     kodi-six
