@@ -1,12 +1,19 @@
 { namespace
 , lib
 , pkgs
+, inputs
 , ...
 }:
 let
   inherit (lib.${namespace}) enabled;
 in
 {
+  nixpkgs.overlays = [
+    (_final: prev: {
+      avd-fw = inputs.nixpkgs-unstable.legacyPackages.${prev.system}.avd-fw;
+    })
+  ];
+
   imports = [
     ./hardware-configuration.nix
   ];
