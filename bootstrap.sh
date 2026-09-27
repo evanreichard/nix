@@ -163,8 +163,7 @@ function cmd_install_remote(){
     fi
 
     # Install NixOS
-    echo "Installing $name to remote host: $remote"
-    if ! nix run github:nix-community/nixos-anywhere -- --flake ".#$name" --target-host "$remote"; then
+    if ! nix run github:nix-community/nixos-anywhere -- --copy-host-keys --flake ".#$name" --target-host "$remote"; then
         echo "Error: Remote NixOS installation failed"
         exit 1
     fi

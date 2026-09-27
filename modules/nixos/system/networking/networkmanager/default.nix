@@ -11,17 +11,14 @@ in
     networking.networkmanager = {
       enable = true;
       wifi.backend = mkIf cfg.enableIWD "iwd";
+      unmanaged = lib.optionals (cfg.wifi != null) [
+        "interface-name:${cfg.wifi.interface}"
+      ];
 
       connectionConfig = {
         "connection.mdns" = "2";
       };
 
-      # unmanaged = [
-      #   "interface-name:br-*"
-      #   "interface-name:rndis*"
-      # ]
-      # ++ lib.optionals config.${namespace}.virtualisation.podman.enable [ "interface-name:docker*" ]
-      # ++ lib.optionals config.${namespace}.virtualisation.kvm.enable [ "interface-name:virbr*" ];
     };
   };
 }

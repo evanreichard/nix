@@ -25,9 +25,14 @@ sudo nixos-rebuild switch --flake .#lin-va-mbp-personal
 # Install NixOS (Remote)
 nix run github:nix-community/nixos-anywhere -- --flake .#lin-cloud-kube1 --target-host \<USER\>@\<IP\>
 
-# Build Image
+# Build Raspberry Pi SD Image (AArch64 builder required)
+nix build .#nixosConfigurations.lin-va-kitchen.config.system.build.sdImage
+
+# Build VMware Image
 nix build .#vmwareConfigurations.lin-va-rke2
 ```
+
+SOPS-enabled NixOS clients use the remote builder's store as an SSH substituter. The builder removes unrooted store paths after seven days.
 
 ## Nix Darwin
 

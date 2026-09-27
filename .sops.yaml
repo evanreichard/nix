@@ -8,6 +8,7 @@ keys:
   - &user_lin-va-mbp-personal age17ayje4uv2mhwehhp9jr3u9l0ds07396kt7ef40sufx89vm7cgfjq6d5d4y
   - &user_lin-va-mbp-work-vm age1mar507c9mxmwalg486chs5kfh0mya38rv5w64ypfwnwlawewrpnswerpg8
   - &user_lin-va-terminal age1w6avj7gd4f5frk90lsyh4e2k5am6z92hzlr0vpgrm767muyj59qsnuah62
+  - &user_lin-va-kitchen age18kmjmxyj0nqr2qnjekswvrmqv86qps4jnkhx0gp5s5n4z39aap5qrjee7d
   - &user_mac-va-mbp-personal age1dccte7xtwswgef089nd80dutp96xnezx5lrqnneh9cusegsnda8sj3dj6c
   - &user_mac-va-mbp-work age1ped3hpugq06908ex8kgama33qckqe03rmac5pa6th87vks5d249qhshvqu
 
@@ -15,11 +16,18 @@ keys:
   - &system_lin-va-desktop age1mxjrvjxkn69kfn2np3wpd73g44fuhsgykw7l5ss9rx30em5jfp2scnrq32
   - &system_lin-va-mba-personal age1dnkhmslccsq5s68p9jrd4y27mzvacmhrc4hxrem9vhdzryl7ryzss5jkxl
   - &system_lin-va-terminal age1rfgh40p6wmaam4ttwgv9xfukgxjruskhfvm0q3ud6lvxtlqc2y8snhwjft
+  - &system_lin-va-kitchen age1aes9j9wnkmfysnm6cx768vtx3tfc8y4q7007sqvx334vxanaeumq2uahnk
 creation_rules:
   - path_regex: secrets/[^/]+\.(yaml|json|env|ini)$
     key_groups:
       - age:
           - *admin_reichard
+  - path_regex: secrets/systems/lin-va-kitchen.yaml
+    key_groups:
+      - age:
+          - *admin_reichard
+          - *user_lin-va-kitchen
+          - *system_lin-va-kitchen
   - path_regex: secrets/common/systems.yaml
     key_groups:
       - age:
@@ -27,6 +35,8 @@ creation_rules:
           - *system_lin-va-desktop
           - *system_lin-va-mba-personal
           - *system_lin-va-terminal
+          - *user_lin-va-kitchen
+          - *system_lin-va-kitchen
   - path_regex: secrets/common/llama-swap.yaml
     key_groups:
       - age:
@@ -46,5 +56,6 @@ creation_rules:
           - *user_lin-va-mbp-work-vm
           - *user_lin-va-terminal
           - *user_lin-va-mba-personal
+          - *user_lin-va-kitchen
           - *user_mac-va-mbp-personal
           - *user_mac-va-mbp-work

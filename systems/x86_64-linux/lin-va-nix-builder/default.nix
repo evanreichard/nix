@@ -4,8 +4,10 @@
 {
   time.timeZone = "America/New_York";
   system.stateVersion = "26.05";
+  boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
 
   reichard = {
+    nix.useRemoteBuilder = false;
     system = {
       boot = {
         enable = true;
@@ -32,6 +34,7 @@
         authorizedKeys = [
           # NixOS Builder
           "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDF8QjeN8lpT+Mc70zwEJQqN9W/GKvTOTd32VgfNhVdN"
+          "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILxfxLnJc9iYosivDe2YGOFFavaQWul4PBjhW2J9QOfF evanreichard@lin-va-kitchen"
         ];
       };
     };

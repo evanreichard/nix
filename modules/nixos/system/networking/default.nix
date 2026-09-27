@@ -11,6 +11,17 @@ in
     enableIWD = mkEnableOption "Enable IWD";
     useDHCP = mkBoolOpt true "Use DHCP";
     useNetworkd = mkBoolOpt false "Use networkd";
+    wifi = mkOption {
+      type = types.nullOr (types.submodule {
+        options = {
+          interface = mkOption { type = types.str; };
+          ssid = mkOption { type = types.str; };
+          psk = mkOption { type = types.str; };
+        };
+      });
+      default = null;
+      description = "wpa_supplicant connection using caller-provided credentials";
+    };
     useStatic = mkOption {
       type = types.nullOr (types.submodule {
         options = {
@@ -42,7 +53,7 @@ in
     };
   };
 
-  config = mkIf cfg.enable {
+  config = lib.mkMerge [ (mkIf cfg.enable {
     environment.systemPackages = with pkgs; [
       mtr
       tcpdump
@@ -67,5 +78,37 @@ in
         prefixLength = 24;
       }];
     });
-  };
+  }) (mkIf (cfg.enable && cfg.wifi != null) {
+    networking.wireless = {
+      enable = true;
+      interfaces = [ cfg.wifi.interface ];
+      secretsFile = config.sops.templates."wifi-secrets.conf".path;
+      extraConfigFiles = [ config.sops.templates."wifi-network.conf".path ];
+    };
+
+    sops.templates."wifi-secrets.conf" = {
+      content = ''
+        wifi_psk=${cfg.wifi.psk}
+      '';
+      owner = "wpa_supplicant";
+      group = "wpa_supplicant";
+      mode = "0400";
+      restartUnits = [ "wpa_supplicant-${cfg.wifi.interface}.service" ];
+    };
+
+    sops.templates."wifi-network.conf" = {
+      content = ''
+        ext_password_backend=file:${config.sops.templates."wifi-secrets.conf".path}
+        network={
+          ssid="${cfg.wifi.ssid}"
+          psk=ext:wifi_psk
+          key_mgmt=WPA-PSK SAE
+        }
+      '';
+      owner = "wpa_supplicant";
+      group = "wpa_supplicant";
+      mode = "0400";
+      restartUnits = [ "wpa_supplicant-${cfg.wifi.interface}.service" ];
+    };
+  }) ];
 }
