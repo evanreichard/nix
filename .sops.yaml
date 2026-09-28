@@ -17,6 +17,8 @@ keys:
   - &system_lin-va-mba-personal age1dnkhmslccsq5s68p9jrd4y27mzvacmhrc4hxrem9vhdzryl7ryzss5jkxl
   - &system_lin-va-terminal age1rfgh40p6wmaam4ttwgv9xfukgxjruskhfvm0q3ud6lvxtlqc2y8snhwjft
   - &system_lin-va-kitchen age1aes9j9wnkmfysnm6cx768vtx3tfc8y4q7007sqvx334vxanaeumq2uahnk
+  - &system_lin-va-htpc age1lwn0kgvve2mnku763ps7axcsnfv6zvtg68d9h6xuvj4w8lg00anqrmawa8
+  - &system_lin-va-nix-builder age1qs7x2gplqlu8r82t6tc2sqa5tq7vexq3nmscm4uhd5a73heqfdys8fph5r
 creation_rules:
   - path_regex: secrets/[^/]+\.(yaml|json|env|ini)$
     key_groups:
@@ -59,3 +61,20 @@ creation_rules:
           - *user_lin-va-kitchen
           - *user_mac-va-mbp-personal
           - *user_mac-va-mbp-work
+  # System Keys Only - The Attic netrc is read by the root nix-daemon, and the push token by the
+  # builder's post-build hook, so no user key needs either.
+  - path_regex: secrets/common/nix-cache.yaml
+    key_groups:
+      - age:
+          - *admin_reichard
+          - *system_lin-va-desktop
+          - *system_lin-va-terminal
+          - *system_lin-va-mba-personal
+          - *system_lin-va-kitchen
+          - *system_lin-va-htpc
+          - *system_lin-va-nix-builder
+  - path_regex: secrets/systems/lin-va-nix-builder.yaml
+    key_groups:
+      - age:
+          - *admin_reichard
+          - *system_lin-va-nix-builder

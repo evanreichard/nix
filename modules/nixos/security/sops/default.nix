@@ -32,7 +32,10 @@ in
       };
     };
 
-    sops.secrets.builder_ssh_key = {
+    # Client Credential Only - This is the key clients use to reach the remote builder, and hosts
+    # that do not offload builds have no use for it. The builder itself cannot decrypt the shared
+    # file, so declaring it unconditionally would break activation there.
+    sops.secrets.builder_ssh_key = mkIf config.${namespace}.nix.useRemoteBuilder {
       sopsFile = getFile "secrets/common/systems.yaml";
     };
   };

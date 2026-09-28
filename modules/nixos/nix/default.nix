@@ -3,6 +3,15 @@ let
   inherit (lib) types mkIf;
   inherit (lib.${namespace}) mkBoolOpt mkOpt;
 
+  getFile = lib.snowfall.fs.get-file;
+
+  # Server-Side Signing - atticd signs narinfo with a cache keypair it alone holds, so clients only
+  # ever need the public half to keep `require-sigs` on.
+  attic = {
+    url = "https://attic.va.reichard.io/nix";
+    publicKey = "nix:e27lP0uq+iTer5y/Sysiwy8IDhdJcOTu1W4CGZGL3z0=";
+  };
+
   cfg = config.${namespace}.nix;
 in
 {
@@ -10,7 +19,7 @@ in
     enable = mkBoolOpt true "Whether or not to manage nix configuration.";
     package = mkOpt types.package pkgs.nixVersions.latest "Which nix package to use.";
     builderSshKey = mkOpt types.str config.sops.secrets.builder_ssh_key.path "SSH key for the remote Nix builder.";
-    useRemoteBuilder = mkBoolOpt true "Use the shared remote Nix builder and SSH substituter.";
+    useRemoteBuilder = mkBoolOpt true "Use the shared remote Nix builder.";
   };
 
   config = mkIf cfg.enable {
@@ -84,6 +93,12 @@ in
           warn-dirty = false;
           use-xdg-base-directories = true;
 
+          # Private Cache Credentials - Nix carries credentials for HTTP caches only through netrc,
+          # and only the daemon reads it while substituting, so the file is sealed to system keys.
+          netrc-file = lib.mkIf config.${namespace}.security.sops.enable (
+            toString config.sops.secrets.nix_cache_netrc.path
+          );
+
           substituters =
             [
               "https://anyrun.cachix.org"
@@ -94,11 +109,7 @@ in
               "https://nixpkgs-wayland.cachix.org"
               "https://numtide.cachix.org"
             ]
-            ++ lib.optional (cfg.useRemoteBuilder && config.${namespace}.security.sops.enable) (
-              "ssh://${builder.sshUser}@${builder.hostName}?ssh-key=${builder.sshKey}&trusted=true&want-mass-query=true&base64-ssh-public-host-key=${
-                lib.replaceStrings [ "+" "/" "=" ] [ "%2B" "%2F" "%3D" ] builder.publicHostKey
-              }"
-            );
+            ++ lib.optional config.${namespace}.security.sops.enable attic.url;
 
           trusted-public-keys = [
             "anyrun.cachix.org-1:pqBobmOjI7nKlsUMV25u9QHa9btJK65/C8vnO3p346s="
@@ -108,8 +119,15 @@ in
             "nixpkgs-unfree.cachix.org-1:hqvoInulhbV4nJ9yJOEr+4wxhDV4xq2d1DK7S6Nj6rs="
             "nixpkgs-wayland.cachix.org-1:3lwxaILxMRkVhehr5StQprHdEo4IrE8sRho9R9HOLYA="
             "numtide.cachix.org-1:2ps1kLBUWjxIneOy1Ik6cQjb41X0iXVXeHigGmycPPE="
-          ];
+          ] ++ lib.optional config.${namespace}.security.sops.enable attic.publicKey;
         };
       };
+
+    # Attic Is Private - Every substituting host needs the pull token, and a host without sops is
+    # left out of the substituter list rather than failing every substitution with a 401.
+    sops.secrets.nix_cache_netrc = mkIf config.${namespace}.security.sops.enable {
+      sopsFile = getFile "secrets/common/nix-cache.yaml";
+      mode = "0400";
+    };
   };
 }
