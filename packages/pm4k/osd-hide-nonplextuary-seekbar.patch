@@ -1,0 +1,10 @@
+diff --git a/resources/skins/Main/1080i/templates/script-plex-seek_dialog.xml.tpl b/resources/skins/Main/1080i/templates/script-plex-seek_dialog.xml.tpl
+--- a/resources/skins/Main/1080i/templates/script-plex-seek_dialog.xml.tpl
++++ b/resources/skins/Main/1080i/templates/script-plex-seek_dialog.xml.tpl
+@@ -6,7 +6,7 @@
+ 
+ <control type="group" id="802">
+     <!-- This is the buttonless OSD -->
+-    <visible>[!String.IsEmpty(Window.Property(show.OSD)) | [String.IsEmpty(Window.Property(is_plextuary)) + Window.IsVisible(seekbar)] | !String.IsEmpty(Window.Property(button.seek))] + !Window.IsVisible(osdvideosettings) + !Window.IsVisible(osdaudiosettings) + !Window.IsVisible(osdsubtitlesettings) + !Window.IsVisible(subtitlesearch) + !Window.IsActive(playerprocessinfo) + !Window.IsActive(selectdialog) + !Window.IsVisible(osdcmssettings)</visible>
++    <visible>[!String.IsEmpty(Window.Property(show.OSD)) | !String.IsEmpty(Window.Property(button.seek))] + !Window.IsVisible(osdvideosettings) + !Window.IsVisible(osdaudiosettings) + !Window.IsVisible(osdsubtitlesettings) + !Window.IsVisible(subtitlesearch) + !Window.IsActive(playerprocessinfo) + !Window.IsActive(selectdialog) + !Window.IsVisible(osdcmssettings)</visible>
+     <animation effect="fade" time="200" delay="200" end="0">Hidden</animation>

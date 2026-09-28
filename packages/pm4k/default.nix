@@ -14,7 +14,10 @@ buildKodiAddon rec {
     rev = version;
     hash = "sha256-AwTdxazfLwsxY8ikpQAu2ao1mkS26VewBOSvYuBZUsc=";
   };
-  patches = [ ./stub-end-directory.patch ];
+  patches = [
+    ./stub-end-directory.patch
+    ./osd-hide-nonplextuary-seekbar.patch
+  ];
 
   propagatedBuildInputs = [
     kodi-six
