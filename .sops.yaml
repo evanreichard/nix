@@ -37,6 +37,7 @@ creation_rules:
           - *system_lin-va-desktop
           - *system_lin-va-mba-personal
           - *system_lin-va-terminal
+          - *system_lin-va-htpc
           - *user_lin-va-kitchen
           - *system_lin-va-kitchen
   - path_regex: secrets/common/llama-swap.yaml
