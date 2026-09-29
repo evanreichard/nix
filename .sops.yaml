@@ -74,8 +74,3 @@ creation_rules:
           - *system_lin-va-kitchen
           - *system_lin-va-htpc
           - *system_lin-va-nix-builder
-  - path_regex: secrets/systems/lin-va-nix-builder.yaml
-    key_groups:
-      - age:
-          - *admin_reichard
-          - *system_lin-va-nix-builder

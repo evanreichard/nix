@@ -12,7 +12,12 @@ let
     publicKey = "nix:e27lP0uq+iTer5y/Sysiwy8IDhdJcOTu1W4CGZGL3z0=";
   };
 
+  # The attic client Reads $XDG_CONFIG_HOME/attic/config.toml and nothing else, so the rendered
+  # template has to be linked into that directory rather than pointed at directly.
+  atticConfigHome = "/var/lib/attic-client";
+
   cfg = config.${namespace}.nix;
+  sopsEnabled = config.${namespace}.security.sops.enable;
 in
 {
   options.${namespace}.nix = {
@@ -49,7 +54,7 @@ in
       {
         inherit (cfg) package;
 
-        buildMachines = lib.optional (cfg.useRemoteBuilder && config.${namespace}.security.sops.enable) {
+        buildMachines = lib.optional (cfg.useRemoteBuilder && sopsEnabled) {
           inherit (builder) hostName sshUser sshKey publicHostKey;
           systems = [ "x86_64-linux" "aarch64-linux" ];
           maxJobs = 2;
@@ -95,9 +100,15 @@ in
 
           # Private Cache Credentials - Nix carries credentials for HTTP caches only through netrc,
           # and only the daemon reads it while substituting, so the file is sealed to system keys.
-          netrc-file = lib.mkIf config.${namespace}.security.sops.enable (
+          netrc-file = lib.mkIf sopsEnabled (
             toString config.sops.secrets.nix_cache_netrc.path
           );
+
+          # Publishing Is Fleet-Wide - `max-jobs = auto` has every host building locally in parallel
+          # with the remote builder, so a hook on the builder alone would leave every locally-built
+          # closure out of the cache. The hook itself is best-effort so a cache outage cannot fail a
+          # build.
+          post-build-hook = lib.mkIf sopsEnabled "/etc/nix/post-build-hook.sh";
 
           substituters =
             [
@@ -109,7 +120,7 @@ in
               "https://nixpkgs-wayland.cachix.org"
               "https://numtide.cachix.org"
             ]
-            ++ lib.optional config.${namespace}.security.sops.enable attic.url;
+            ++ lib.optional sopsEnabled attic.url;
 
           trusted-public-keys = [
             "anyrun.cachix.org-1:pqBobmOjI7nKlsUMV25u9QHa9btJK65/C8vnO3p346s="
@@ -119,15 +130,47 @@ in
             "nixpkgs-unfree.cachix.org-1:hqvoInulhbV4nJ9yJOEr+4wxhDV4xq2d1DK7S6Nj6rs="
             "nixpkgs-wayland.cachix.org-1:3lwxaILxMRkVhehr5StQprHdEo4IrE8sRho9R9HOLYA="
             "numtide.cachix.org-1:2ps1kLBUWjxIneOy1Ik6cQjb41X0iXVXeHigGmycPPE="
-          ] ++ lib.optional config.${namespace}.security.sops.enable attic.publicKey;
+          ] ++ lib.optional sopsEnabled attic.publicKey;
         };
       };
-
     # Attic Is Private - Every substituting host needs the pull token, and a host without sops is
     # left out of the substituter list rather than failing every substitution with a 401.
-    sops.secrets.nix_cache_netrc = mkIf config.${namespace}.security.sops.enable {
+    sops.secrets.nix_cache_netrc = mkIf sopsEnabled {
       sopsFile = getFile "secrets/common/nix-cache.yaml";
       mode = "0400";
+    };
+
+    sops.secrets.attic_push_token = mkIf sopsEnabled {
+      sopsFile = getFile "secrets/common/nix-cache.yaml";
+      mode = "0400";
+    };
+
+    sops.templates."attic-config.toml" = mkIf sopsEnabled {
+      content = ''
+        default-server = "attic"
+        [servers.attic]
+        endpoint = "https://attic.va.reichard.io/"
+        token = "${config.sops.placeholder.attic_push_token}"
+      '';
+      mode = "0400";
+    };
+
+    systemd.tmpfiles.rules = mkIf sopsEnabled [
+      "d ${atticConfigHome}/attic 0700 root root -"
+      "L+ ${atticConfigHome}/attic/config.toml - - - - ${config.sops.templates."attic-config.toml".path}"
+    ];
+
+    # $OUT_PATHS Arrives Unquoted - The daemon passes a space-separated list, so globbing is
+    # disabled and IFS pinned before it is expanded.
+    environment.etc = mkIf sopsEnabled {
+      "nix/post-build-hook.sh".source = pkgs.writeShellScript "post-build-hook" ''
+        set -f
+        export IFS=' '
+        export XDG_CONFIG_HOME=${atticConfigHome}
+        [ -n "''${OUT_PATHS:-}" ] || exit 0
+        ${lib.getExe pkgs.attic-client} push nix $OUT_PATHS \
+          || echo "attic: failed to push to the binary cache" >&2
+      '';
     };
   };
 }
