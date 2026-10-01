@@ -104,12 +104,6 @@ in
             toString config.sops.secrets.nix_cache_netrc.path
           );
 
-          # Publishing Is Fleet-Wide - `max-jobs = auto` has every host building locally in parallel
-          # with the remote builder, so a hook on the builder alone would leave every locally-built
-          # closure out of the cache. The hook itself is best-effort so a cache outage cannot fail a
-          # build.
-          post-build-hook = lib.mkIf sopsEnabled "/etc/nix/post-build-hook.sh";
-
           substituters =
             [
               "https://anyrun.cachix.org"
@@ -159,18 +153,23 @@ in
       "d ${atticConfigHome}/attic 0700 root root -"
       "L+ ${atticConfigHome}/attic/config.toml - - - - ${config.sops.templates."attic-config.toml".path}"
     ];
+    # Store Watcher Is Asynchronous - Builds must not wait for cache uploads.
+    systemd.services.attic-watch-store = mkIf sopsEnabled {
+      description = "Publish new Nix store paths to Attic";
+      wantedBy = [ "multi-user.target" ];
+      wants = [ "network-online.target" ];
+      after = [ "network-online.target" ];
 
-    # $OUT_PATHS Arrives Unquoted - The daemon passes a space-separated list, so globbing is
-    # disabled and IFS pinned before it is expanded.
-    environment.etc = mkIf sopsEnabled {
-      "nix/post-build-hook.sh".source = pkgs.writeShellScript "post-build-hook" ''
-        set -f
-        export IFS=' '
-        export XDG_CONFIG_HOME=${atticConfigHome}
-        [ -n "''${OUT_PATHS:-}" ] || exit 0
-        ${lib.getExe pkgs.attic-client} push nix $OUT_PATHS \
-          || echo "attic: failed to push to the binary cache" >&2
-      '';
+      serviceConfig = {
+        ExecStart = "${lib.getExe pkgs.attic-client} watch-store nix";
+        Environment = "XDG_CONFIG_HOME=${atticConfigHome}";
+        Restart = "always";
+        RestartSec = "10s";
+        User = "root";
+        Group = "root";
+      };
     };
+
+
   };
 }
