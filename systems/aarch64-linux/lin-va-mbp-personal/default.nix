@@ -62,6 +62,7 @@ in
     };
 
     services = {
+      mounts.enableMedia = true;
       avahi = enabled;
       printing = enabled;
       tailscale = enabled;
