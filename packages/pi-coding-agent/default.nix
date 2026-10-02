@@ -18,10 +18,10 @@
 }:
 
 let
-  version = "0.87.0";
+  version = "1.0.0";
   aiModelData = fetchurl {
     url = "https://registry.npmjs.org/@earendil-works/pi-ai/-/pi-ai-${version}.tgz";
-    hash = "sha256-8q353oCdA192+NrfPRSHIOvu9GBqhIqzbug02JWugS8=";
+    hash = "sha256-85uZwpuFmPF1sQhA5dKoGYPnwM5crk19+DoQB0R9LCs=";
   };
 in
 buildNpmPackage rec {
@@ -32,10 +32,10 @@ buildNpmPackage rec {
     owner = "earendil-works";
     repo = "pi-mono";
     rev = "v${version}";
-    hash = "sha256-7YkIA5IEs4U0qnoaO3IzlY+p/M7j30fSVelLeyoV+F8=";
+    hash = "sha256-CGznIVHXG6gr2F8vzHcR/v4P9xJgZHeMTt/CJ/kB78o=";
   };
 
-  npmDepsHash = "sha256-fbxwpQHnrUihO9MU72m331Uwt9dv0fQtEjdJ9hU8UxA=";
+  npmDepsHash = "sha256-ndEvWdB6sa5nNNtabk2OMZKUFG9x3op185deZHxFnXk=";
 
   nativeBuildInputs = [ pkg-config makeWrapper ];
 
@@ -64,7 +64,7 @@ buildNpmPackage rec {
   buildPhase = ''
     runHook preBuild
 
-    for pkg in chord telemetry protocol tui ai client agent server coding-agent; do
+    for pkg in chord tui telemetry codemode mcp ai durable agent protocol client server coding-agent; do
       (cd packages/$pkg && npm run build)
     done
 
