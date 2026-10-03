@@ -53,48 +53,21 @@ Reasoning-capable models use `metadata.reasoning` profiles from `lib/reasoning.n
 
 Two pi behaviors constrain what a profile must declare. pi forwards an unmapped level verbatim (`thinkingLevelMap[level] ?? level`), so every pi level must resolve to a native one or a strict backend answers 400; pi's `lib.nix` fills the gaps with the nearest native level. Separately, pi's default `openai` thinking format can only disable reasoning via a `thinkingLevelMap.off` string, so a profile whose `enabled` control is a top-level `enable_thinking` field gets `compat.thinkingFormat = "qwen"` instead — otherwise switching thinking off silently changes nothing.
 
-## Qwen3.8-Flash-Next (llama.cpp, cuda0)
+## Qwen3.8-27B Uncensored (llama.cpp, JonathanColetti)
 
-177B total / ~6B active, 48 layers, plus a 27 GB PLE n-gram table that `-ot ...=CPU` pins to
-RAM. 76 GiB of weights against 24 GiB of VRAM, so the CPU owns the critical path and needs an
-AVX2 backend - without it this model runs 3.1 tok/s instead of 14.5, and any tuning note
-written on such a build is void. See the `llm-inference-tuning` skill.
+The llama.cpp profiles use JonathanColetti's IQ4_XS GGUF for the RTX 3090 and
+huihui-ai's UD-Q5_K_XL GGUF for dual GPU use. Both retain the native embedded MTP head and
+require no runtime patch. With llama.cpp build 11361 and q8 K/V, the RTX 3090 IQ4_XS
+profile passes a 90%-filled context probe at 194,560 tokens; 196,608 fails during startup.
+The dual UD-Q5_K_XL profile uses `-ts 76,24`, passes a 90%-filled 200,704-token probe, and
+leaves 1.3 GiB free on the 1080 Ti and 2.5 GiB on the 3090 at startup. The Q4 IQ4_XS body
+can reach 262,144 on the dual cards, but using UD-Q5_K_XL gives the requested quality tradeoff.
+Both files are stored at `/mnt/ssd/Models/Qwen3.8/` with the other GGUFs.
 
-Context is the lever: KV competes with expert layers, so it is paid for in `-ncmoe`.
-`llama-bench -d 4096 -lm none`, CUDA0 only, q8_0 KV, each row at the largest context fitting
-24,576 MiB:
-
-| context | `-ncmoe` | decode |
-|---|---|---|
-| 64K | 30 | ~25.7 tok/s |
-| 164K | 32 | ~22.5 tok/s |
-| 262K | 35 | ~19.7 tok/s (deployed; server 20.8 decode / 93 prefill, 23,313 MiB) |
-
-The 1080 Ti loses here: its marginal layers are Pascal layers and the extra hop outweighs
-them, so `-ncmoe 32` alone beat `-ncmoe 26 -ts 82,18` across both cards, and CUDA1 is free for
-a second model. Sizing: the estimator undershoots ~390 MiB, KV is ~19 KiB/token at q8_0, one
-CPU MoE layer is 962 MiB.
-
-Prefill is PCIe-bound, not CPU-bound: it streams CPU-resident experts to the GPU each batch.
-The 3090 sits on gen3 x4 and the 1080 Ti on x8 (B450-F, CPU root ports 00:03.2 / 00:03.1),
-and the slots cannot be swapped for cooling reasons. Two knobs recover most of it - a wider
-`-ub` amortises each transfer, and a second GPU adds lanes and removes CPU layers:
-
-| placement | ctx | `-ncmoe` | `-ub` | server prefill | decode |
-|---|---|---|---|---|---|
-| CUDA0 | 262K | 35 | 512 | 93 tok/s | 20.8 |
-| CUDA0 | 262K | 37 | 1024 | 151 tok/s | 19.8 (deployed) |
-| dual `-ts 82,18` | 131K | 24 | 1024 | 239 tok/s | 22.3 |
-
-The dual row is the fastest but occupies CUDA1, so nothing pairs beside it. `-ub 2048` needs
-~3.8 GiB more and only fits below 64K; `-nopo 1` stops the streaming and measured -30%.
-
-UD-Q4_K_XL is the only variant with real k-quant experts and still loses (14.9 against 20.1)
-on 35% more bytes; UD-Q3_K_XL and UD-Q2_K_XL ship IQ experts despite their names.
-
-`-ctk q8_0` requires llama.cpp >= 0.4.0 - before #27967 the QSA graph asserted on quantized K
-caches. Vision rides `--mmproj-device none`: no VRAM, no text-decode cost, ~17 s of CPU ViT
-per image.
+F16 K/V was checked on the 3090 IQ4 profile and only starts to 121,984 tokens, so both
+profiles keep q8 K/V. Both use embedded `draft-mtp` with `--spec-draft-n-max 3`; no Engram
+mode is exposed by this llama.cpp build, and ngram was not added because MTP is the
+model-native speculator and the profiles have no measured ngram benefit.
 
 ## stable-diffusion Configs
 
