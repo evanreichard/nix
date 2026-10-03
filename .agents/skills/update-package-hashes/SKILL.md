@@ -1,17 +1,22 @@
 ---
 name: update-package-hashes
-description: Update a package in packages/ to a new version and refresh its hashes (src, vendorHash, npmDepsHash, cargoHash, etc.) WITHOUT compiling the package. Use when the user asks to bump, update, or upgrade a specific package under packages/. If version is provided, proceed directly. If not, look up the latest version and ask the user before proceeding.
+description: Update a package in packages/ to a new version and refresh its hashes (src, vendorHash, npmDepsHash, cargoHash, etc.), with an optional full build after explicit user approval. Use when the user asks to bump, update, or upgrade a specific package under packages/. If version is provided, confirm the build preference before proceeding. If not, look up the latest version and ask both whether to use it and whether to build.
 ---
 
-# Update Package Hashes (Without Building)
+# Update Package Hashes (With Optional Build)
 
-If the user provides a **package name** and **target version/rev/tag**, proceed directly.
+If the user provides a **package name** and **target version/rev/tag**, use that target and ask whether they want a full package build after the hashes are refreshed, unless they already specified the choice.
 
-If the user provides only a **package name** (no version), look up the latest version and **ask the user** if they want to proceed before updating.
+If the user provides only a **package name** (no version), look up the latest version and ask two questions before updating:
+
+1. Is this target version/rev/tag acceptable?
+2. Should the full package be built after the hashes are refreshed?
+
+Do not edit the package until the target is approved. Treat an explicit yes to the build question as permission to compile the full package.
 
 ## Hard Rules — Read First
 
-1. **Never run `nix build .#<pkg>`** or `.#packages.<system>.<pkg>`. That compiles the package. Only realise **FOD sub-attributes** (`.src`, `.goModules`, `.npmDeps`, `.cargoDeps`) — those are pure downloads, not builds.
+1. **Only run `nix build .#<pkg>`** or `.#packages.<system>.<pkg>` after the user explicitly requests the full build. Without that approval, only realise **FOD sub-attributes** (`.src`, `.goModules`, `.npmDeps`, `.cargoDeps`) — those are pure downloads, not builds.
 2. **Never** use `nix-prefetch-git`, `nix-prefetch-github`, `nix-prefetch-url`, `nix hash path`, `nix hash file` (on a raw patch/tarball), `git clone` + manual hashing, `builtins.fetchGit`, or any other ad-hoc method to compute hashes. They produce hashes in formats that don't match what `fetchgit`/`fetchFromGitHub`/`fetchpatch` expect (notably: `fetchFromGitHub { leaveDotGit = true; }` is non-deterministic across machines, and `fetchpatch` normalizes patches — strips `index abc..def`, `From <sha>`, signatures — so its hash ≠ `nix hash file` of the raw `.patch`).
 3. There are exactly **two** correct ways to get a hash, both listed below. If neither fits, stop and ask the user — don't improvise.
 
@@ -40,7 +45,7 @@ nix build .#<name> --no-link 2>&1 | tee /tmp/hash.log             # for fetchpat
 grep -E '^[[:space:]]*got:' /tmp/hash.log | tail -1 | awk '{print $2}'
 ```
 
-**`fetchpatch` note:** patches don't have a dedicated sub-attribute, so you must target the package itself. This is safe *only* when the patch hash is wrong (e.g. `lib.fakeHash`) — Nix realizes the patch FOD before compilation starts, so a hash mismatch aborts with `0 built (1 failed)` and zero compile work. If you accidentally fix all FODs correctly, `nix build .#<name>` will start compiling. To guard against this: always start patch hashes as `lib.fakeHash`, run the build, copy `got:`, paste, and only then re-verify with `.src` / sub-attribute builds (never re-run `.#<name>` to confirm).
+**`fetchpatch` note:** patches don't have a dedicated sub-attribute, so you must target the package itself. This is safe when the patch hash is wrong (e.g. `lib.fakeHash`) — Nix realizes the patch FOD before compilation starts, so a hash mismatch aborts with `0 built (1 failed)` and zero compile work. Always start patch hashes as `lib.fakeHash`, run the build, copy `got:`, paste, and then re-verify with `.src` / sub-attribute builds. If the user approved a full build, run `.#<name>` only after all FOD hashes are correct.
 
 **GitHub PR patches — `.patch` vs `.diff`:** When fetching a patch from a GitHub pull request, prefer the `.diff` endpoint over `.patch`.
 
@@ -51,7 +56,7 @@ Default to `.diff`. Only fall back to `.patch` if you specifically need authorsh
 
 Always use `lib.fakeHash` (or `pkgs.lib.fakeHash` if only `pkgs` is in scope). This is the only reliable way to set a bogus hash — never write a literal `sha256-...` placeholder string. The build will fail at the FOD with `got: sha256-...` which is the correct value.
 
-**Note:** `.src`, `.goModules`, etc. are sub-attributes of the derivation. They download but do not compile. `nix build .#<name>` (without the `.src` suffix) compiles — never do that.
+**Note:** `.src`, `.goModules`, etc. are sub-attributes of the derivation. They download but do not compile. `nix build .#<name>` (without the `.src` suffix) compiles — run it only when the user explicitly approved the full build.
 
 ### Example — Package With `src`, `npmDepsHash`, and `vendorHash`
 
@@ -102,7 +107,7 @@ Use the same pattern for packages that combine a custom `src` fetcher, Go depend
    nix build .#llama-swap.goModules --no-link
    ```
 
-   If a dependency FOD fails before a hash mismatch (for example, `go.mod requires go >= ...`), fix the package inputs minimally (for example, switch to the matching `buildGo126Module`) and re-run the same FOD sub-attribute. Do not build `.#llama-swap`.
+   If a dependency FOD fails before a hash mismatch (for example, `go.mod requires go >= ...`), fix the package inputs minimally (for example, switch to the matching `buildGo126Module`) and re-run the same FOD sub-attribute. Defer `.#llama-swap` until all FOD hashes are correct and only build it if the user approved compilation.
 
 ## Lookup Latest Version
 
@@ -117,16 +122,17 @@ When the user asks to update a package but doesn't specify a version:
    ```
 
    Shows main HEAD + 5 newest matching tags with commit hashes.
-4. **Ask the user** before proceeding (`Current: b8815 → Latest: b8914 — proceed?`).
+4. **Ask the user** before proceeding with both decisions (`Latest: b8914 — use this target? Should I run the full package build afterward?`).
 
 ## Flow
 
-1. **If no version was provided**, look up the latest version (see section above) and ask the user to confirm.
+1. Determine the target version/rev/tag. If it was not provided, look up the latest version (see section above). Ask whether the target is acceptable and whether to run the full package build afterward before editing. If the target was explicit, ask only the build question unless the user already answered it.
 2. Edit `packages/<name>/default.nix` — bump `version` / `rev` / `tag`. Check for sibling `.nix` files (e.g. `ui.nix`) that may also need bumping.
 3. Get the new `src` hash with **Method A** (`nurl`). If the package uses a custom fetcher, use **Method B** on `.src` instead.
 4. For each dependency hash (`vendorHash` / `npmDepsHash` / `cargoHash` / etc.), use **Method B** on the matching sub-attribute.
 5. **Opaque `outputHash` FODs** (e.g. opencode's `node_modules` which runs `bun install`) — do NOT attempt locally. Leave as-is and flag for CI in the summary.
 6. Show `git diff -- packages/<name>/` and list any hashes left for CI.
+7. If and only if the user approved the full build, run `nix build .#<name> --no-link` after all realizable FOD hashes are correct. Otherwise, explicitly report that compilation was skipped.
 
 ## Don't Touch What Didn't Change
 
