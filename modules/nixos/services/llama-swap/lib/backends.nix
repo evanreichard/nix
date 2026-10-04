@@ -81,7 +81,8 @@ rec {
   # The Strata image is built locally for sm_86 because its CUDA engine is not portable to
   # the host's Pascal card. Model weights and preparation artifacts live in the persistent
   # data bind; only the RTX 3090 is exposed through CDI device 1, while GPU=0 is the
-  # container-local device index consumed by Strata.
+  # container-local device index consumed by Strata. The upstream port is loopback-only and
+  # llama-swap remains the authenticated public boundary, so Strata can accept any proxy Host.
   strataImage = "gitea.va.reichard.io/evan/strata:sm86";
   strataCmd =
     modelId: env:
@@ -99,12 +100,13 @@ rec {
           "VISION=yes"
           "GPU=0"
           "HOST=0.0.0.0"
+          "STRATA_ALLOWED_HOSTS='*'"
         ]
         ++ env
       )
       ++ [
         "-v /mnt/ssd/Strata/data:/data"
-        "-p \${PORT}:8080"
+        "-p 127.0.0.1:\${PORT}:8080"
         strataImage
       ]
     );
