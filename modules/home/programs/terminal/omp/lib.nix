@@ -61,7 +61,10 @@ in
       effortIsRoutable =
         levelControl: levelControl != null && (levelControl.parameter or null) == "reasoning_effort";
 
-      nativeEfforts = levelControl: if levelControl == null then [ ] else levelControl.values or [ ];
+      # Omp disables reasoning separately; `none` is an OpenAI/Pi wire value, not an Omp effort.
+      nativeEfforts =
+        levelControl:
+        if levelControl == null then [ ] else builtins.filter (effort: effort != "none") (levelControl.values or [ ]);
 
       # Pinned Effort - The single tier advertised when effort never reaches the wire. A
       # profile default is authoritative; otherwise `high` matches omp's own

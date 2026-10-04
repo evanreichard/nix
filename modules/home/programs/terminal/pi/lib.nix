@@ -107,22 +107,25 @@ in
           levelControl = controls.level or null;
           budgetControl = controls.budgetTokens or null;
           nativeLevels = if levelControl == null then [ ] else levelControl.values or [ ];
+          nativeEffortLevels = builtins.filter (level: level != "none") nativeLevels;
           supportsPiTokenBudget =
             budgetControl != null
             && budgetControl.location == "request"
             && budgetControl.parameter == "thinking_token_budget";
+          mappedLevels = listToAttrs (
+            map (
+              level:
+              nameValuePair level (
+                if builtins.elem level nativeLevels then level else nearestNativeLevel nativeEffortLevels level
+              )
+            ) piReasoningLevels
+          );
         in
         optionalAttrs ((reasoning.mode or "hybrid") == "always") { off = null; }
+        // optionalAttrs (levelControl != null && builtins.elem "none" nativeLevels) { off = "none"; }
         // (
           if levelControl != null then
-            listToAttrs (
-              map (
-                level:
-                nameValuePair level (
-                  if builtins.elem level nativeLevels then level else nearestNativeLevel nativeLevels level
-                )
-              ) piReasoningLevels
-            )
+            mappedLevels
           else if supportsPiTokenBudget then
             { }
           else
