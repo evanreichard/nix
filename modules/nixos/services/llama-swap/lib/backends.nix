@@ -78,6 +78,37 @@ rec {
       ]
     );
 
+  # The Strata image is built locally for sm_86 because its CUDA engine is not portable to
+  # the host's Pascal card. Model weights and preparation artifacts live in the persistent
+  # data bind; only the RTX 3090 is exposed through CDI device 1, while GPU=0 is the
+  # container-local device index consumed by Strata.
+  strataImage = "gitea.va.reichard.io/evan/strata:sm86";
+  strataCmd =
+    modelId: env:
+    lib.concatStringsSep " \\\n  " (
+      [
+        "${docker} run --rm --device=nvidia.com/gpu=1"
+        "--name ${modelId}"
+        "--ipc=host"
+        "--ulimit memlock=-1"
+      ]
+      ++ map (e: "-e ${e}") (
+        [
+          "FAMILY=qwen"
+          "CONTEXT=131072"
+          "VISION=yes"
+          "GPU=0"
+          "HOST=0.0.0.0"
+        ]
+        ++ env
+      )
+      ++ [
+        "-v /mnt/ssd/Strata/data:/data"
+        "-p \${PORT}:8080"
+        strataImage
+      ]
+    );
+
   # https://github.com/YanWenKun/ComfyUI-Docker
   #
   # The image declares `VOLUME /root` and its entrypoint materializes ComfyUI there on first

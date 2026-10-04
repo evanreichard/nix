@@ -79,6 +79,21 @@ in
     };
   };
 
+  # Strata exposes Qwen's effort selector as a top-level OpenAI field. It accepts `none`
+  # in addition to the three thinking levels and defaults to high when omitted.
+  qwen38Strata = {
+    mode = "hybrid";
+    defaults.level = "high";
+    controls.level = requestControl "reasoning_effort" // {
+      values = [
+        "none"
+        "low"
+        "medium"
+        "high"
+      ];
+    };
+  };
+
   museGlimmerLlamaCpp = {
     mode = "always";
     defaults.level = "high";

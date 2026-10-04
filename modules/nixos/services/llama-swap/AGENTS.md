@@ -118,6 +118,23 @@ Pull `comfyuiImage` before the first swap-in, and pull it with the same
 podman-docker on the *rootless* socket, so the wrong one silently stores a second ~11.8 GiB
 copy that llama-swap cannot use.
 
+## Strata Config (Qwen3.8 Flash Next)
+
+`qwen3.8-flash-next-strata-sm86-cuda0` runs `gitea.va.reichard.io/evan/strata:sm86` with
+`MODEL=IQ3_S`, 131,072 context, vision enabled, and `GPU=0`. The container must receive
+CDI device 1 (the host RTX 3090), bind `/mnt/ssd/Strata/data` to `/data`, and use an
+unlimited memlock ulimit; Strata's GPU index is local to that one exposed device. The first
+setup plus engine load took about 12 minutes after the model download, so this profile keeps
+a 900-second health timeout.
+
+Strata does not include llama.cpp timing fields in OpenAI responses. Its `/metrics` endpoint
+records per-request `prompt_ms`, `decode_ms`, `prompt_read`, and `output_tokens`; use those
+fields when interpreting `bench.sh` runs. On this host's IQ3_S 131K profile with
+`reasoning_effort=none`, the first/repeated 384-token short probes decoded at 55.6/68.4 tok/s,
+and the copy probes at 38.3/54.4 tok/s. The 18K prefill probes took 37.4/0.1 seconds (cold /
+cache hit), and the 47K deep probes took 51.1/1.1 seconds (cold / cache hit); the deep cold
+probe decoded at about 56.8 tok/s.
+
 ## HyperQwen vLLM Configs (Qwen3.8-27B)
 
 The six `qwen3.8-27b-{uncensored-,}vllm-*` entries run one prebuilt image from
