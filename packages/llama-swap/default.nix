@@ -13,13 +13,13 @@ let
 in
 buildGo127Module (finalAttrs: {
   pname = "llama-swap";
-  version = "256";
+  version = "262";
 
   src = fetchFromGitHub {
     owner = "mostlygeek";
     repo = "llama-swap";
     tag = "v${finalAttrs.version}";
-    hash = "sha256-midZ5/eq4ULDhCC3wtzman0OdH5bHMIO8FsmzizU8sc=";
+    hash = "sha256-DAYaR+N7alGbdLsGlaiDlsHiqxOMg65069i/vHOkLKk=";
     # populate values that require us to use git. By doing this in postFetch we
     # can delete .git afterwards and maintain better reproducibility of the src.
     leaveDotGit = true;
@@ -32,7 +32,7 @@ buildGo127Module (finalAttrs: {
     '';
   };
 
-  vendorHash = "sha256-R9VOAmoRXet7zoEYo7LW/awJludS4AxRlFDR6skPxbo=";
+  vendorHash = "sha256-yelob7FlaGymASUP0DAUkALQm5vnXZnN5ThbnSkH2Ak=";
 
   # UI embed is build-tag gated since v244: without `embed_ui`, embed_notag.go
   # compiles in an empty FS and /ui/ serves 404.
