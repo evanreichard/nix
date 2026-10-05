@@ -5,20 +5,21 @@ description: Update a package in packages/ to a new version and refresh its hash
 
 # Update Package Hashes (With Optional Build)
 
-If the user provides a **package name** and **target version/rev/tag**, use that target and ask whether they want a full package build after the hashes are refreshed, unless they already specified the choice.
+If the user provides a **package name** and **target version/rev/tag**, use that target and ask whether they want a full package build for the current architecture after the hashes are refreshed, unless they already specified the choice.
 
 If the user provides only a **package name** (no version), look up the latest version and ask two questions before updating:
 
 1. Is this target version/rev/tag acceptable?
-2. Should the full package be built after the hashes are refreshed?
+2. Should the package be built for this architecture after the hashes are refreshed?
 
-Do not edit the package until the target is approved. Treat an explicit yes to the build question as permission to compile the full package.
+Do not edit the package until the target is approved. Treat an explicit yes to the build question as permission to compile the full package for the architecture you are running on.
 
 ## Hard Rules — Read First
 
 1. **Only run `nix build .#<pkg>`** or `.#packages.<system>.<pkg>` after the user explicitly requests the full build. Without that approval, only realise **FOD sub-attributes** (`.src`, `.goModules`, `.npmDeps`, `.cargoDeps`) — those are pure downloads, not builds.
-2. **Never** use `nix-prefetch-git`, `nix-prefetch-github`, `nix-prefetch-url`, `nix hash path`, `nix hash file` (on a raw patch/tarball), `git clone` + manual hashing, `builtins.fetchGit`, or any other ad-hoc method to compute hashes. They produce hashes in formats that don't match what `fetchgit`/`fetchFromGitHub`/`fetchpatch` expect (notably: `fetchFromGitHub { leaveDotGit = true; }` is non-deterministic across machines, and `fetchpatch` normalizes patches — strips `index abc..def`, `From <sha>`, signatures — so its hash ≠ `nix hash file` of the raw `.patch`).
-3. There are exactly **two** correct ways to get a hash, both listed below. If neither fits, stop and ask the user — don't improvise.
+2. **Build the current architecture only.** "Build it" means the architecture the update is running on, not every entry in `meta.platforms` — even when the package is deployed on other hosts. Remote builders run foreign-arch derivations under qemu, so a failure there (timeouts, emulator-only crashes) says nothing about the package; do not chase it or add retries. Cross-check foreign-arch hashes from upstream checksum files instead of building them, and ask before building any other architecture.
+3. **Never** use `nix-prefetch-git`, `nix-prefetch-github`, `nix-prefetch-url`, `nix hash path`, `nix hash file` (on a raw patch/tarball), `git clone` + manual hashing, `builtins.fetchGit`, or any other ad-hoc method to compute hashes. They produce hashes in formats that don't match what `fetchgit`/`fetchFromGitHub`/`fetchpatch` expect (notably: `fetchFromGitHub { leaveDotGit = true; }` is non-deterministic across machines, and `fetchpatch` normalizes patches — strips `index abc..def`, `From <sha>`, signatures — so its hash ≠ `nix hash file` of the raw `.patch`).
+4. There are exactly **two** correct ways to get a hash, both listed below. If neither fits, stop and ask the user — don't improvise.
 
 ## The Only Two Methods
 
@@ -122,7 +123,7 @@ When the user asks to update a package but doesn't specify a version:
    ```
 
    Shows main HEAD + 5 newest matching tags with commit hashes.
-4. **Ask the user** before proceeding with both decisions (`Latest: b8914 — use this target? Should I run the full package build afterward?`).
+4. **Ask the user** before proceeding with both decisions (`Latest: b8914 — use this target? Should I build it for this architecture afterward?`).
 
 ## Flow
 
@@ -132,7 +133,7 @@ When the user asks to update a package but doesn't specify a version:
 4. For each dependency hash (`vendorHash` / `npmDepsHash` / `cargoHash` / etc.), use **Method B** on the matching sub-attribute.
 5. **Opaque `outputHash` FODs** (e.g. opencode's `node_modules` which runs `bun install`) — do NOT attempt locally. Leave as-is and flag for CI in the summary.
 6. Show `git diff -- packages/<name>/` and list any hashes left for CI.
-7. If and only if the user approved the full build, run `nix build .#<name> --no-link` after all realizable FOD hashes are correct. Otherwise, explicitly report that compilation was skipped.
+7. If and only if the user approved the full build, run `nix build .#packages.<system>.<name> --no-link` with `<system>` set to the current architecture, after all realizable FOD hashes are correct. Other `meta.platforms` entries need explicit approval. Otherwise, explicitly report that compilation was skipped.
 
 ## Don't Touch What Didn't Change
 
