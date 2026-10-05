@@ -29,6 +29,7 @@ in
         k9s = enabled;
         nvim = enabled;
         omp = enabled;
+        pi = enabled;
       };
     };
 
