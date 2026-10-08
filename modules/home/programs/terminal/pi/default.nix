@@ -155,7 +155,6 @@ in
     # is the bubblewrap-confined wrapper, installed when the sandbox is enabled.
     home.packages = [
       pkgs.${namespace}.pi-coding-agent
-      pkgs.${namespace}.pi-web
     ]
     ++ lib.optional cfg.sandbox.enable piSandboxed;
 
@@ -205,7 +204,7 @@ in
       templates."pi-web.json" = {
         path = "${config.home.homeDirectory}/.pi/pi-web/config.json";
         content = builtins.toJSON {
-          provider = "searxng";
+          provider = "kagi";
           kagi.token = "${config.sops.placeholder.kagi_token}";
           searxng.baseUrl = "https://search.va.reichard.io";
         };
@@ -220,10 +219,7 @@ in
                 baseUrl = provider.baseUrl;
                 api = provider.api;
                 apiKey = config.sops.placeholder.${provider.sopsSecret};
-                filter =
-                  if provider ? modelIds
-                  then model: builtins.elem model.id provider.modelIds
-                  else _: true;
+                filter = if provider ? modelIds then model: builtins.elem model.id provider.modelIds else _: true;
               })
               providerRegistry;
             generatedProviders = lib.mapAttrs
