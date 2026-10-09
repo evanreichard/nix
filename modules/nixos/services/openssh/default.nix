@@ -17,6 +17,7 @@ let
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILJJoyXQOv9cAjGUHrUcvsW7vY9W0PmuPMQSI9AMZvNY evanreichard@lin-va-mbp-personal"
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMWj6rd6uDtHj/gGozgIEgxho/vBKebgN5Kce/N6vQWV evanreichard@mac-va-mbp-personal"
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJRR3uDmXPZNeKBixCKpOpcRRoVESvGlZdmzMFXLPs80 evanreichard@lin-va-mba-personal"
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIECHBxFmsQiuQ8501Gldzr/miHUBAXI8oGJ2vxUQgmMW evanreichard@lin-va-framework"
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM5e6Cty+7rX5BjIEHBTU6GnzfOxPJiHpSqin/BnsypO evanreichard@lin-va-terminal"
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIARTNbl4lgQsp7SJEng7vprL0+ChC9e6iR7o/PiC4Jme evanreichard@mobile"
   ];

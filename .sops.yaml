@@ -11,6 +11,7 @@ keys:
   - &user_lin-va-kitchen age18kmjmxyj0nqr2qnjekswvrmqv86qps4jnkhx0gp5s5n4z39aap5qrjee7d
   - &user_mac-va-mbp-personal age1dccte7xtwswgef089nd80dutp96xnezx5lrqnneh9cusegsnda8sj3dj6c
   - &user_mac-va-mbp-work age1ped3hpugq06908ex8kgama33qckqe03rmac5pa6th87vks5d249qhshvqu
+  - &user_lin-va-framework age1kgeswydrngpdfscxah8z2c8mwznzhxer2xu6n4yme8g7uj7ymsfq4r80qp
 
   # System SSH Derived
   - &system_lin-va-desktop age1mxjrvjxkn69kfn2np3wpd73g44fuhsgykw7l5ss9rx30em5jfp2scnrq32
@@ -19,6 +20,7 @@ keys:
   - &system_lin-va-kitchen age1aes9j9wnkmfysnm6cx768vtx3tfc8y4q7007sqvx334vxanaeumq2uahnk
   - &system_lin-va-htpc age1lwn0kgvve2mnku763ps7axcsnfv6zvtg68d9h6xuvj4w8lg00anqrmawa8
   - &system_lin-va-nix-builder age1qs7x2gplqlu8r82t6tc2sqa5tq7vexq3nmscm4uhd5a73heqfdys8fph5r
+  - &system_lin-va-framework age1anunuwmrxxpcj3p2pm5tn04nn6nkh3mpv9eth8lqpdhtw0sz7vgqguk42v
 creation_rules:
   - path_regex: secrets/[^/]+\.(yaml|json|env|ini)$
     key_groups:
@@ -34,6 +36,7 @@ creation_rules:
     key_groups:
       - age:
           - *admin_reichard
+          - *system_lin-va-framework
           - *system_lin-va-desktop
           - *system_lin-va-mba-personal
           - *system_lin-va-terminal
@@ -46,6 +49,7 @@ creation_rules:
           - *admin_reichard
           - *system_lin-va-desktop
           - *user_lin-va-mbp-personal
+          - *user_lin-va-framework
           - *user_lin-va-mbp-work-vm
           - *user_lin-va-terminal
           - *user_lin-va-mba-personal
@@ -56,6 +60,7 @@ creation_rules:
       - age:
           - *admin_reichard
           - *user_lin-va-mbp-personal
+          - *user_lin-va-framework
           - *user_lin-va-mbp-work-vm
           - *user_lin-va-terminal
           - *user_lin-va-mba-personal

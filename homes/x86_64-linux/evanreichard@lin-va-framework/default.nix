@@ -60,7 +60,6 @@ in
   home.packages = with pkgs; [
     orca-slicer
     solvespace
-    reichard.tuxguitar
   ];
 
   dconf.settings."org/gnome/desktop/interface" = {
