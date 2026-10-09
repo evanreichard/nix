@@ -9,6 +9,7 @@ in
   options.${namespace}.system.disk = {
     enable = lib.mkEnableOption "Disko Configuration";
     diskPath = mkOpt types.str null "Device path for the main disk";
+    swapSize = mkOpt types.str "32G" "Size of the swap partition";
   };
 
   config = mkIf cfg.enable {
@@ -36,7 +37,7 @@ in
                 };
               };
               swap = {
-                size = "32G";
+                size = cfg.swapSize;
                 content = {
                   type = "swap";
                   discardPolicy = "both";
