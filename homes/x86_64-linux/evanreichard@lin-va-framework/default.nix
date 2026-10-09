@@ -11,6 +11,8 @@ in
 {
   home.stateVersion = "26.05";
 
+  services.hyprpolkitagent.enable = true;
+
   reichard = {
     user = {
       enable = true;
