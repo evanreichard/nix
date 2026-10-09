@@ -1,0 +1,84 @@
+{ pkgs
+, lib
+, config
+, namespace
+, osConfig
+, ...
+}:
+let
+  inherit (lib.${namespace}) enabled;
+in
+{
+  home.stateVersion = "26.05";
+
+  reichard = {
+    user = {
+      enable = true;
+      inherit (config.snowfallorg.user) name;
+    };
+
+    services = {
+      ssh-agent = enabled;
+      fusuma = enabled;
+      awww = enabled;
+    };
+
+    security.sops = enabled;
+
+    programs = {
+      graphical = {
+        wms.hyprland = {
+          enable = true;
+          mainMod = "ALT";
+          bluetooth = true;
+          monitors = [ ",highres,auto,2" ];
+        };
+        ghostty = enabled;
+        ghidra = enabled;
+        gimp = enabled;
+        browsers.firefox = {
+          enable = true;
+          gpuAcceleration = true;
+          hardwareDecoding = true;
+        };
+      };
+
+      terminal = {
+        btop = enabled;
+        direnv = enabled;
+        conduit = enabled;
+        git = enabled;
+        k9s = enabled;
+        nvim = enabled;
+        opencode = enabled;
+        pi = enabled;
+        omp = enabled;
+      };
+    };
+  };
+
+  home.packages = with pkgs; [
+    orca-slicer
+    solvespace
+    reichard.tuxguitar
+  ];
+
+  dconf.settings."org/gnome/desktop/interface" = {
+    color-scheme = "prefer-dark";
+    cursor-theme = "catppuccin-macchiato-mauve-cursors";
+    cursor-size = 24;
+  };
+
+  home.pointerCursor = {
+    gtk.enable = true;
+    name = "catppuccin-macchiato-mauve-cursors";
+    package = pkgs.catppuccin-cursors.macchiatoMauve;
+    size = 24;
+  };
+
+  sops.secrets = lib.mkIf osConfig.${namespace}.security.sops.enable {
+    rke2_kubeconfig = {
+      path = "${config.home.homeDirectory}/.kube/lin-va-kube";
+    };
+  };
+}
