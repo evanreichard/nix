@@ -8,17 +8,23 @@ let
 in
 {
   system.stateVersion = "26.05";
-  time.timeZone = "America/New_York";
 
   programs.firejail.enable = true;
   programs.nix-ld.enable = true;
+  boot.zswap.enable = true;
+  boot.kernel.sysctl."vm.swappiness" = 100;
 
   hardware = {
     enableRedistributableFirmware = true;
-    bluetooth.enable = true;
+    bluetooth = {
+      enable = true;
+      powerOnBoot = true;
+    };
   };
 
   services = {
+    automatic-timezoned.enable = true;
+    fstrim.enable = true;
     fwupd.enable = true;
     blueman.enable = true;
   };
@@ -37,6 +43,7 @@ in
       disk = {
         enable = true;
         diskPath = "/dev/nvme0n1";
+        swapSize = "48G";
       };
       networking = {
         enable = true;
