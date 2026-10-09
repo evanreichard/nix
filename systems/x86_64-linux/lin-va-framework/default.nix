@@ -1,4 +1,5 @@
 { namespace
+, inputs
 , lib
 , pkgs
 , ...
@@ -7,6 +8,10 @@ let
   inherit (lib.${namespace}) enabled;
 in
 {
+  imports = [
+    inputs.nixos-hardware.nixosModules.framework-amd-ai-300-series
+  ];
+
   system.stateVersion = "26.05";
 
   programs.firejail.enable = true;
@@ -51,7 +56,10 @@ in
       };
     };
 
-    hardware.opengl = enabled;
+    hardware.opengl = {
+      enable = true;
+      enable32Bit = true;
+    };
 
     services = {
       mounts.enableMedia = true;
