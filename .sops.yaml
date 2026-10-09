@@ -73,6 +73,7 @@ creation_rules:
     key_groups:
       - age:
           - *admin_reichard
+          - *system_lin-va-framework
           - *system_lin-va-desktop
           - *system_lin-va-terminal
           - *system_lin-va-mba-personal
