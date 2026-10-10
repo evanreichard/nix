@@ -101,6 +101,12 @@ in
       };
     };
 
+    display-managers.sddm.theme = {
+      name = "sddm-shan-shui";
+      package = pkgs.reichard.sddm-shan-shui;
+      extraPackages = [ pkgs.kdePackages.qtsvg ];
+    };
+
     hardware.opengl = {
       enable = true;
       enable32Bit = true;
