@@ -2,10 +2,17 @@
 , inputs
 , lib
 , pkgs
+, config
+, utils
 , ...
 }:
 let
   inherit (lib.${namespace}) enabled;
+
+  passwordPresent = pkgs.writeShellScript "sddm-password-present" ''
+    IFS= read -r -d "" password || true
+    [[ -n "$password" ]]
+  '';
 in
 {
   imports = [
@@ -22,7 +29,36 @@ in
     HibernateDelaySec = "1h";
     HibernateOnACPower = true;
   };
-  security.pam.services.hyprlock.fprintAuth = false;
+  security.pam.services = {
+    hyprlock.fprintAuth = false;
+
+    sddm-password = {
+      useDefaultRules = false;
+      rules.auth = lib.mapAttrs (_: rule: builtins.removeAttrs rule [ "name" "settings" ]) (
+        lib.filterAttrs (name: _: name != "fprintd") config.security.pam.services.login.rules.auth
+      );
+    };
+
+    # Empty Password Gate - SDDM runs PAM sequentially; a supplied password must skip the fingerprint wait.
+    sddm.rules.auth = lib.mkForce (utils.pam.autoOrderRules [
+      {
+        name = "password-present";
+        control = "[success=1 default=ignore]";
+        modulePath = "${config.security.pam.package}/lib/security/pam_exec.so";
+        args = [ "expose_authtok" "quiet" "${passwordPresent}" ];
+      }
+      {
+        name = "fprintd";
+        control = "sufficient";
+        modulePath = "${config.services.fprintd.package}/lib/security/pam_fprintd.so";
+      }
+      {
+        name = "password";
+        control = "substack";
+        modulePath = "sddm-password";
+      }
+    ]);
+  };
 
   hardware = {
     enableRedistributableFirmware = true;
