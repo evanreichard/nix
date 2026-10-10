@@ -29,6 +29,7 @@ in
     HibernateDelaySec = "1h";
     HibernateOnACPower = true;
   };
+  systemd.tmpfiles.rules = [ "w /sys/power/pm_async - - - - 0" ];
   security.pam.services = {
     hyprlock.fprintAuth = false;
 

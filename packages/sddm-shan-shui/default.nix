@@ -11,8 +11,8 @@ stdenvNoCC.mkDerivation {
 
   src = fetchgit {
     url = "https://gitea.va.reichard.io/evan/sddm-shan-shui.git";
-    rev = "d6bae93f887fce08e1d34426461ed94aa0b145e2";
-    hash = "sha256-+OeDamtJUZOP00gtoca7M0rYktdJ6KuMAAU/Ar556xA=";
+    rev = "2dd8cee54873c3f39edb92f54b36183408091df0";
+    hash = "sha256-cndZid+RzhhqErK69zsEf+EJRwF/A8Yr1W2+cspmxkA=";
   };
 
   nativeBuildInputs = [ nodejs ];
