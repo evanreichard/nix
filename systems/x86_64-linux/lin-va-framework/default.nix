@@ -18,6 +18,11 @@ in
   programs.nix-ld.enable = true;
   boot.zswap.enable = true;
   boot.kernel.sysctl."vm.swappiness" = 100;
+  systemd.sleep.settings.Sleep = {
+    HibernateDelaySec = "1h";
+    HibernateOnACPower = true;
+  };
+  security.pam.services.hyprlock.fprintAuth = false;
 
   hardware = {
     enableRedistributableFirmware = true;
@@ -32,6 +37,10 @@ in
     fstrim.enable = true;
     fwupd.enable = true;
     blueman.enable = true;
+    logind.settings.Login = {
+      HandleLidSwitch = "suspend-then-hibernate";
+      HandleLidSwitchExternalPower = "suspend-then-hibernate";
+    };
   };
 
   reichard = {
