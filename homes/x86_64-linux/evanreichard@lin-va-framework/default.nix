@@ -134,6 +134,7 @@ in
   home.packages = with pkgs; [
     orca-slicer
     solvespace
+    prismlauncher
   ];
 
   dconf.settings."org/gnome/desktop/interface" = {
