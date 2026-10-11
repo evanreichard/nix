@@ -5,7 +5,8 @@ let
   launcher = pkgs.writeShellScriptBin "shan-shui-lock" ''
     export QT_QPA_PLATFORM=wayland
     export SHANSHUI_PALETTE=${lib.escapeShellArg cfg.palette}
-    export SHANSHUI_LANDSCAPE=file://${theme}/share/sddm/themes/sddm-shan-shui/components/Landscape.qml
+    export SHANSHUI_FPRINT_ENABLED=${if config.services.fprintd.enable then "1" else "0"}
+    export SHANSHUI_LANDSCAPE=file://${theme}/share/shanshui/landscape/components/Landscape.qml
     exec ${lib.getExe pkgs.quickshell} -p ${theme}/share/shanshui/locker/shell.qml
   '';
 in
@@ -19,7 +20,7 @@ in
     };
     themePackage = lib.mkOption {
       type = lib.types.package;
-      default = pkgs.reichard.sddm-shan-shui;
+      default = pkgs.reichard.shan-shui-greetd;
       description = "Shan Shui package containing the Quickshell locker";
     };
   };
@@ -33,7 +34,7 @@ in
           lib.filterAttrs (name: _: name != "fprintd") config.security.pam.services.login.rules.auth
         );
       };
-      shan-shui-lock-fingerprint = {
+      shan-shui-lock-fingerprint = lib.mkIf config.services.fprintd.enable {
         useDefaultRules = false;
         rules.auth.fprintd = {
           order = 1;

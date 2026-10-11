@@ -27,6 +27,15 @@ in
 
   config = mkIf cfg.enable {
     services.swaync = enabled;
+    services.hypridle = {
+      enable = true;
+      settings.general = {
+        lock_cmd = "shan-shui-lock";
+        before_sleep_cmd = "loginctl lock-session";
+        after_sleep_cmd = "hyprctl dispatch 'hl.dsp.dpms({ action = \"enable\" })'";
+        inhibit_sleep = 3;
+      };
+    };
 
     wayland.windowManager.hyprland = {
       enable = true;

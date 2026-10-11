@@ -2,6 +2,13 @@
 let
   cfg = config.${namespace}.display-managers.greetd;
   theme = cfg.themePackage;
+  passwordPresent = pkgs.writeShellScript "greetd-password-present" ''
+    IFS= read -r -d "" password || true
+    [[ -n "$password" ]]
+  '';
+  passwordOnlyRules = lib.mapAttrs (_: rule: builtins.removeAttrs rule [ "name" "settings" ]) (
+    lib.filterAttrs (name: _: name != "fprintd") config.security.pam.services.login.rules.auth
+  );
   fingerprintProbe = pkgs.writeShellScript "greetd-fingerprint-present" ''
     exec ${pkgs.systemd}/bin/busctl --system --timeout=2s call net.reactivated.Fprint /net/reactivated/Fprint/Manager net.reactivated.Fprint.Manager GetDefaultDevice >/dev/null
   '';
@@ -17,9 +24,9 @@ let
     export QT_WAYLAND_DISABLE_WINDOWDECORATION=1
     export SHANSHUI_PALETTE=${lib.escapeShellArg cfg.palette}
     export SHANSHUI_DEFAULT_USER=${lib.escapeShellArg cfg.defaultUser}
-    export SHANSHUI_FPRINT_PROBE=${fingerprintProbe}
+    export SHANSHUI_FPRINT_PROBE=${if config.services.fprintd.enable then fingerprintProbe else ""}
     export SHANSHUI_UI_SCALE=${builtins.toJSON cfg.uiScale}
-    export SHANSHUI_LANDSCAPE=file://${theme}/share/sddm/themes/sddm-shan-shui/components/Landscape.qml
+    export SHANSHUI_LANDSCAPE=file://${theme}/share/shanshui/landscape/components/Landscape.qml
     export SHANSHUI_SESSIONS=${lib.escapeShellArg (builtins.toJSON cfg.sessions)}
     exec ${lib.getExe pkgs.quickshell} -p ${theme}/share/shanshui/greeter/shell.qml
   '';
@@ -44,7 +51,7 @@ in
     };
     themePackage = lib.mkOption {
       type = lib.types.package;
-      default = pkgs.reichard.sddm-shan-shui;
+      default = pkgs.reichard.shan-shui-greetd;
       description = "Shan Shui package containing the Quickshell greeter";
     };
     sessions = lib.mkOption {
@@ -77,6 +84,34 @@ in
       enable = true;
       settings.default_session.command = "${pkgs.dbus}/bin/dbus-run-session -- ${lib.getExe pkgs.cage} -d -s -- ${lib.getExe greeter}";
     };
-    security.pam.services.greetd.fprintAuth = true;
+    security.pam.services = {
+      greetd-password = {
+        useDefaultRules = false;
+        rules.auth = passwordOnlyRules // {
+          unix = passwordOnlyRules.unix // {
+            args = lib.filter (arg: arg != "nullok") passwordOnlyRules.unix.args;
+          };
+        };
+      };
+      greetd.rules.auth = lib.mkForce ({
+        password = {
+          order = 10300;
+          control = "substack";
+          modulePath = "greetd-password";
+        };
+      } // lib.optionalAttrs config.services.fprintd.enable {
+        password-present = {
+          order = 10100;
+          control = "[success=1 default=ignore]";
+          modulePath = "${config.security.pam.package}/lib/security/pam_exec.so";
+          args = [ "expose_authtok" "quiet" "${passwordPresent}" ];
+        };
+        fprintd = {
+          order = 10200;
+          control = "sufficient";
+          modulePath = "${config.services.fprintd.package}/lib/security/pam_fprintd.so";
+        };
+      });
+    };
   };
 }

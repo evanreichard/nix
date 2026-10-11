@@ -3,41 +3,11 @@
 , lib
 , pkgs
 , config
-, utils
 , ...
 }:
 let
   inherit (lib.${namespace}) enabled;
 
-  greeterCursor = pkgs.catppuccin-cursors.macchiatoMauve;
-  sddmSelected = config.reichard.programs.graphical.wms.hyprland.displayManager == "sddm";
-  greetdSelected = config.reichard.programs.graphical.wms.hyprland.displayManager == "greetd";
-
-  passwordPresent = pkgs.writeShellScript "login-password-present" ''
-    IFS= read -r -d "" password || true
-    [[ -n "$password" ]]
-  '';
-  passwordOnlyRules = lib.mapAttrs (_: rule: builtins.removeAttrs rule [ "name" "settings" ]) (
-    lib.filterAttrs (name: _: name != "fprintd") config.security.pam.services.login.rules.auth
-  );
-  passwordOrFingerprint = passwordService: utils.pam.autoOrderRules [
-    {
-      name = "password-present";
-      control = "[success=1 default=ignore]";
-      modulePath = "${config.security.pam.package}/lib/security/pam_exec.so";
-      args = [ "expose_authtok" "quiet" "${passwordPresent}" ];
-    }
-    {
-      name = "fprintd";
-      control = "sufficient";
-      modulePath = "${config.services.fprintd.package}/lib/security/pam_fprintd.so";
-    }
-    {
-      name = "password";
-      control = "substack";
-      modulePath = passwordService;
-    }
-  ];
 in
 {
   imports = [
@@ -55,26 +25,6 @@ in
     HibernateOnACPower = true;
   };
   systemd.tmpfiles.rules = [ "w /sys/power/pm_async - - - - 0" ];
-  security.pam.services = {
-    hyprlock.fprintAuth = false;
-
-    sddm-password = lib.mkIf sddmSelected {
-      useDefaultRules = false;
-      rules.auth = passwordOnlyRules;
-    };
-    greetd-password = lib.mkIf greetdSelected {
-      useDefaultRules = false;
-      rules.auth = passwordOnlyRules // {
-        unix = passwordOnlyRules.unix // {
-          args = lib.filter (arg: arg != "nullok") passwordOnlyRules.unix.args;
-        };
-      };
-    };
-
-    # Empty Password Gate - PAM runs serially; a supplied password must skip the fingerprint wait.
-    sddm.rules.auth = lib.mkIf sddmSelected (lib.mkForce (passwordOrFingerprint "sddm-password"));
-    greetd.rules.auth = lib.mkIf greetdSelected (lib.mkForce (passwordOrFingerprint "greetd-password"));
-  };
 
   hardware = {
     enableRedistributableFirmware = true;
@@ -117,15 +67,6 @@ in
       };
     };
 
-    display-managers.sddm.theme = lib.mkIf sddmSelected {
-      name = "sddm-shan-shui";
-      package = pkgs.reichard.sddm-shan-shui.override {
-        themeConfig = {
-          Palette = "catppuccin-mocha";
-        };
-      };
-      extraPackages = [ pkgs.kdePackages.qtsvg ];
-    };
 
     hardware.opengl = {
       enable = true;
@@ -144,16 +85,12 @@ in
 
     virtualisation.podman = enabled;
 
-    services.shan-shui-lock = enabled;
     display-managers.greetd = {
       defaultUser = "evanreichard";
       uiScale = 2.0;
     };
 
-    programs.graphical.wms.hyprland = {
-      enable = true;
-      displayManager = "greetd";
-    };
+    programs.graphical.wms.hyprland = enabled;
   };
 
   nixpkgs.overlays = [
@@ -173,16 +110,7 @@ in
     })
   ];
 
-  services.displayManager.sddm.settings.Theme = lib.mkIf sddmSelected {
-    CursorTheme = "catppuccin-macchiato-mauve-cursors";
-    CursorSize = 24;
-  };
-
-  # Greeter Environment - SDDM filters daemon variables; Qt needs the cursor search path in the greeter session.
-  services.displayManager.sddm.settings.General.GreeterEnvironment = lib.mkIf sddmSelected "XCURSOR_PATH=${greeterCursor}/share/icons";
-
   environment.systemPackages = with pkgs; [
-    greeterCursor
     mosh
     rclone
     unzip
