@@ -9,6 +9,8 @@
 let
   inherit (lib.${namespace}) enabled;
 
+  greeterCursor = pkgs.catppuccin-cursors.macchiatoMauve;
+
   passwordPresent = pkgs.writeShellScript "sddm-password-present" ''
     IFS= read -r -d "" password || true
     [[ -n "$password" ]]
@@ -104,7 +106,11 @@ in
 
     display-managers.sddm.theme = {
       name = "sddm-shan-shui";
-      package = pkgs.reichard.sddm-shan-shui;
+      package = pkgs.reichard.sddm-shan-shui.override {
+        themeConfig = {
+          Palette = "catppuccin-mocha";
+        };
+      };
       extraPackages = [ pkgs.kdePackages.qtsvg ];
     };
 
@@ -128,7 +134,33 @@ in
     programs.graphical.wms.hyprland = enabled;
   };
 
+  nixpkgs.overlays = [
+    (_final: prev: {
+      weston = prev.weston.overrideAttrs (old: {
+        patches = (old.patches or [ ]) ++ [ ./weston-pointer-focus-serial.patch ];
+        doCheck = true;
+        checkPhase = ''
+          runHook preCheck
+          export XDG_RUNTIME_DIR=$(mktemp -d)
+          meson test --no-rebuild --print-errorlogs pointer-late-bind pointer
+          # Pixman Fixture - GL and Vulkan fixtures need a rendering device unavailable in the sandbox.
+          meson test --no-rebuild --print-errorlogs --test-args='--fixture 1' pointer-shot
+          runHook postCheck
+        '';
+      });
+    })
+  ];
+
+  services.displayManager.sddm.settings.Theme = {
+    CursorTheme = "catppuccin-macchiato-mauve-cursors";
+    CursorSize = 24;
+  };
+
+  # Greeter Environment - SDDM filters daemon variables; Qt needs the cursor search path in the greeter session.
+  services.displayManager.sddm.settings.General.GreeterEnvironment = "XCURSOR_PATH=${greeterCursor}/share/icons";
+
   environment.systemPackages = with pkgs; [
+    greeterCursor
     mosh
     rclone
     unzip

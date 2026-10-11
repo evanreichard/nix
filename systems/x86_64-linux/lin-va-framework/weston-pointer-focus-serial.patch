@@ -1,0 +1,123 @@
+Subject: [PATCH] input: assign focus serial before a pointer client binds
+
+A pointer can focus a surface before its client creates a wl_pointer, such
+as when a touchpad first gains pointer capability after the greeter maps.
+seat_get_pointer then sends the zero-initialized focus_serial. Qt treats
+zero as no focus and never submits a cursor, although hover still works.
+
+Generate the focus serial when focus changes, even without a pointer
+client, and cover late pointer binding with a headless regression test.
+
+--- a/libweston/input.c
++++ b/libweston/input.c
+@@ -2019,11 +2019,14 @@
+ 		pointer->focus_client = NULL;
+ 	}
+ 
++	if (view && refocus)
++		pointer->focus_serial = wl_display_next_serial(display);
++
+ 	pointer_client = find_pointer_client_for_view(pointer, view);
+ 	if (pointer_client && refocus) {
+ 		struct wl_client *surface_client = pointer_client->client;
+ 
+-		serial = wl_display_next_serial(display);
++		serial = pointer->focus_serial;
+ 
+ 		if (kbd && kbd->focus != view->surface)
+ 			send_modifiers_to_client_in_list(surface_client,
+@@ -2041,8 +2044,6 @@
+ 					      sx, sy);
+ 			pointer_send_frame(resource);
+ 		}
+-
+-		pointer->focus_serial = serial;
+ 	}
+ 
+ 	wl_list_remove(&pointer->focus_view_listener.link);
+--- a/tests/meson.build
++++ b/tests/meson.build
+@@ -222,6 +222,7 @@
+ 	{	'name': 'output-transforms', },
+ 	{	'name': 'plugin-registry', },
+         {       'name': 'paint-node', },
++	{	'name': 'pointer-late-bind', },
+ 	{
+ 		'name': 'pointer',
+ 		'sources': [
+--- /dev/null
++++ b/tests/pointer-late-bind-test.c
+@@ -0,0 +1,73 @@
++/* SPDX-License-Identifier: MIT */
++
++#include "config.h"
++
++#include "weston-test-client-helper.h"
++#include "weston-test-fixture-compositor.h"
++#include "weston-test-assert.h"
++
++static enum test_result_code
++fixture_setup(struct weston_test_harness *harness)
++{
++	struct compositor_setup setup;
++
++	compositor_setup_defaults(&setup);
++	setup.shell = SHELL_TEST_DESKTOP;
++	setup.refresh = HIGHEST_OUTPUT_REFRESH;
++
++	return weston_test_harness_execute_as_client(harness, &setup);
++}
++DECLARE_FIXTURE_SETUP(fixture_setup);
++
++static void
++pointer_enter(void *data, struct wl_pointer *wl_pointer, uint32_t serial,
++	      struct wl_surface *surface, wl_fixed_t x, wl_fixed_t y)
++{
++	struct pointer *pointer = data;
++
++	pointer->focus = wl_surface_get_user_data(surface);
++	pointer->serial = serial;
++}
++
++static void
++pointer_frame(void *data, struct wl_pointer *wl_pointer)
++{
++}
++
++static const struct wl_pointer_listener pointer_listener = {
++	.enter = pointer_enter,
++	.frame = pointer_frame,
++};
++
++TEST(pointer_bound_after_focus_has_enter_serial)
++{
++	struct client *client = create_client();
++	struct pointer *pointer = client->input->pointer;
++	struct surface *surface;
++	pixman_color_t color = { 16384, 16384, 16384, 16384 };
++
++	test_assert_ptr_not_null(pointer);
++	wl_pointer_release(pointer->wl_pointer);
++	pointer->wl_pointer = NULL;
++	client_roundtrip(client);
++
++	surface = create_test_surface(client);
++	client->surface = surface;
++	surface->width = 100;
++	surface->height = 100;
++	surface->buffer = create_shm_buffer_solid(client, 100, 100, &color);
++	move_client_frame_sync(client, 100, 100);
++
++	weston_test_move_pointer(client->test->weston_test, 0, 0, 0, 150, 150);
++	client_roundtrip(client);
++
++	pointer->wl_pointer = wl_seat_get_pointer(client->input->wl_seat);
++	wl_pointer_add_listener(pointer->wl_pointer, &pointer_listener, pointer);
++	client_roundtrip(client);
++
++	test_assert_ptr_eq(pointer->focus, surface);
++	test_assert_u32_ne(pointer->serial, 0);
++
++	client_destroy(client);
++	return RESULT_OK;
++}

@@ -27,7 +27,8 @@ in
         sddm = {
           inherit (cfg) enable;
           package = pkgs.kdePackages.sddm;
-          theme = cfg.theme.name;
+          # Immutable Theme URL - Qt can reuse stale QML at stable symlink paths because Nix normalizes file timestamps.
+          theme = "${cfg.theme.package}/share/sddm/themes/${cfg.theme.name}";
           extraPackages = cfg.theme.extraPackages;
           wayland.enable = true;
         };
