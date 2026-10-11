@@ -8,8 +8,8 @@
 let
   src = fetchgit {
     url = "https://gitea.va.reichard.io/evan/sddm-shan-shui.git";
-    rev = "8df65107e4ca81ab1f83113f7d89013a629fed8c";
-    hash = "sha256-Nc01PN7yi1AC+EHdWgD7h/L+Hs9xaY7jmLb+ZHxoHX4=";
+    rev = "18d478a6e598106b8d0bcc88e61dabd56c23d02d";
+    hash = "sha256-p8iLCip6iPWDxGfzyDpA8foJPEhcLTL+azXzA6KtKEY=";
   };
   package = callPackage "${src}/default.nix" (
     lib.optionalAttrs (themeConfig != null) { inherit themeConfig; }

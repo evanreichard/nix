@@ -11,11 +11,33 @@ let
 
   greeterCursor = pkgs.catppuccin-cursors.macchiatoMauve;
   sddmSelected = config.reichard.programs.graphical.wms.hyprland.displayManager == "sddm";
+  greetdSelected = config.reichard.programs.graphical.wms.hyprland.displayManager == "greetd";
 
-  passwordPresent = pkgs.writeShellScript "sddm-password-present" ''
+  passwordPresent = pkgs.writeShellScript "login-password-present" ''
     IFS= read -r -d "" password || true
     [[ -n "$password" ]]
   '';
+  passwordOnlyRules = lib.mapAttrs (_: rule: builtins.removeAttrs rule [ "name" "settings" ]) (
+    lib.filterAttrs (name: _: name != "fprintd") config.security.pam.services.login.rules.auth
+  );
+  passwordOrFingerprint = passwordService: utils.pam.autoOrderRules [
+    {
+      name = "password-present";
+      control = "[success=1 default=ignore]";
+      modulePath = "${config.security.pam.package}/lib/security/pam_exec.so";
+      args = [ "expose_authtok" "quiet" "${passwordPresent}" ];
+    }
+    {
+      name = "fprintd";
+      control = "sufficient";
+      modulePath = "${config.services.fprintd.package}/lib/security/pam_fprintd.so";
+    }
+    {
+      name = "password";
+      control = "substack";
+      modulePath = passwordService;
+    }
+  ];
 in
 {
   imports = [
@@ -38,30 +60,20 @@ in
 
     sddm-password = lib.mkIf sddmSelected {
       useDefaultRules = false;
-      rules.auth = lib.mapAttrs (_: rule: builtins.removeAttrs rule [ "name" "settings" ]) (
-        lib.filterAttrs (name: _: name != "fprintd") config.security.pam.services.login.rules.auth
-      );
+      rules.auth = passwordOnlyRules;
+    };
+    greetd-password = lib.mkIf greetdSelected {
+      useDefaultRules = false;
+      rules.auth = passwordOnlyRules // {
+        unix = passwordOnlyRules.unix // {
+          args = lib.filter (arg: arg != "nullok") passwordOnlyRules.unix.args;
+        };
+      };
     };
 
-    # Empty Password Gate - SDDM runs PAM sequentially; a supplied password must skip the fingerprint wait.
-    sddm.rules.auth = lib.mkIf sddmSelected (lib.mkForce (utils.pam.autoOrderRules [
-      {
-        name = "password-present";
-        control = "[success=1 default=ignore]";
-        modulePath = "${config.security.pam.package}/lib/security/pam_exec.so";
-        args = [ "expose_authtok" "quiet" "${passwordPresent}" ];
-      }
-      {
-        name = "fprintd";
-        control = "sufficient";
-        modulePath = "${config.services.fprintd.package}/lib/security/pam_fprintd.so";
-      }
-      {
-        name = "password";
-        control = "substack";
-        modulePath = "sddm-password";
-      }
-    ]));
+    # Empty Password Gate - PAM runs serially; a supplied password must skip the fingerprint wait.
+    sddm.rules.auth = lib.mkIf sddmSelected (lib.mkForce (passwordOrFingerprint "sddm-password"));
+    greetd.rules.auth = lib.mkIf greetdSelected (lib.mkForce (passwordOrFingerprint "greetd-password"));
   };
 
   hardware = {
@@ -133,7 +145,10 @@ in
     virtualisation.podman = enabled;
 
     services.shan-shui-lock = enabled;
-    display-managers.greetd.uiScale = 1.15;
+    display-managers.greetd = {
+      defaultUser = "evanreichard";
+      uiScale = 2.0;
+    };
 
     programs.graphical.wms.hyprland = {
       enable = true;

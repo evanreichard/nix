@@ -204,7 +204,7 @@ in
       templates."pi-web.json" = {
         path = "${config.home.homeDirectory}/.pi/pi-web/config.json";
         content = builtins.toJSON {
-          provider = "kagi";
+          providerPriority = [ "kagi" "searxng" "parallel" ];
           kagi.token = "${config.sops.placeholder.kagi_token}";
           searxng.baseUrl = "https://search.va.reichard.io";
         };

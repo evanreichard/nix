@@ -148,6 +148,7 @@ hl.bind(menuMod .. " + Q",         hl.dsp.window.close())
 
 -- Primary Bindings
 if terminal then hl.bind(mainMod .. " + RETURN", hl.dsp.exec_cmd(terminal)) end
+hl.bind(mainMod .. " + L",      hl.dsp.exec_cmd("loginctl lock-session"))
 hl.bind(mainMod .. " + M",      hl.dsp.exec_cmd("uwsm stop"))
 hl.bind(mainMod .. " + V",      hl.dsp.window.float({ action = "toggle" }))
 hl.bind(mainMod .. " + P",      hl.dsp.window.pin())

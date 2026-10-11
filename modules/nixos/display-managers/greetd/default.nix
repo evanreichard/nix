@@ -2,6 +2,9 @@
 let
   cfg = config.${namespace}.display-managers.greetd;
   theme = cfg.themePackage;
+  fingerprintProbe = pkgs.writeShellScript "greetd-fingerprint-present" ''
+    exec ${pkgs.systemd}/bin/busctl --system --timeout=2s call net.reactivated.Fprint /net/reactivated/Fprint/Manager net.reactivated.Fprint.Manager GetDefaultDevice >/dev/null
+  '';
   hyprlandSession = pkgs.writeShellScript "shan-shui-start-hyprland" ''
     # Greeter Handoff - Cage releases tty1 before Hyprland takes over; leave a blank console during that gap.
     if [[ -w /dev/tty1 ]]; then
@@ -13,6 +16,8 @@ let
     export QT_QPA_PLATFORM=wayland
     export QT_WAYLAND_DISABLE_WINDOWDECORATION=1
     export SHANSHUI_PALETTE=${lib.escapeShellArg cfg.palette}
+    export SHANSHUI_DEFAULT_USER=${lib.escapeShellArg cfg.defaultUser}
+    export SHANSHUI_FPRINT_PROBE=${fingerprintProbe}
     export SHANSHUI_UI_SCALE=${builtins.toJSON cfg.uiScale}
     export SHANSHUI_LANDSCAPE=file://${theme}/share/sddm/themes/sddm-shan-shui/components/Landscape.qml
     export SHANSHUI_SESSIONS=${lib.escapeShellArg (builtins.toJSON cfg.sessions)}
@@ -26,6 +31,11 @@ in
       type = lib.types.str;
       default = "catppuccin-mocha";
       description = "Shared Shan Shui color preset";
+    };
+    defaultUser = lib.mkOption {
+      type = lib.types.str;
+      default = "";
+      description = "Username prefilled in the greeter; empty leaves the field blank";
     };
     uiScale = lib.mkOption {
       type = lib.types.float;
