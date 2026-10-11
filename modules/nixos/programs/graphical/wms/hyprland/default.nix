@@ -12,6 +12,11 @@ in
 {
   options.${namespace}.programs.graphical.wms.hyprland = {
     enable = lib.mkEnableOption "Hyprland";
+    displayManager = lib.mkOption {
+      type = lib.types.enum [ "sddm" "greetd" ];
+      default = "sddm";
+      description = "Display manager for this Hyprland host";
+    };
   };
 
   config = mkIf cfg.enable {
@@ -29,9 +34,10 @@ in
     reichard = {
       display-managers = {
         sddm = {
-          enable = true;
+          enable = cfg.displayManager == "sddm";
           scale = "1.25";
         };
+        greetd.enable = cfg.displayManager == "greetd";
       };
     };
   };

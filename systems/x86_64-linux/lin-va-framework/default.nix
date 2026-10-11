@@ -10,6 +10,7 @@ let
   inherit (lib.${namespace}) enabled;
 
   greeterCursor = pkgs.catppuccin-cursors.macchiatoMauve;
+  sddmSelected = config.reichard.programs.graphical.wms.hyprland.displayManager == "sddm";
 
   passwordPresent = pkgs.writeShellScript "sddm-password-present" ''
     IFS= read -r -d "" password || true
@@ -35,7 +36,7 @@ in
   security.pam.services = {
     hyprlock.fprintAuth = false;
 
-    sddm-password = {
+    sddm-password = lib.mkIf sddmSelected {
       useDefaultRules = false;
       rules.auth = lib.mapAttrs (_: rule: builtins.removeAttrs rule [ "name" "settings" ]) (
         lib.filterAttrs (name: _: name != "fprintd") config.security.pam.services.login.rules.auth
@@ -43,7 +44,7 @@ in
     };
 
     # Empty Password Gate - SDDM runs PAM sequentially; a supplied password must skip the fingerprint wait.
-    sddm.rules.auth = lib.mkForce (utils.pam.autoOrderRules [
+    sddm.rules.auth = lib.mkIf sddmSelected (lib.mkForce (utils.pam.autoOrderRules [
       {
         name = "password-present";
         control = "[success=1 default=ignore]";
@@ -60,7 +61,7 @@ in
         control = "substack";
         modulePath = "sddm-password";
       }
-    ]);
+    ]));
   };
 
   hardware = {
@@ -104,7 +105,7 @@ in
       };
     };
 
-    display-managers.sddm.theme = {
+    display-managers.sddm.theme = lib.mkIf sddmSelected {
       name = "sddm-shan-shui";
       package = pkgs.reichard.sddm-shan-shui.override {
         themeConfig = {
@@ -131,7 +132,13 @@ in
 
     virtualisation.podman = enabled;
 
-    programs.graphical.wms.hyprland = enabled;
+    services.shan-shui-lock = enabled;
+    display-managers.greetd.uiScale = 1.15;
+
+    programs.graphical.wms.hyprland = {
+      enable = true;
+      displayManager = "greetd";
+    };
   };
 
   nixpkgs.overlays = [
@@ -151,13 +158,13 @@ in
     })
   ];
 
-  services.displayManager.sddm.settings.Theme = {
+  services.displayManager.sddm.settings.Theme = lib.mkIf sddmSelected {
     CursorTheme = "catppuccin-macchiato-mauve-cursors";
     CursorSize = 24;
   };
 
   # Greeter Environment - SDDM filters daemon variables; Qt needs the cursor search path in the greeter session.
-  services.displayManager.sddm.settings.General.GreeterEnvironment = "XCURSOR_PATH=${greeterCursor}/share/icons";
+  services.displayManager.sddm.settings.General.GreeterEnvironment = lib.mkIf sddmSelected "XCURSOR_PATH=${greeterCursor}/share/icons";
 
   environment.systemPackages = with pkgs; [
     greeterCursor

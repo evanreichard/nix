@@ -35,16 +35,16 @@ in
         export COLORTERM=truecolor
         SHELL="$BASH"
         PATH=~/.local/bin:$PATH
-        bind "set show-mode-in-prompt on"
-
-        set -o vi || true
-        source <(fzf --bash)
-
         VISUAL=vim
         EDITOR="$VISUAL"
 
-        if [ -z "$CLAUDE_CODE_ENTRYPOINT" ]; then
+        if [[ $- == *i* ]]; then
+          bind "set show-mode-in-prompt on"
+          set -o vi || true
+          source <(fzf --bash)
+          if [ -z "$CLAUDE_CODE_ENTRYPOINT" ]; then
             fastfetch
+          fi
         fi
 
         [[ -f ~/.bash_custom ]] && . ~/.bash_custom
