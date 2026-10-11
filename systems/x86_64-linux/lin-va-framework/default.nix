@@ -40,6 +40,7 @@ in
     fwupd.enable = true;
     blueman.enable = true;
     logind.settings.Login = {
+      HandlePowerKey = "suspend-then-hibernate";
       HandleLidSwitch = "suspend-then-hibernate";
       HandleLidSwitchExternalPower = "suspend-then-hibernate";
     };

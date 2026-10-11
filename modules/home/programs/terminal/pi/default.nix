@@ -43,6 +43,7 @@ let
   # Merged into the (mutable) settings.json on activation so pi can keep
   # writing other fields (current model, etc.) without us clobbering them.
   piPackages = [
+    "https://gitea.va.reichard.io/evan/pi-session-broker.git@main"
     "https://gitea.va.reichard.io/evan/pi-web.git@main"
     "https://gitea.va.reichard.io/evan/pi-subagents.git@main"
     "https://gitea.va.reichard.io/evan/pi-statusline.git@main"
@@ -50,6 +51,28 @@ let
   ];
 
   piPackagesJson = pkgs.writeText "pi-packages.json" (builtins.toJSON piPackages);
+
+  piSessionBrokerConfigScript = pkgs.writeShellScript "pi-session-broker-config" ''
+    set -euo pipefail
+
+    PI_CONFIG="$HOME/.pi/agent/pi-session-broker.json"
+    SOPS_CONFIG="${config.sops.templates."pi-session-broker.json".path}"
+    if [ ! -s "$SOPS_CONFIG" ]; then
+      echo "Skipping pi-session-broker config merge; missing sops template: $SOPS_CONFIG" >&2
+      exit 0
+    fi
+
+    mkdir -p "$(dirname "$PI_CONFIG")"
+    if [ -L "$PI_CONFIG" ]; then
+      rm "$PI_CONFIG"
+    fi
+    [ -s "$PI_CONFIG" ] || echo '{}' > "$PI_CONFIG"
+    tmp=$(mktemp)
+    ${pkgs.jq}/bin/jq --slurpfile broker "$SOPS_CONFIG" \
+      '. * $broker[0]' "$PI_CONFIG" > "$tmp"
+    mv "$tmp" "$PI_CONFIG"
+    chmod 600 "$PI_CONFIG"
+  '';
 
   # Pi Auth Api Keys - These are merged into mutable auth.json on activation.
   # Add another entry here to manage another top-level provider auth key.
@@ -188,6 +211,8 @@ in
         "llama_swap_api_keys/pi" = {
           sopsFile = lib.snowfall.fs.get-file "secrets/common/llama-swap.yaml";
         };
+        pi_session_broker_token = { };
+        pi_session_broker_endpoint = { };
       }
       // lib.listToAttrs (
         map
@@ -197,6 +222,12 @@ in
           })
           piAuthApiKeys
       );
+      templates."pi-session-broker.json" = {
+        content = builtins.toJSON {
+          gatewayUrl = config.sops.placeholder.pi_session_broker_endpoint;
+          agentApiKey = config.sops.placeholder.pi_session_broker_token;
+        };
+      };
       # Pi Web Config - Sops template so the kagi token (declared by the
       # glimpse module, which pi enables above) can be embedded alongside
       # the non-secret searxng base URL.
@@ -268,6 +299,27 @@ in
         '.packages = $pkgs[0]' "$PI_SETTINGS" > "$tmp"
       mv "$tmp" "$PI_SETTINGS"
     '';
+
+    # Keep Machine Identity - The extension persists its ID, so merge SOPS values into a writable file.
+    # A read-only template would prevent identity creation.
+    home.activation.piSessionBrokerConfig = lib.mkIf config.${namespace}.security.sops.enable (
+      config.lib.dag.entryAfter [ "sops-nix" "writeBoundary" ] ''
+        ${piSessionBrokerConfigScript}
+      ''
+    );
+
+    systemd.user.services.pi-session-broker-config = lib.mkIf config.${namespace}.security.sops.enable {
+      Unit = {
+        Description = "Merge sops-managed Pi Session Broker config";
+        After = [ "sops-nix.service" ];
+        Requires = [ "sops-nix.service" ];
+      };
+      Service = {
+        Type = "oneshot";
+        ExecStart = piSessionBrokerConfigScript;
+      };
+      Install.WantedBy = [ "default.target" ];
+    };
 
     # Merge Api Key Auth Into Mutable auth.json - Pi needs auth.json to stay
     # writable, so merge sops-managed API keys instead of symlinking the whole
