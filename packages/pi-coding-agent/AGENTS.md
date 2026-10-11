@@ -18,7 +18,7 @@ Built from the `earendil-works/pi-mono` monorepo with `buildNpmPackage`, pinned 
 
 ## Runtime Layout
 
-`installPhase` copies `node_modules` and `packages/` into `$out/lib/pi-coding-agent` and writes `$out/bin/pi` as a one-line ESM shim importing `packages/coding-agent/dist/cli.js`. The wrapper adds `nodejs_22` plus `firefox`/`geckodriver` for the browser automation behind web-fetch; the `pixman`/`cairo`/`pango`/`libjpeg`/`giflib`/`librsvg` inputs serve that same path.
+`installPhase` copies `node_modules` and `packages/` into `$out/lib/pi-coding-agent` and writes `$out/bin/pi` as a one-line ESM shim importing `packages/coding-agent/dist/cli.js`. The wrapper adds `nodejs_22` plus `firefox`/`geckodriver` for Firefox-based fetching. Camoufox downloads an upstream browser binary, so the wrapper must expose its runtime libraries with `LD_LIBRARY_PATH`; launch testing found `alsa-lib`, `gtk3`, and `libX11` sufficient on x86_64 Linux. The `pixman`/`cairo`/`pango`/`libjpeg`/`giflib`/`librsvg` build inputs serve the browser path too.
 
 ## Backwards Compatibility
 

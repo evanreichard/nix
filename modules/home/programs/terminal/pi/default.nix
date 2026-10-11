@@ -43,7 +43,6 @@ let
   # Merged into the (mutable) settings.json on activation so pi can keep
   # writing other fields (current model, etc.) without us clobbering them.
   piPackages = [
-    "https://gitea.va.reichard.io/evan/pi-lsp.git@main"
     "https://gitea.va.reichard.io/evan/pi-web.git@main"
     "https://gitea.va.reichard.io/evan/pi-subagents.git@main"
     "https://gitea.va.reichard.io/evan/pi-statusline.git@main"
@@ -204,9 +203,20 @@ in
       templates."pi-web.json" = {
         path = "${config.home.homeDirectory}/.pi/pi-web/config.json";
         content = builtins.toJSON {
-          providerPriority = [ "kagi" "searxng" "parallel" ];
-          kagi.token = "${config.sops.placeholder.kagi_token}";
-          searxng.baseUrl = "https://search.va.reichard.io";
+          webSearch = {
+            providerPriority = [
+              "kagi"
+              "searxng"
+              "parallel"
+            ];
+            kagi.token = "${config.sops.placeholder.kagi_token}";
+            searxng.baseUrl = "https://search.va.reichard.io";
+          };
+          webFetch.providerPriority = [
+            "camoufox"
+            "firefox"
+            "http"
+          ];
         };
       };
       templates."pi-models.json" = {

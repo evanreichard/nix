@@ -6,6 +6,9 @@
 , nodejs_22
 , firefox
 , geckodriver
+, alsa-lib
+, gtk3
+, libX11
 , makeWrapper
 , pkg-config
 , pixman
@@ -86,12 +89,18 @@ buildNpmPackage rec {
     EOF
       chmod +x $out/bin/pi
 
+      # Camoufox downloads an upstream browser binary that is not Nix-patched.
       wrapProgram $out/bin/pi \
         --prefix PATH : ${lib.makeBinPath [
           nodejs_22
           # evan/pi-web - Browser automation tools are needed for web-fetch support.
           firefox
           geckodriver
+        ]} \
+        --prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath [
+          alsa-lib
+          gtk3
+          libX11
         ]}
 
       runHook postInstall
