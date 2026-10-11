@@ -75,6 +75,7 @@ in
 
     services = {
       mounts.enableMedia = true;
+      airplay = enabled;
       avahi = enabled;
       printing = enabled;
       tailscale = enabled;

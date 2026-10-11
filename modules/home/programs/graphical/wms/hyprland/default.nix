@@ -192,9 +192,10 @@ in
             format = "{icon}   {volume}%";
             tooltip = false;
             format-muted = "  Muted";
-            on-click = "pamixer -t";
-            on-scroll-up = "pamixer -i 5";
-            on-scroll-down = "pamixer -d 5";
+            on-click = "pavucontrol -t 3";
+            on-click-right = "pavucontrol -t 4";
+            on-scroll-up = "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%+";
+            on-scroll-down = "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-";
             scroll-step = 5;
             format-icons = {
               headphone = "";
@@ -215,9 +216,9 @@ in
             tooltip = false;
             format-source = " {volume}%";
             format-source-muted = " Muted";
-            on-click = "pamixer --default-source -t";
-            on-scroll-up = "pamixer --default-source -i 5";
-            on-scroll-down = "pamixer --default-source -d 5";
+            on-click = "pavucontrol -t 4";
+            on-scroll-up = "wpctl set-volume @DEFAULT_AUDIO_SOURCE@ 5%+";
+            on-scroll-down = "wpctl set-volume @DEFAULT_AUDIO_SOURCE@ 5%-";
             scroll-step = 5;
           };
         }
@@ -227,6 +228,8 @@ in
     home.packages = with pkgs; [
       brightnessctl
       hyprshot
+      pavucontrol
+      playerctl
       wofi
       wofi-emoji
     ] ++ lib.optional cfg.bluetooth blueman;

@@ -48,7 +48,7 @@ Reusable NixOS, Home Manager, and Darwin modules. This is where most of the conf
   - `user/` — User account creation
   - `security/sops/` — sops-nix secret decryption (age-based)
   - `system/` — `boot/`, `networking/` (incl. `networkmanager/`), `disk/` (disko partitioning)
-  - `services/` — Headscale, Tailscale, llama-swap (LLM inference front end), OpenSSH, RKE2, printing, OctoPrint, mosh, RTL-TCP, ydotool, Open-iSCSI, Avahi, cloud-init, Sunshine
+  - `services/` — Headscale, Tailscale, llama-swap (LLM inference front end), OpenSSH, RKE2, printing, OctoPrint, mosh, RTL-TCP, ydotool, Open-iSCSI, Avahi, cloud-init, Sunshine, AirPlay
   - `hardware/` — OpenGL, Asahi (Apple Silicon), battery/UPower
   - `programs/graphical/wms/hyprland/` — System-level Hyprland WM setup
   - `display-managers/greetd/` — Shan Shui Quickshell greeter

@@ -146,6 +146,10 @@ hl.bind(menuMod .. " + SHIFT + 2", hl.dsp.exec_cmd("hyprshot -m window"))
 hl.bind(menuMod .. " + SHIFT + 3", hl.dsp.exec_cmd("hyprshot -m region"))
 hl.bind(menuMod .. " + Q",         hl.dsp.window.close())
 
+-- -t selects the pavucontrol tab (1-based): 3 = Output Devices, 4 = Input Devices
+hl.bind(mainMod .. " + A", hl.dsp.exec_cmd("pavucontrol -t 3"))
+hl.bind(mainMod .. " + SHIFT + A", hl.dsp.exec_cmd("pavucontrol -t 4"))
+
 -- Primary Bindings
 if terminal then hl.bind(mainMod .. " + RETURN", hl.dsp.exec_cmd(terminal)) end
 hl.bind(mainMod .. " + L",      hl.dsp.exec_cmd("loginctl lock-session"))
