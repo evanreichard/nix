@@ -51,7 +51,7 @@ Reusable NixOS, Home Manager, and Darwin modules. This is where most of the conf
   - `services/` — Headscale, Tailscale, llama-swap (LLM inference front end), OpenSSH, RKE2, printing, OctoPrint, mosh, RTL-TCP, ydotool, Open-iSCSI, Avahi, cloud-init, Sunshine
   - `hardware/` — OpenGL, Asahi (Apple Silicon), battery/UPower
   - `programs/graphical/wms/hyprland/` — System-level Hyprland WM setup
-  - `display-managers/sddm/` — SDDM display manager
+  - `display-managers/greetd/` — Shan Shui Quickshell greeter
   - `virtualisation/` — Podman, libvirtd
 
 - **`modules/home/`** — Home Manager modules:
