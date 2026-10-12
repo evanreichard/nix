@@ -28,6 +28,12 @@ in
     security.sops = enabled;
 
     programs = {
+      games = {
+        beyondAllReason = enabled;
+        prismLauncher = enabled;
+        steam = enabled;
+      };
+
       graphical = {
         wms.hyprland = {
           enable = true;
@@ -62,7 +68,6 @@ in
   home.packages = with pkgs; [
     orca-slicer
     solvespace
-    prismlauncher
   ];
 
   dconf.settings."org/gnome/desktop/interface" = {

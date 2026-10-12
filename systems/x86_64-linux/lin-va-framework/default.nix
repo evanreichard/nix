@@ -93,6 +93,7 @@ in
     };
 
     programs.graphical.wms.hyprland = enabled;
+    programs.games.steam = enabled;
   };
 
   nixpkgs.overlays = [
