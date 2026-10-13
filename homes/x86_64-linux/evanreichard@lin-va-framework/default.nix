@@ -46,6 +46,7 @@ in
         ghostty = enabled;
         ghidra = enabled;
         gimp = enabled;
+        seafile = enabled;
         browsers.firefox = {
           enable = true;
           gpuAcceleration = true;
