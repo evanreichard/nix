@@ -152,6 +152,7 @@ hl.bind(mainMod .. " + SHIFT + A", hl.dsp.exec_cmd("pavucontrol -t 4"))
 
 -- Primary Bindings
 if terminal then hl.bind(mainMod .. " + RETURN", hl.dsp.exec_cmd(terminal)) end
+hl.bind(mainMod .. " + D",      hl.dsp.exec_cmd("darkman toggle"))
 hl.bind(mainMod .. " + L",      hl.dsp.exec_cmd("loginctl lock-session"))
 hl.bind(mainMod .. " + M",      hl.dsp.exec_cmd("uwsm stop"))
 hl.bind(mainMod .. " + V",      hl.dsp.window.float({ action = "toggle" }))

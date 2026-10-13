@@ -2,7 +2,6 @@
 , inputs
 , lib
 , pkgs
-, config
 , ...
 }:
 let
@@ -67,7 +66,6 @@ in
         enableIWD = true;
       };
     };
-
 
     hardware.opengl = {
       enable = true;

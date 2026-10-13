@@ -1,9 +1,10 @@
-{ pkgs
-, lib
-, config
-, namespace
-, osConfig
-, ...
+{
+  pkgs,
+  lib,
+  config,
+  namespace,
+  osConfig,
+  ...
 }:
 let
   inherit (lib.${namespace}) enabled;
@@ -23,6 +24,7 @@ in
       ssh-agent = enabled;
       fusuma = enabled;
       awww = enabled;
+      darkman.enable = true;
     };
 
     security.sops = enabled;
@@ -70,8 +72,9 @@ in
     solvespace
   ];
 
+  # color-scheme is owned by reichard.services.darkman; managing it here too would
+  # be overwritten by the activation hook on every rebuild.
   dconf.settings."org/gnome/desktop/interface" = {
-    color-scheme = "prefer-dark";
     cursor-theme = "catppuccin-macchiato-mauve-cursors";
     cursor-size = 24;
   };
