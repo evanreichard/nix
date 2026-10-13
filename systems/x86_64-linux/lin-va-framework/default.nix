@@ -73,6 +73,7 @@ in
     };
 
     services = {
+      kdeconnect = enabled;
       mounts.enableMedia = true;
       airplay = enabled;
       avahi = enabled;
