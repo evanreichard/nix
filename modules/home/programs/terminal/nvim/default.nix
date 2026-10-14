@@ -40,7 +40,6 @@ in
         # ----- Helpers -----
         # -------------------
         comment-nvim # Code Comments
-        copilot-vim # GitHub Copilot
         diffview-nvim # Diff View
         fidget-nvim # Notification Helper
         gitsigns-nvim # Git Blame
@@ -79,23 +78,6 @@ in
         nvim-dap-ui
 
         # --------------------
-        # -- CODE COMPANION --
-        # --------------------
-        (pkgs.vimUtils.buildVimPlugin {
-          pname = "codecompanion.nvim";
-          version = "2025-12-20";
-          src = pkgs.fetchFromGitHub {
-            owner = "olimorris";
-            repo = "codecompanion.nvim";
-            rev = "a226ca071ebc1d8b5ae1f70800fa9cf4a06a2101";
-            sha256 = "sha256-F1nI7q98SPpDjlwPvGy/qFuHvlT1FrbQPcjWrBwLaHU=";
-          };
-          doCheck = false;
-          meta.homepage = "https://github.com/olimorris/codecompanion.nvim/";
-          meta.hydraPlatforms = [ ];
-        })
-
-        # --------------------
         # -- NONE-LS EXTRAS --
         # --------------------
         (pkgs.vimUtils.buildVimPlugin {
@@ -109,21 +91,6 @@ in
           };
           doCheck = false;
           meta.homepage = "https://github.com/nvimtools/none-ls-extras.nvim/";
-        })
-
-        # -------------------
-        # ---- LLAMA.VIM ----
-        # -------------------
-        (pkgs.vimUtils.buildVimPlugin {
-          pname = "llama.vim";
-          version = "2025-10-28";
-          src = pkgs.fetchFromGitHub {
-            owner = "ggml-org";
-            repo = "llama.vim";
-            rev = "ade8966eff57dcbe4a359dd26fb1ea97378ea03c";
-            sha256 = "sha256-uPqOZLWKVMimhc9eG7yM5OmhJy3mTRgKsiqKhstWs4Y=";
-          };
-          meta.homepage = "https://github.com/ggml-org/llama.vim/";
         })
       ];
 

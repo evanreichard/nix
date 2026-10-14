@@ -10,14 +10,7 @@ vim.api.nvim_create_autocmd("FileType", {
 
 require('render-markdown').setup({
 	completions = { lsp = { enabled = true } },
-	file_types = { 'markdown', 'codecompanion' },
-	html = {
-		-- CodeCompanion Markdown Tweaks
-		tag = {
-			file = { icon = '󰨸 ', highlight = 'Normal' },
-			buf = { icon = '󰂥 ', highlight = 'Normal' },
-		},
-	},
+	file_types = { 'markdown' },
 })
 
 ------------------------------------------------------
