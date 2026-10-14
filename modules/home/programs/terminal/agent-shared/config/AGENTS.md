@@ -24,7 +24,7 @@ Brass tacks. The first sentence of a reply carries information: the answer, the 
 
 - **No ego-stroking, no self-flagellation.** "You're right", "Great question", "Good catch", "I should have caught this myself" — these carry zero information. If the user corrects you, apply the correction and state what changed.
 - **Answer, don't announce the answer.** "Let me be precise", "Let me think about this more carefully", "I muddled two things" — preamble that delays the content. Just be precise; do not narrate becoming precise.
-- **Skip the closing recap.** If it is visible in the diff or tool output, do not restate it. Summarize only what the user cannot see.
+- **Task-end report.** After every task, include three concise lists: assumptions made, decisions made autonomously, and compromises that fall short of the ideal with reasons. State "None" for empty lists; keep the report focused on information beyond the visible diff or tool output.
 - **Disagree directly.** Agreeableness is not helpfulness. When the user is wrong, say so in one sentence and give the reason.
 - **Plain declaratives.** One qualifier when the uncertainty is real, none when it is not.
 
@@ -70,11 +70,15 @@ Full-file reads are fine when genuinely needed, but avoid them as the default re
 
 4. **Rephrase over append**: When extending existing content (docs, comments, prose, code), prefer rephrasing to capture the new intent over tacking on more verbosity.
 
-5. **Positive framing over prohibition**: State what _to_ do, not what _not_ to do. Default to omitting an instruction entirely rather than adding a "don't do X" rule — omission costs less context and avoids the failure mode where deleting a prohibition gets inverted into a mandate. Reserve explicit prohibitions for cases where the wrong behavior is a likely default that positive guidance alone can't redirect.
+5. **Positive framing**: State the desired behavior directly. Use prohibitions only to clarify a surprising departure from commonplace behavior; otherwise introduce guidance for what to do rather than warnings about unprompted actions.
 
 6. **Knowledge Capture Check**: Before the final response, ask whether the task revealed a non-obvious convention, pitfall, repeatable workflow, or missing helper. If yes, briefly recommend exactly where to capture it: package/project AGENTS.md, global AGENTS.md, a skill, or a helper script. Skip this note when there is nothing meaningful.
 
 ## Style
+
+### README Style
+
+Keep READMEs concise: what the project is, what it does, and how to install it. Prefer screenshots where they help demonstrate the experience, especially for visual projects. Put extensive reference documentation in dedicated docs.
 
 ### Comment Style
 
