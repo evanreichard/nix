@@ -212,6 +212,14 @@ hl.window_rule({
 })
 
 hl.window_rule({
+    name   = "sushi-preview",
+    match  = { class = "^org\\.gnome\\.NautilusPreviewer$" },
+    float  = true,
+    center = true,
+    size   = { "monitor_w * 0.8", "monitor_h * 0.8" },
+})
+
+hl.window_rule({
     name  = "fix-xwayland-drags",
     match = {
         class      = "^$",

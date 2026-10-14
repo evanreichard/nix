@@ -45,6 +45,7 @@ in
         };
         ghostty = enabled;
         ghidra = enabled;
+        nautilus = enabled;
         gimp = enabled;
         seafile = enabled;
         browsers.firefox = {
@@ -72,6 +73,14 @@ in
     orca-slicer
     solvespace
   ];
+
+  gtk = {
+    enable = true;
+    iconTheme = {
+      name = "Papirus-Dark";
+      package = pkgs.papirus-icon-theme;
+    };
+  };
 
   # color-scheme is owned by reichard.services.darkman; managing it here too would
   # be overwritten by the activation hook on every rebuild.
