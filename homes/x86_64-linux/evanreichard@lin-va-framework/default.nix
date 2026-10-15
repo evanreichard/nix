@@ -43,6 +43,7 @@ in
           bluetooth = true;
           monitors = [ ",highres,auto,2" ];
         };
+        airfry = enabled;
         ghostty = enabled;
         ghidra = enabled;
         nautilus = enabled;
