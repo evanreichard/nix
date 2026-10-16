@@ -114,6 +114,7 @@ in
 
   environment.systemPackages = with pkgs; [
     mosh
+    nvtopPackages.amd
     rclone
     unzip
   ];

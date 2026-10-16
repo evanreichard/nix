@@ -1,10 +1,9 @@
-{
-  pkgs,
-  lib,
-  config,
-  namespace,
-  osConfig,
-  ...
+{ pkgs
+, lib
+, config
+, namespace
+, osConfig
+, ...
 }:
 let
   inherit (lib.${namespace}) enabled;
@@ -47,6 +46,7 @@ in
           enable = true;
           tray = true;
         };
+        mpv = enabled;
         ghostty = enabled;
         ghidra = enabled;
         nautilus = enabled;
@@ -76,6 +76,7 @@ in
   home.packages = with pkgs; [
     orca-slicer
     solvespace
+    vlc
   ];
 
   gtk = {
