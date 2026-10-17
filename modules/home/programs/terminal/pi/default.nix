@@ -229,18 +229,20 @@ in
           agentApiKey = config.sops.placeholder.pi_session_broker_token;
         };
       };
-      # Pi Web Config - Sops template so the kagi token (declared by the
-      # glimpse module, which pi enables above) can be embedded alongside
-      # the non-secret searxng base URL.
+      # Pi Web Config - Sops template so the kagi and synthetic keys
+      # (declared by the glimpse module and pi auth, respectively) can be
+      # embedded alongside the non-secret searxng base URL.
       templates."pi-web.json" = {
         path = "${config.home.homeDirectory}/.pi/pi-web/config.json";
         content = builtins.toJSON {
           webSearch = {
             providerPriority = [
+              "synthetic"
               "kagi"
               "searxng"
               "parallel"
             ];
+            synthetic.apiKey = "${config.sops.placeholder.synthetic_apikey}";
             kagi.token = "${config.sops.placeholder.kagi_token}";
             searxng.baseUrl = "https://search.va.reichard.io";
           };
