@@ -51,6 +51,10 @@ in
         ghidra = enabled;
         nautilus = enabled;
         gimp = enabled;
+        blender = {
+          enable = true;
+          mcp.enable = true;
+        };
         seafile = enabled;
         browsers.firefox = {
           enable = true;

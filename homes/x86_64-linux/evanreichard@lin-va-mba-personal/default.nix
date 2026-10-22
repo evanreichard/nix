@@ -38,6 +38,7 @@ in
         kitty = enabled;
         strawberry = enabled;
         gimp = enabled;
+        blender = enabled;
         wireshark = enabled;
         ghidra = enabled;
         remmina = enabled;
@@ -72,7 +73,6 @@ in
 
   home.packages = with pkgs; [
     orca-slicer
-    blender
     freecad
   ];
 

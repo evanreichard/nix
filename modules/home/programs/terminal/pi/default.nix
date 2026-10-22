@@ -47,8 +47,10 @@ let
     "https://gitea.va.reichard.io/evan/pi-web.git@main"
     "https://gitea.va.reichard.io/evan/pi-subagents.git@main"
     "https://gitea.va.reichard.io/evan/pi-statusline.git@main"
+    "git:git@ssh.gitea.va.reichard.io:evan/pi-daybreak.git@main"
     "https://github.com/sting8k/pi-vcc.git@v0.8.0"
     "npm:@juicesharp/rpiv-ask-user-question"
+    "npm:pi-imagegen"
   ];
 
   piPackagesJson = pkgs.writeText "pi-packages.json" (builtins.toJSON piPackages);
