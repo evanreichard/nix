@@ -21,17 +21,28 @@ keys:
   - &system_lin-va-htpc age1lwn0kgvve2mnku763ps7axcsnfv6zvtg68d9h6xuvj4w8lg00anqrmawa8
   - &system_lin-va-nix-builder age1qs7x2gplqlu8r82t6tc2sqa5tq7vexq3nmscm4uhd5a73heqfdys8fph5r
   - &system_lin-va-framework age1anunuwmrxxpcj3p2pm5tn04nn6nkh3mpv9eth8lqpdhtw0sz7vgqguk42v
+  - &system_lin-o1-headscale age16zfhzjw063fjhqetj2s7lucw72m8d3wf8qn0vqhr2fu7sgyd95ds9yvm9k
 creation_rules:
   - path_regex: secrets/[^/]+\.(yaml|json|env|ini)$
     key_groups:
       - age:
           - *admin_reichard
+  - path_regex: secrets/systems/lin-o1-headscale\.yaml$
+    key_groups:
+      - age:
+          - *admin_reichard
+          - *system_lin-o1-headscale
   - path_regex: secrets/systems/lin-va-kitchen.yaml
     key_groups:
       - age:
           - *admin_reichard
           - *user_lin-va-kitchen
           - *system_lin-va-kitchen
+  - path_regex: secrets/common/backups\.yaml$
+    key_groups:
+      - age:
+          - *admin_reichard
+          - *system_lin-o1-headscale
   - path_regex: secrets/common/systems.yaml
     key_groups:
       - age:
