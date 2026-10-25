@@ -1,4 +1,8 @@
-{ config, lib, namespace, ... }:
+{ config
+, lib
+, namespace
+, ...
+}:
 let
   inherit (lib) mkIf mkEnableOption types;
   cfg = config.${namespace}.services.headscale;
@@ -20,7 +24,10 @@ in
       to use for that domain.
     '';
     example = {
-      "internal.company.com" = [ "10.0.0.1" "10.0.0.2" ];
+      "internal.company.com" = [
+        "10.0.0.1"
+        "10.0.0.2"
+      ];
       "dev.local" = [ "192.168.1.1" ];
     };
   };
@@ -29,23 +36,9 @@ in
     services.headscale = {
       enable = true;
       address = "0.0.0.0";
-      settings = {
-        server_url = "https://headscale.reichard.io";
-        policy = mkIf (cfg.policy != null) {
-          mode = "file";
-          path = toString cfg.policy;
-        };
-        dns = {
-          base_domain = "reichard.dev";
-          nameservers = {
-            global = [
-              "9.9.9.9"
-            ];
-            split = {
-              "va.reichard.io" = [ "10.0.20.20" ];
-            };
-          };
-        };
+      settings.policy = mkIf (cfg.policy != null) {
+        mode = "file";
+        path = toString cfg.policy;
       };
     };
 

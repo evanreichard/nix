@@ -48,6 +48,19 @@ in
     };
   };
 
+  services.headscale.settings = {
+    server_url = "https://headscale.reichard.io";
+    dns = {
+      base_domain = "reichard.dev";
+      nameservers = {
+        global = [ "9.9.9.9" ];
+        split = {
+          "reichard.io" = [ "10.0.20.20" ];
+        };
+      };
+    };
+  };
+
   environment.systemPackages = with pkgs; [
     btop
     tmux
