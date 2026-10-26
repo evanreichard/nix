@@ -14,7 +14,7 @@ Built from the `earendil-works/pi-mono` monorepo with `buildNpmPackage`, pinned 
 
 ## Build Order
 
-`buildPhase` follows upstream's workspace dependency order: `chord tui telemetry codemode mcp ai durable agent protocol client server coding-agent`. Keep newly imported workspace packages built before their consumers; otherwise TypeScript resolves their package exports to missing `dist` files.
+`buildPhase` follows upstream's workspace dependency order: `telemetry chord tui codemode mcp ai durable env agent coding-agent`. Keep newly imported workspace packages built before their consumers; otherwise TypeScript resolves their package exports to missing `dist` files.
 
 ## Runtime Layout
 

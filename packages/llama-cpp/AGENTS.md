@@ -19,7 +19,7 @@ Upstream nixpkgs passes `version` into `-DLLAMA_BUILD_NUMBER`, and `build-info.c
 ## Bumping the Pinned Commit
 
 1. `git ls-remote https://github.com/ggml-org/llama.cpp refs/tags/<tag>` → full SHA.
-2. `nix run nixpkgs#nix-prefetch-github -- ggml-org llama.cpp --rev <sha> --leave-dot-git` → hash. `--leave-dot-git` is required; the fetch keeps `.git`, so the hash differs from a plain fetch.
+2. Set `src.hash = pkgs.lib.fakeHash` and run `nix build .#llama-cpp.src --no-link`; use the `got:` hash. The custom `leaveDotGit`/`postFetch` fetcher cannot use a plain git archive hash.
 3. Set `src.rev` / `src.hash`, then `version` and `buildNumber` from the tag.
 4. Refresh `npmDepsHash` (see the `update-package-hashes` skill).
 
