@@ -51,6 +51,7 @@ let
     "https://github.com/sting8k/pi-vcc.git@v0.8.0"
     "npm:@juicesharp/rpiv-ask-user-question"
     "npm:pi-imagegen"
+    "npm:remote-pi"
   ];
 
   piPackagesJson = pkgs.writeText "pi-packages.json" (builtins.toJSON piPackages);
@@ -303,6 +304,21 @@ in
       ${pkgs.jq}/bin/jq --slurpfile pkgs ${piPackagesJson} \
         '.packages = $pkgs[0]' "$PI_SETTINGS" > "$tmp"
       mv "$tmp" "$PI_SETTINGS"
+    '';
+
+    # Writable Relay Config - Remote Pi's URL command rewrites this file, so merge rather than symlink it.
+    home.activation.piRemoteConfig = config.lib.dag.entryAfter [ "writeBoundary" ] ''
+      PI_REMOTE_CONFIG="$HOME/.pi/remote/config.json"
+      mkdir -p "$(dirname "$PI_REMOTE_CONFIG")"
+      [ -s "$PI_REMOTE_CONFIG" ] || echo '{}' > "$PI_REMOTE_CONFIG"
+      tmp=$(mktemp "$PI_REMOTE_CONFIG.XXXXXX")
+      if ${pkgs.jq}/bin/jq --arg relay "https://remote-pi.va.reichard.io" \
+        '.relay = $relay' "$PI_REMOTE_CONFIG" > "$tmp"; then
+        mv "$tmp" "$PI_REMOTE_CONFIG"
+      else
+        rm -f "$tmp"
+        exit 1
+      fi
     '';
 
     # Keep Machine Identity - The extension persists its ID, so merge SOPS values into a writable file.
