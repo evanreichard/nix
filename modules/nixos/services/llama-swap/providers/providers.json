@@ -9,6 +9,7 @@
     "modelIds": [
       "hf:Qwen/Qwen3.8-27B",
       "hf:deepseek-ai/DeepSeek-V4.1-Flash",
+      "hf:deepseek-ai/DeepSeek-V4.1-Flash-1017",
       "hf:moonshotai/Kimi-K3",
       "hf:nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-NVFP4",
       "hf:openai/gpt-oss-120b",

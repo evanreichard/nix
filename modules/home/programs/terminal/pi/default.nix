@@ -39,6 +39,49 @@ let
     inherit (cfg.sandbox) shareNet bindSshAgent;
   };
 
+  rollingWeeklyPolicy = {
+    usage.windows = {
+      rolling = { suspendAt = "85%"; resumeBelow = "80%"; };
+      weekly = { suspendAt = "90%"; resumeBelow = "85%"; };
+    };
+  };
+  zaiPolicy = {
+    usage.windows = {
+      tokens = { suspendAt = "85%"; resumeBelow = "80%"; };
+      requests = { suspendAt = "90%"; resumeBelow = "85%"; };
+    };
+  };
+  route = provider: model: thinking: policy: { inherit provider model thinking policy; };
+
+  piUsageConfig = {
+    version = 1;
+    provider = "auto";
+    defaultMode = "balanced";
+    monitoring.refreshInterval = "5m";
+    policy.usage.maxAge = "10m";
+    modes = {
+      fast = [
+        (route "openai-codex" "gpt-6-luna" "low" rollingWeeklyPolicy)
+        (route "opencode-go" "gpt-6-luna" "low" rollingWeeklyPolicy)
+        (route "synthetic" "hf:zai-org/GLM-5.3-Flash" "low" rollingWeeklyPolicy)
+        (route "zai" "glm-5.3-flash" "low" zaiPolicy)
+      ];
+      balanced = [
+        (route "openai-codex" "gpt-6-luna" "high" rollingWeeklyPolicy)
+        (route "synthetic" "hf:deepseek-ai/DeepSeek-V4.1-Flash-1017" "high" rollingWeeklyPolicy)
+        (route "zai" "glm-5.3" "medium" zaiPolicy)
+        (route "opencode-go" "kimi-k3" "medium" rollingWeeklyPolicy)
+      ];
+      deep = [
+        (route "openai-codex" "gpt-6.1-sol" "high" rollingWeeklyPolicy)
+        (route "opencode-go" "deepseek-v4.1-flash" "high" rollingWeeklyPolicy)
+        (route "synthetic" "hf:moonshotai/Kimi-K3" "high" rollingWeeklyPolicy)
+        (route "zai" "glm-5.3" "high" zaiPolicy)
+      ];
+    };
+  };
+  piUsageConfigFile = (pkgs.formats.yaml { }).generate "pi-usage.yaml" piUsageConfig;
+
   # Nix-Owned Plugin List - Source of truth for `packages` in settings.json.
   # Merged into the (mutable) settings.json on activation so pi can keep
   # writing other fields (current model, etc.) without us clobbering them.
@@ -46,6 +89,7 @@ let
     "https://gitea.va.reichard.io/evan/pi-session-broker.git@main"
     "https://gitea.va.reichard.io/evan/pi-web.git@main"
     "https://gitea.va.reichard.io/evan/pi-subagents.git@main"
+    "https://gitea.va.reichard.io/evan/pi-usage.git@main"
     "https://gitea.va.reichard.io/evan/pi-statusline.git@main"
     "git:git@ssh.gitea.va.reichard.io:evan/pi-daybreak.git@main"
     "https://github.com/sting8k/pi-vcc.git@v0.8.0"
@@ -189,6 +233,9 @@ in
     home.file = {
       ".pi/agent/AGENTS.md" = {
         source = ../agent-shared/config/AGENTS.md;
+      };
+      ".pi/agent/usage.yaml" = {
+        source = piUsageConfigFile;
       };
       ".pi/agent/skills" = {
         source = ../agent-shared/config/skills;

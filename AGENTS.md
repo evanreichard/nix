@@ -92,7 +92,7 @@ When editing the Neovim config, note that **plugin declarations** happen in `def
 
 ### `modules/home/programs/terminal/{pi,omp}/` and `agent-shared/`
 
-The coding-agent modules. `pi/` and `omp/` each publish their own model catalogue (see the llama-swap section above). `agent-shared/sandbox.nix` is the shared bubblewrap wrapper factory: it takes `name` + `package` and emits a `<name>-sandboxed` binary beside the unwrapped one, replacing `$HOME` with a tmpfs and binding back only the agent's own `~/.<name>` state dir. Adding an agent means adding a `name`/`package` instantiation, not a new sandbox.
+The coding-agent modules. Pi's usage aliases are authored as a Nix attrset in `pi/default.nix` and emitted with `pkgs.formats.yaml` to `~/.pi/agent/usage.yaml`; edit the attrset, not the generated file. `pi/` and `omp/` each publish their own model catalogue (see the llama-swap section above). `agent-shared/sandbox.nix` is the shared bubblewrap wrapper factory: it takes `name` + `package` and emits a `<name>-sandboxed` binary beside the unwrapped one, replacing `$HOME` with a tmpfs and binding back only the agent's own `~/.<name>` state dir. Adding an agent means adding a `name`/`package` instantiation, not a new sandbox.
 
 ### `modules/home/programs/terminal/scripts/`
 
