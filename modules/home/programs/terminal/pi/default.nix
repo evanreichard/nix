@@ -228,7 +228,7 @@ in
     ++ lib.optional cfg.sandbox.enable piSandboxed;
 
     # Define Pi Configuration - AGENTS.md, skills, and prompts are agent-agnostic and shared
-    # with omp via `../agent-shared/config`; subagents and extensions are pi-only formats.
+    # with omp via `../agent-shared/config`; extensions are a pi-only format.
     home.file = {
       ".pi/agent/AGENTS.md" = {
         source = ../agent-shared/config/AGENTS.md;
@@ -242,10 +242,6 @@ in
       };
       ".pi/agent/prompts" = {
         source = ../agent-shared/config/prompts;
-        recursive = true;
-      };
-      ".pi/agent/subagents" = {
-        source = ./config/subagents;
         recursive = true;
       };
       ".pi/agent/extensions" = {
