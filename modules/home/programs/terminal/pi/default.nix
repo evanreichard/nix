@@ -39,43 +39,44 @@ let
     inherit (cfg.sandbox) shareNet bindSshAgent;
   };
 
-  rollingWeeklyPolicy = {
-    usage.windows = {
-      rolling = { suspendAt = "85%"; resumeBelow = "80%"; };
-      weekly = { suspendAt = "90%"; resumeBelow = "85%"; };
-    };
-  };
   zaiPolicy = {
     usage.windows = {
       tokens = { suspendAt = "85%"; resumeBelow = "80%"; };
       requests = { suspendAt = "90%"; resumeBelow = "85%"; };
     };
   };
-  route = provider: model: thinking: policy: { inherit provider model thinking policy; };
+  route = provider: model: thinking: policy:
+    if policy == null then { inherit provider model thinking; } else { inherit provider model thinking policy; };
 
   piUsageConfig = {
     version = 1;
     provider = "auto";
     defaultMode = "balanced";
     monitoring.refreshInterval = "5m";
-    policy.usage.maxAge = "10m";
+    policy.usage = {
+      maxAge = "10m";
+      windows = {
+        rolling = { suspendAt = "85%"; resumeBelow = "80%"; };
+        weekly = { suspendAt = "90%"; resumeBelow = "85%"; };
+      };
+    };
     modes = {
       fast = [
-        (route "openai-codex" "gpt-6-luna" "low" rollingWeeklyPolicy)
-        (route "opencode-go" "gpt-6-luna" "low" rollingWeeklyPolicy)
-        (route "synthetic" "hf:zai-org/GLM-5.3-Flash" "low" rollingWeeklyPolicy)
+        (route "openai-codex" "gpt-6-luna" "low" null)
+        (route "opencode-go" "gpt-6-luna" "low" null)
+        (route "synthetic" "hf:zai-org/GLM-5.3-Flash" "low" null)
         (route "zai" "glm-5.3-flash" "low" zaiPolicy)
       ];
       balanced = [
-        (route "openai-codex" "gpt-6-luna" "high" rollingWeeklyPolicy)
-        (route "synthetic" "hf:deepseek-ai/DeepSeek-V4.1-Flash-1017" "high" rollingWeeklyPolicy)
+        (route "openai-codex" "gpt-6-luna" "high" null)
+        (route "synthetic" "hf:deepseek-ai/DeepSeek-V4.1-Flash-1017" "high" null)
         (route "zai" "glm-5.3" "medium" zaiPolicy)
-        (route "opencode-go" "kimi-k3" "medium" rollingWeeklyPolicy)
+        (route "opencode-go" "kimi-k3" "medium" null)
       ];
       deep = [
-        (route "openai-codex" "gpt-6.1-sol" "high" rollingWeeklyPolicy)
-        (route "opencode-go" "deepseek-v4.1-flash" "high" rollingWeeklyPolicy)
-        (route "synthetic" "hf:moonshotai/Kimi-K3" "high" rollingWeeklyPolicy)
+        (route "openai-codex" "gpt-6.1-sol" "high" null)
+        (route "opencode-go" "deepseek-v4.1-flash" "high" null)
+        (route "synthetic" "hf:moonshotai/Kimi-K3" "high" null)
         (route "zai" "glm-5.3" "high" zaiPolicy)
       ];
     };
