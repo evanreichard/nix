@@ -40,6 +40,10 @@ buildNpmPackage rec {
 
   npmDepsHash = "sha256-aBzVz78IxZQlzPYC72Ufa2YFtkow6nZR24YBYZrv9W0=";
 
+  # UI host API - lets pi-remote run as an extension instead of the launch wrapper.
+  # Rebase on every version bump; the tests in the patch are not run by this build.
+  patches = [ ./ui-host.patch ];
+
   nativeBuildInputs = [ pkg-config makeWrapper ];
 
   buildInputs = [

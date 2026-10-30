@@ -20,10 +20,16 @@ Built from the `earendil-works/pi-mono` monorepo with `buildNpmPackage`, pinned 
 
 `installPhase` copies `node_modules` and `packages/` into `$out/lib/pi-coding-agent` and writes `$out/bin/pi` as a one-line ESM shim importing `packages/coding-agent/dist/cli.js`. The wrapper adds `nodejs_22` plus `firefox`/`geckodriver` for Firefox-based fetching. Camoufox downloads an upstream browser binary, so the wrapper must expose its runtime libraries with `LD_LIBRARY_PATH`; launch testing found `alsa-lib`, `gtk3`, and `libX11` sufficient on x86_64 Linux. The `pixman`/`cairo`/`pango`/`libjpeg`/`giflib`/`librsvg` build inputs serve the browser path too.
 
+## UI Host Patch
+
+`ui-host.patch` provides API v2 for the pi-remote extension: module substitution, manifest load priority, and a UI provider receiving Pi's existing session and command actions. Extension mode replaces the terminal renderer; Pi still owns session replacement and shutdown. Keep its API version aligned with `packages/pi-remote`.
+
+Rebase against the pristine release tag when updating Pi; experimental terminal-bridge work in the pi-remote scratch checkout is unrelated and must stay out of this patch. Confirm `git apply --check` and build both packages before shipping.
+
 ## Backwards Compatibility
 
 Add backwards-compatibility code only with explicit permission from the user in the current conversation. When a task looks like it calls for a compatibility layer, alias, re-export, fallback, or deprecated path, stop and ask for that permission first; the default is a clean cutover that updates every caller. Autonomous compatibility code is what makes these derivations and their patches hard to read.
 
 ## Lockfile
 
-There is no package-local lockfile step: the derivation builds against the tagged release's own `package-lock.json` plus `npmDepsHash`, so refresh that hash from the FOD mismatch after a version bump. (The obsolete `update-lockfile.mjs` that used to enrich a package-local lockfile has been removed. `packages/pi-web/` keeps a live version of that workflow with its own `update-lockfile.sh`.)
+The derivation uses the tagged release's own `package-lock.json` plus `npmDepsHash`; refresh that hash from the FOD mismatch after a version bump.

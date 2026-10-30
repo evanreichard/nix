@@ -87,6 +87,7 @@ let
   # Merged into the (mutable) settings.json on activation so pi can keep
   # writing other fields (current model, etc.) without us clobbering them.
   piPackages = [
+    "${pkgs.${namespace}.pi-remote}/lib/pi-remote"
     "https://gitea.va.reichard.io/evan/pi-session-broker.git@main"
     "https://gitea.va.reichard.io/evan/pi-web.git@main"
     "https://gitea.va.reichard.io/evan/pi-subagents.git@main"
@@ -225,6 +226,7 @@ in
     # is the bubblewrap-confined wrapper, installed when the sandbox is enabled.
     home.packages = [
       pkgs.${namespace}.pi-coding-agent
+      pkgs.${namespace}.pi-remote
     ]
     ++ lib.optional cfg.sandbox.enable piSandboxed;
 
