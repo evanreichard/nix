@@ -101,6 +101,12 @@ let
 
   piPackagesJson = pkgs.writeText "pi-packages.json" (builtins.toJSON piPackages);
 
+  # Pi Remote Client - The extension reads this file; the token is a placeholder until the hub is deployed.
+  piRemoteClient = {
+    serverUrl = "https://pi-remote.va.reichard.io";
+    serverToken = "REPLACE_WITH_SERVER_TOKEN";
+  };
+
   piSessionBrokerConfigScript = pkgs.writeShellScript "pi-session-broker-config" ''
     set -euo pipefail
 
@@ -235,6 +241,10 @@ in
     home.file = {
       ".pi/agent/AGENTS.md" = {
         source = ../agent-shared/config/AGENTS.md;
+      };
+
+      ".pi/agent/pi-remote.json" = {
+        source = (pkgs.formats.json { }).generate "pi-remote.json" piRemoteClient;
       };
       ".pi/agent/usage.yaml" = {
         source = piUsageConfigFile;

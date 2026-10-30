@@ -40,9 +40,9 @@ buildNpmPackage rec {
 
   npmDepsHash = "sha256-aBzVz78IxZQlzPYC72Ufa2YFtkow6nZR24YBYZrv9W0=";
 
-  # UI host API - lets pi-remote run as an extension instead of the launch wrapper.
+  # Session bridge API - lets pi-remote attach to the stock interactive session as a client.
   # Rebase on every version bump; the tests in the patch are not run by this build.
-  patches = [ ./ui-host.patch ];
+  patches = [ ./session-bridge.patch ];
 
   nativeBuildInputs = [ pkg-config makeWrapper ];
 

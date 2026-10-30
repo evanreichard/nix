@@ -1,0 +1,627 @@
+diff --git i/packages/coding-agent/CHANGELOG.md w/packages/coding-agent/CHANGELOG.md
+index eaa3076..1923c78 100644
+--- i/packages/coding-agent/CHANGELOG.md
++++ w/packages/coding-agent/CHANGELOG.md
+@@ -1,5 +1,11 @@
+ # Changelog
+ 
++## [Unreleased]
++
++### Added
++
++- Added `pi.registerSessionBridge()` and `SESSION_BRIDGE_API_VERSION` for companion UIs attaching to Pi's existing interactive session while keeping its terminal renderer and lifecycle. See [session bridges](docs/session-bridge.md).
++
+ ## [1.4.0] - 2026-10-21
+ 
+ ### New Features
+diff --git i/packages/coding-agent/docs/extensions.md w/packages/coding-agent/docs/extensions.md
+index 5cdb83b..8f2e16e 100644
+--- i/packages/coding-agent/docs/extensions.md
++++ w/packages/coding-agent/docs/extensions.md
+@@ -365,6 +365,8 @@ Interactive mode provides the complete terminal UI.
+ RPC can forward supported dialogs and notifications through the [RPC Extension UI protocol](rpc-extension-ui.md), but not custom terminal components; JSON and print modes have no UI.
+ Guard terminal-only behavior with `ctx.mode === "tui"` and use `ctx.hasUI` for interactions supported by interactive and RPC clients.
+ 
++Companion UIs can attach to the existing interactive session through [session bridges](session-bridge.md) without replacing the terminal renderer or extension component classes.
++
+ Keep tool and event behavior independent from rendering so non-interactive modes remain functional.
+ 
+ <a id="error-handling"></a>
+diff --git i/packages/coding-agent/docs/session-bridge.md w/packages/coding-agent/docs/session-bridge.md
+new file mode 100644
+index 0000000..85022a7
+--- /dev/null
++++ w/packages/coding-agent/docs/session-bridge.md
+@@ -0,0 +1,24 @@
++# Session bridges
++
++A companion extension can attach to the current interactive session without starting another renderer or replacing the terminal UI. Register a synchronous factory with `pi.registerSessionBridge()`, and feature-detect `SESSION_BRIDGE_API_VERSION` from the package namespace before using it.
++
++```ts
++import * as sdk from "@earendil-works/pi-coding-agent";
++
++export default function (pi) {
++  if (sdk.SESSION_BRIDGE_API_VERSION !== 1 || typeof pi.registerSessionBridge !== "function") return;
++  pi.registerSessionBridge(({ session, ui, terminal }) => {
++    // Observe the existing session and terminal; returning nothing leaves ctx.ui unchanged.
++  });
++}
++```
++
++Pi calls each registered factory during interactive extension binding, before `session_start`. The context contains the existing `AgentSession`, its bound command actions, the stock `ExtensionUIContext`, and a narrow terminal handle. Factories may return a wrapped UI context; this changes what extensions receive, not which terminal renderer runs. Pi preserves the stock base context rather than feeding a previous wrapper back through a new binding. Bridges are not invoked in RPC, print, or JSON modes.
++
++The terminal handle exposes currently mounted extension components, editor text, queued compaction input, render-change subscriptions, notifications, input routing, and complete prompt submission through the stock editor path. Components are the actual live instances. Observers must not dispose them, run their factories again, or start a second terminal input loop. `getVisibleOverlayComponents()` and `dispatchInput()` on the TUI provide visibility and the same input pipeline used by the terminal.
++
++A bridge must release its own subscriptions and connections in `session_shutdown`. Reload and session replacement load a fresh extension runtime and bind the new bridge before emitting its `session_start`. Captured contexts belong to the old runtime afterward. Pi retains ownership of session changes, aborts, signals, renderer setup, and disposal.
++
++A factory failure is reported as an extension error and leaves the preceding UI context active, so a failed optional companion cannot prevent the local terminal from starting. Callback errors from render-change subscriptions are isolated from terminal rendering.
++
++The API exposes terminal component objects, not rendered snapshots or a remote protocol. The companion owns semantic descriptions, network transport, access control, and how unsupported components appear remotely. No module substitutions or load-order priority are required.
+diff --git i/packages/coding-agent/src/core/agent-session.ts w/packages/coding-agent/src/core/agent-session.ts
+index 3a9174c..8c70887 100644
+--- i/packages/coding-agent/src/core/agent-session.ts
++++ w/packages/coding-agent/src/core/agent-session.ts
+@@ -120,6 +120,7 @@ import type { ModelRuntime } from "./model-runtime.ts";
+ import { NestedToolCallRunner } from "./nested-tool-calls.ts";
+ import { expandPromptTemplate, type PromptTemplate } from "./prompt-templates.ts";
+ import type { ResourceExtensionPaths, ResourceLoader } from "./resource-loader.ts";
++import type { SessionBridgeTerminal } from "./session-bridge.ts";
+ import { exportSessionToJsonl } from "./session-export.ts";
+ import {
+ 	type BranchSummaryEntry,
+@@ -301,6 +302,7 @@ export interface AgentSessionConfig {
+ 
+ export interface ExtensionBindings {
+ 	uiContext?: ExtensionUIContext;
++	terminal?: SessionBridgeTerminal;
+ 	mode?: ExtensionMode;
+ 	commandContextActions?: ExtensionCommandContextActions;
+ 	abortHandler?: () => void;
+@@ -458,6 +460,7 @@ export class AgentSession {
+ 	private _baseToolsOverride?: Record<string, AgentTool>;
+ 	private _sessionStartEvent: SessionStartEvent;
+ 	private _extensionUIContext?: ExtensionUIContext;
++	private _extensionTerminal?: SessionBridgeTerminal;
+ 	private _extensionMode: ExtensionMode = "print";
+ 	private _extensionCommandContextActions?: ExtensionCommandContextActions;
+ 	private _extensionAbortHandler?: () => void;
+@@ -3316,6 +3319,7 @@ export class AgentSession {
+ 	}
+ 
+ 	async bindExtensions(bindings: ExtensionBindings): Promise<void> {
++		if (bindings.terminal !== undefined) this._extensionTerminal = bindings.terminal;
+ 		if (bindings.uiContext !== undefined) {
+ 			this._extensionUIContext = bindings.uiContext;
+ 		}
+@@ -3394,13 +3398,21 @@ export class AgentSession {
+ 	}
+ 
+ 	private _applyExtensionBindings(runner: ExtensionRunner): void {
+-		runner.setUIContext(this._extensionUIContext, this._extensionMode);
+-		runner.bindCommandContext(this._extensionCommandContextActions);
+-
+ 		this._extensionErrorUnsubscriber?.();
+ 		this._extensionErrorUnsubscriber = this._extensionErrorListener
+ 			? runner.onError(this._extensionErrorListener)
+ 			: undefined;
++		let ui = this._extensionUIContext;
++		if (this._extensionMode === "tui" && ui && this._extensionTerminal && this._extensionCommandContextActions) {
++			ui = runner.bindSessionBridges({
++				session: this,
++				ui,
++				terminal: this._extensionTerminal,
++				actions: this._extensionCommandContextActions,
++			});
++		}
++		runner.setUIContext(ui, this._extensionMode);
++		runner.bindCommandContext(this._extensionCommandContextActions);
+ 	}
+ 
+ 	private _refreshCurrentModelFromRegistry(): void {
+diff --git i/packages/coding-agent/src/core/extensions/loader.ts w/packages/coding-agent/src/core/extensions/loader.ts
+index cbc1100..8df6314 100644
+--- i/packages/coding-agent/src/core/extensions/loader.ts
++++ w/packages/coding-agent/src/core/extensions/loader.ts
+@@ -17,6 +17,7 @@ import type { ExecOptions } from "../exec.ts";
+ import { execCommand } from "../exec.ts";
+ import { type McpServerConfig, McpServerRegistry, mcpNamespace, validateMcpServerConfig } from "../mcp-servers.ts";
+ import { readPiManifest } from "../pi-manifest.ts";
++import type { SessionBridgeFactory } from "../session-bridge.ts";
+ import { createSyntheticSourceInfo, getSyntheticPathSource, isSyntheticPath } from "../source-info.ts";
+ import { time } from "../timings.ts";
+ import type { ModelRouteRequest, VirtualModelDefinition } from "../virtual-models.ts";
+@@ -373,6 +374,13 @@ function createExtensionAPI(
+ 			extension.toolRenderers.push(resolver);
+ 		},
+ 
++		registerSessionBridge(factory: SessionBridgeFactory): void {
++			assertActive();
++			if (typeof factory !== "function") throw new Error("A session bridge must be a function");
++			if (extension.sessionBridge) throw new Error("This extension already registered a session bridge");
++			extension.sessionBridge = factory;
++		},
++
+ 		// Flag access - checks extension registered it, reads from runtime
+ 		getFlag(name: string): boolean | string | undefined {
+ 			assertActive();
+diff --git i/packages/coding-agent/src/core/extensions/runner.ts w/packages/coding-agent/src/core/extensions/runner.ts
+index 77712e6..dd8ebaf 100644
+--- i/packages/coding-agent/src/core/extensions/runner.ts
++++ w/packages/coding-agent/src/core/extensions/runner.ts
+@@ -17,6 +17,7 @@ import type { ResourceDiagnostic } from "../diagnostics.ts";
+ import type { KeybindingsConfig } from "../keybindings.ts";
+ import type { ModelRegistry } from "../model-registry.ts";
+ import type { ScopedModel } from "../model-resolver.ts";
++import type { SessionBridgeContext } from "../session-bridge.ts";
+ import type { SessionManager } from "../session-manager.ts";
+ import {
+ 	type BuildSystemPromptOptions,
+@@ -569,6 +570,25 @@ export class ExtensionRunner {
+ 		this.reloadHandler = async () => {};
+ 	}
+ 
++	bindSessionBridges(context: SessionBridgeContext): ExtensionUIContext {
++		let ui = context.ui;
++		for (const extension of this.extensions) {
++			try {
++				const next = extension.sessionBridge?.({ ...context, ui });
++				if (next && typeof (next as unknown as { then?: unknown }).then === "function")
++					throw new Error("Session bridge factories must be synchronous");
++				ui = next ?? ui;
++			} catch (error) {
++				this.emitError({
++					extensionPath: extension.path,
++					event: "session_start",
++					error: error instanceof Error ? error.message : String(error),
++				});
++			}
++		}
++		return ui;
++	}
++
+ 	setUIContext(uiContext?: ExtensionUIContext, mode: ExtensionMode = "print"): void {
+ 		this.uiContext = uiContext ? this.wrapUIPromptContext(uiContext) : noOpUIContext;
+ 		this.mode = mode;
+diff --git i/packages/coding-agent/src/core/extensions/types.ts w/packages/coding-agent/src/core/extensions/types.ts
+index 60388c0..8ea1bd3 100644
+--- i/packages/coding-agent/src/core/extensions/types.ts
++++ w/packages/coding-agent/src/core/extensions/types.ts
+@@ -67,6 +67,7 @@ import type { McpServerConfig, McpServerRegistry, RegisteredMcpServer } from "..
+ import type { CustomMessage } from "../messages.ts";
+ import type { ModelRegistry } from "../model-registry.ts";
+ import type { ScopedModel } from "../model-resolver.ts";
++import type { SessionBridgeFactory } from "../session-bridge.ts";
+ import type {
+ 	BranchSummaryEntry,
+ 	CompactionEntry,
+@@ -1723,6 +1724,9 @@ export interface ExtensionAPI {
+ 	/** Choose how tool calls are drawn. Resolvers run in extension load order. */
+ 	registerToolRenderer(resolver: ToolRendererResolver): void;
+ 
++	/** Attach a companion UI to Pi's existing interactive session without replacing its terminal. */
++	registerSessionBridge(factory: SessionBridgeFactory): void;
++
+ 	// =========================================================================
+ 	// Actions
+ 	// =========================================================================
+@@ -2276,6 +2280,7 @@ export interface Extension {
+ 	tools: Map<string, RegisteredTool>;
+ 	messageRenderers: Map<string, MessageRenderer>;
+ 	toolRenderers?: ToolRendererResolver[];
++	sessionBridge?: SessionBridgeFactory;
+ 	markdownTransformer?: MarkdownTransformer;
+ 	entryRenderers?: Map<string, EntryRenderer>;
+ 	commands: Map<string, RegisteredCommand>;
+diff --git i/packages/coding-agent/src/core/session-bridge.ts w/packages/coding-agent/src/core/session-bridge.ts
+new file mode 100644
+index 0000000..405a8c0
+--- /dev/null
++++ w/packages/coding-agent/src/core/session-bridge.ts
+@@ -0,0 +1,35 @@
++import type { Component } from "@earendil-works/pi-tui";
++import type { AgentSession } from "./agent-session.ts";
++import type { ExtensionCommandContextActions, ExtensionUIContext } from "./extensions/types.ts";
++
++export const SESSION_BRIDGE_API_VERSION = 1;
++
++export interface SessionBridgeComponent {
++	component: Component;
++	placement: "header" | "aboveEditor" | "belowEditor" | "footer" | "dialog";
++	title?: string;
++}
++
++export interface SessionBridgeTerminal {
++	readonly columns: number;
++	getComponents(): SessionBridgeComponent[];
++	getEditorText(): string;
++	setEditorText(text: string): void;
++	submit(text: string): Promise<void>;
++	dispatchInput(component: Component, data: string): void;
++	notify(message: string, level?: "info" | "warning" | "error"): void;
++	requestRender(): void;
++	subscribe(listener: () => void): () => void;
++	getCompactionQueue(): { text: string; mode: "steer" | "followUp" }[];
++	queueChanged(): void;
++}
++
++export interface SessionBridgeContext {
++	readonly session: AgentSession;
++	readonly actions: ExtensionCommandContextActions;
++	readonly ui: ExtensionUIContext;
++	readonly terminal: SessionBridgeTerminal;
++}
++
++/** Attach to the existing interactive session; an optional return value wraps extension UI without replacing the terminal. */
++export type SessionBridgeFactory = (context: SessionBridgeContext) => ExtensionUIContext | undefined;
+diff --git i/packages/coding-agent/src/index.ts w/packages/coding-agent/src/index.ts
+index 0b8fb1d..f4c48ab 100644
+--- i/packages/coding-agent/src/index.ts
++++ w/packages/coding-agent/src/index.ts
+@@ -275,6 +275,13 @@ export {
+ 	createWriteTool,
+ 	type PromptTemplate,
+ } from "./core/sdk.ts";
++export {
++	SESSION_BRIDGE_API_VERSION,
++	type SessionBridgeComponent,
++	type SessionBridgeContext,
++	type SessionBridgeFactory,
++	type SessionBridgeTerminal,
++} from "./core/session-bridge.ts";
+ export {
+ 	type BranchSummaryEntry,
+ 	buildContextEntries,
+diff --git i/packages/coding-agent/src/modes/interactive/interactive-mode.ts w/packages/coding-agent/src/modes/interactive/interactive-mode.ts
+index e24d150..7084a76 100644
+--- i/packages/coding-agent/src/modes/interactive/interactive-mode.ts
++++ w/packages/coding-agent/src/modes/interactive/interactive-mode.ts
+@@ -106,6 +106,7 @@ import { CredentialSynchronizationError } from "../../core/model-runtime.ts";
+ import { DefaultPackageManager } from "../../core/package-manager.ts";
+ import { RADIUS_MCP_URL, RADIUS_PROVIDER_ID } from "../../core/radius.ts";
+ import type { ResourceDiagnostic } from "../../core/resource-loader.ts";
++import type { SessionBridgeComponent, SessionBridgeTerminal } from "../../core/session-bridge.ts";
+ import { formatMissingSessionCwdPrompt, MissingSessionCwdError } from "../../core/session-cwd.ts";
+ import {
+ 	type SessionEntry,
+@@ -545,6 +546,9 @@ export class InteractiveMode {
+ 
+ 	// Messages queued while compaction is running
+ 	private compactionQueuedMessages: CompactionQueuedMessage[] = [];
++	private sessionBridgeListeners = new Set<() => void>();
++	private sessionBridgeRenderers = new WeakSet<object>();
++	private sessionBridgeFrameHandlers: (() => void)[] = [];
+ 
+ 	// Shutdown state
+ 	private shutdownRequested = false;
+@@ -873,6 +877,20 @@ export class InteractiveMode {
+ 	}
+ 
+ 	private mountInteractiveTui(tui: TuiMainScreen | TuiAltScreen, components: readonly Component[]): void {
++		if (!this.sessionBridgeRenderers.has(tui)) {
++			this.sessionBridgeRenderers.add(tui);
++			this.sessionBridgeFrameHandlers.push(
++				tui.onFrame(() => {
++					for (const listener of this.sessionBridgeListeners) {
++						try {
++							listener();
++						} catch (error) {
++							console.error(error);
++						}
++					}
++				}),
++			);
++		}
+ 		for (const component of components) tui.addChild(component);
+ 		if (TuiLayouts.isViewportTUI(tui)) {
+ 			if (!this.fullscreenLayoutRoot) throw new Error("Fullscreen layout is not initialized");
+@@ -1974,6 +1992,7 @@ export class InteractiveMode {
+ 		const uiContext = this.createExtensionUIContext();
+ 		await this.session.bindExtensions({
+ 			uiContext,
++			terminal: this.createSessionBridgeTerminal(),
+ 			mode: "tui",
+ 			abortHandler: () => {
+ 				this.restoreQueuedMessagesToEditor({ abort: true });
+@@ -2047,6 +2066,65 @@ export class InteractiveMode {
+ 		this.showStartupNoticesIfNeeded();
+ 	}
+ 
++	private createSessionBridgeTerminal(): SessionBridgeTerminal {
++		const mode = this;
++		return {
++			get columns() {
++				return mode.renderer.terminal.columns;
++			},
++			getComponents: () => {
++				const components: SessionBridgeComponent[] = [];
++				const add = (
++					component: Component | undefined,
++					placement: SessionBridgeComponent["placement"],
++					title?: string,
++				) => {
++					if (component) components.push({ component, placement, title });
++				};
++				add(this.customHeader, "header");
++				for (const component of this.extensionWidgetsAbove.values()) add(component, "aboveEditor");
++				for (const component of this.extensionWidgetsBelow.values()) add(component, "belowEditor");
++				add(this.customFooter, "footer");
++				const top = this.extensionDialogs.at(-1);
++				for (const component of this.editorContainer.children) {
++					if (component !== this.editor)
++						add(component, "dialog", component === top?.component ? top.blocked?.message : undefined);
++				}
++				for (const component of this.renderer.getVisibleOverlayComponents()) add(component, "dialog");
++				return components;
++			},
++			getEditorText: () => this.editor.getExpandedText?.() ?? this.editor.getText(),
++			setEditorText: (text) => {
++				this.editor.setText(text);
++				this.ui.requestRender();
++			},
++			submit: async (text) => {
++				if (this.extensionDialogs.length || this.renderer.hasOverlayEntries)
++					throw new Error("Complete the active interaction first");
++				this.editor.setText("");
++				await this.editor.onSubmit?.(text);
++				this.ui.requestRender();
++			},
++			dispatchInput: (component, data) => {
++				this.ui.setFocus(component);
++				this.renderer.dispatchInput(data);
++			},
++			notify: (message, level = "info") => this.showExtensionNotify(message, level),
++			requestRender: () => this.ui.requestRender(),
++			subscribe: (listener) => {
++				this.sessionBridgeListeners.add(listener);
++				return () => {
++					this.sessionBridgeListeners.delete(listener);
++				};
++			},
++			getCompactionQueue: () => this.compactionQueuedMessages,
++			queueChanged: () => {
++				this.updatePendingMessagesDisplay();
++				this.ui.requestRender();
++			},
++		};
++	}
++
+ 	private applyFullscreenScrollbarSetting(): void {
+ 		this.transcriptScrollView?.setScrollbar(this.settingsManager.getFullscreenScrollbar());
+ 	}
+@@ -7061,6 +7139,7 @@ export class InteractiveMode {
+ 	}
+ 
+ 	stop(fullscreenExitOutput = this.settingsManager.getFullscreenExitOutput()): void {
++		for (const off of this.sessionBridgeFrameHandlers.splice(0)) off();
+ 		this.disposeActiveSelector();
+ 		if (this.settingsManager.getShowTerminalProgress()) {
+ 			this.ui.terminal.setProgress(false);
+diff --git i/packages/coding-agent/test/session-bridge.test.ts w/packages/coding-agent/test/session-bridge.test.ts
+new file mode 100644
+index 0000000..085517b
+--- /dev/null
++++ w/packages/coding-agent/test/session-bridge.test.ts
+@@ -0,0 +1,141 @@
++import { mkdtempSync, rmSync } from "node:fs";
++import { tmpdir } from "node:os";
++import { join } from "node:path";
++import { afterEach, describe, expect, it } from "vitest";
++import { VirtualTerminal } from "../../tui/test/virtual-terminal.ts";
++import {
++	createAgentSessionFromServices,
++	createAgentSessionRuntime,
++	createAgentSessionServices,
++} from "../src/core/agent-session-runtime.ts";
++import type { ExtensionAPI } from "../src/core/extensions/types.ts";
++import type { SessionBridgeContext } from "../src/core/session-bridge.ts";
++import { SessionManager } from "../src/core/session-manager.ts";
++import { SettingsManager } from "../src/core/settings-manager.ts";
++import { InteractiveMode } from "../src/modes/interactive/interactive-mode.ts";
++import { initTheme, stopThemeWatcher } from "../src/modes/interactive/theme/theme.ts";
++
++const cleanup: (() => Promise<void> | void)[] = [];
++afterEach(async () => {
++	while (cleanup.length) await cleanup.pop()?.();
++});
++
++async function createMode(register: (pi: ExtensionAPI) => void) {
++	const dir = mkdtempSync(join(tmpdir(), "pi-session-bridge-"));
++	cleanup.push(() => rmSync(dir, { recursive: true, force: true }));
++	const agentDir = join(dir, "agent");
++	const runtime = await createAgentSessionRuntime(
++		async ({ cwd, sessionManager, sessionStartEvent }) => {
++			const services = await createAgentSessionServices({
++				cwd,
++				agentDir,
++				settingsManager: SettingsManager.inMemory({ defaultProjectTrust: "always", quietStartup: true }),
++				resourceLoaderOptions: {
++					extensionFactories: [register],
++					noSkills: true,
++					noPromptTemplates: true,
++					noThemes: true,
++				},
++			});
++			return {
++				...(await createAgentSessionFromServices({ services, sessionManager, sessionStartEvent, noTools: "all" })),
++				services,
++				diagnostics: services.diagnostics,
++			};
++		},
++		{ cwd: dir, agentDir, sessionManager: SessionManager.create(dir) },
++	);
++	initTheme("dark", false);
++	const terminal = new VirtualTerminal(100, 30);
++	const mode = new InteractiveMode(runtime, { terminal });
++	cleanup.push(async () => {
++		mode.stop();
++		await runtime.dispose();
++		stopThemeWatcher();
++	});
++	await mode.init();
++	return { runtime, terminal, mode };
++}
++
++describe("session bridges", () => {
++	it("keeps the stock interactive mode, editor, footer, and session while attaching a companion", async () => {
++		const contexts: SessionBridgeContext[] = [];
++		const starts: string[] = [];
++		const { runtime, terminal } = await createMode((pi) => {
++			pi.registerSessionBridge((context) => {
++				contexts.push(context);
++			});
++			pi.on("session_start", (event, ctx) => {
++				starts.push(event.reason);
++				ctx.ui.setFooter(() => ({ render: () => ["stock footer still works"], invalidate() {} }));
++			});
++		});
++		expect(contexts).toHaveLength(1);
++		expect(contexts[0].session).toBe(runtime.session);
++		expect(starts).toEqual(["startup"]);
++		const bridge = contexts[0].terminal;
++		bridge.setEditorText("same editor");
++		expect(bridge.getEditorText()).toBe("same editor");
++		expect(
++			bridge
++				.getComponents()
++				.find((value) => value.placement === "footer")
++				?.component.render(100),
++		).toEqual(["stock footer still works"]);
++		await terminal.waitForRender();
++		expect(terminal.getViewport().join("\n")).toContain("stock footer still works");
++	});
++
++	it("rebinds the bridge before reload session_start and preserves the stock base UI", async () => {
++		const contexts: SessionBridgeContext[] = [];
++		const wrappedNotify: unknown[] = [];
++		const starts: number[] = [];
++		await createMode((pi) => {
++			pi.registerSessionBridge((context) => {
++				contexts.push(context);
++				const notify = (...args: Parameters<typeof context.ui.notify>) => context.ui.notify(...args);
++				wrappedNotify.push(notify);
++				return { ...context.ui, notify };
++			});
++			pi.on("session_start", () => {
++				starts.push(contexts.length);
++			});
++		});
++		const first = contexts[0];
++		await first.actions.reload();
++		expect(starts).toEqual([1, 2]);
++		expect(contexts).toHaveLength(2);
++		expect(contexts[1].ui.notify).not.toBe(wrappedNotify[0]);
++		expect(contexts[1].session).toBe(first.session);
++	});
++
++	it("uses the replacement session instead of retaining the previous bridge", async () => {
++		const contexts: SessionBridgeContext[] = [];
++		const { runtime } = await createMode((pi) => {
++			pi.registerSessionBridge((context) => {
++				contexts.push(context);
++			});
++		});
++		const first = runtime.session;
++		await contexts[0].actions.newSession();
++		expect(contexts).toHaveLength(2);
++		expect(contexts[1].session).toBe(runtime.session);
++		expect(runtime.session).not.toBe(first);
++	});
++
++	it("reports a failed companion without aborting other extension startup or the TUI", async () => {
++		let starts = 0;
++		const { terminal } = await createMode((pi) => {
++			pi.registerSessionBridge(() => {
++				throw new Error("companion failed");
++			});
++			pi.on("session_start", (_event, ctx) => {
++				starts++;
++				ctx.ui.setEditorText("still interactive");
++			});
++		});
++		expect(starts).toBe(1);
++		await terminal.waitForRender();
++		expect(terminal.getViewport().join("\n")).toContain("still interactive");
++	});
++});
+diff --git i/packages/tui/src/tui.ts w/packages/tui/src/tui.ts
+index d888940..0df37c6 100644
+--- i/packages/tui/src/tui.ts
++++ w/packages/tui/src/tui.ts
+@@ -483,6 +483,8 @@ export interface TUI extends Component {
+ 	renderNow(force?: boolean): void;
+ 	requestRender(force?: boolean): void;
+ 	addInputListener(listener: TuiInputListener): () => void;
++	/** Called once per queued frame, after the render request is accepted. */
++	onFrame(listener: () => void): () => void;
+ 	removeInputListener(listener: TuiInputListener): void;
+ 	onTerminalColorSchemeChange(listener: (scheme: TerminalColorScheme) => void): () => void;
+ 	setTerminalColorSchemeNotifications(enabled: boolean): void;
+@@ -538,6 +540,42 @@ export abstract class TuiBase extends Container implements TUI {
+ 	get hasOverlayEntries(): boolean {
+ 		return this.overlayStack.length > 0;
+ 	}
++
++	getVisibleOverlayComponents(): Component[] {
++		return this.overlayStack
++			.filter((entry) => this.isOverlayVisible(entry))
++			.sort((a, b) => a.focusOrder - b.focusOrder)
++			.map((entry) => entry.component);
++	}
++
++	dispatchInput(data: string): void {
++		this.handleTerminalInput(data);
++	}
++
++	onFrame(listener: () => void): () => void {
++		this.frameListeners.add(listener);
++		return () => {
++			this.frameListeners.delete(listener);
++		};
++	}
++
++	private frameListeners = new Set<() => void>();
++	private frameNotified = false;
++
++	private notifyFrame(): void {
++		if (this.frameNotified || this.frameListeners.size === 0) return;
++		this.frameNotified = true;
++		queueMicrotask(() => {
++			this.frameNotified = false;
++			for (const listener of this.frameListeners) {
++				try {
++					listener();
++				} catch (error) {
++					console.error(error);
++				}
++			}
++		});
++	}
+ 	private overlayFocusRestore: OverlayFocusRestoreState = { status: "inactive" };
+ 
+ 	constructor(terminal: Terminal, showHardwareCursor?: boolean, logDirectory?: string) {
+@@ -1017,6 +1055,7 @@ export abstract class TuiBase extends Container implements TUI {
+ 	}
+ 
+ 	renderNow(force = false): void {
++		this.notifyFrame();
+ 		if (force) this.resetRenderState();
+ 		this.renderRequested = false;
+ 		this.cancelRenderTimer();
+@@ -1025,6 +1064,7 @@ export abstract class TuiBase extends Container implements TUI {
+ 	}
+ 
+ 	requestRender(force = false): void {
++		this.notifyFrame();
+ 		if (force) {
+ 			this.resetRenderState();
+ 			this.requestImmediateRender();
+@@ -1052,8 +1092,7 @@ export abstract class TuiBase extends Container implements TUI {
+ 		});
+ 	}
+ 
+-	private cancelRenderTimer(): void {
+-		if (!this.renderTimer) return;
++	private cancelRenderTimer(): void {		if (!this.renderTimer) return;
+ 		clearTimeout(this.renderTimer);
+ 		this.renderTimer = undefined;
+ 	}
