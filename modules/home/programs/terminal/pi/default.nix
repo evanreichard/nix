@@ -41,12 +41,29 @@ let
 
   zaiPolicy = {
     usage.windows = {
-      tokens = { suspendAt = "85%"; resumeBelow = "80%"; };
-      requests = { suspendAt = "90%"; resumeBelow = "85%"; };
+      tokens = {
+        suspendAt = "85%";
+        resumeBelow = "80%";
+      };
+      requests = {
+        suspendAt = "90%";
+        resumeBelow = "85%";
+      };
     };
   };
-  route = provider: model: thinking: policy:
-    if policy == null then { inherit provider model thinking; } else { inherit provider model thinking policy; };
+  route =
+    provider: model: thinking: policy:
+    if policy == null then
+      { inherit provider model thinking; }
+    else
+      {
+        inherit
+          provider
+          model
+          thinking
+          policy
+          ;
+      };
 
   piUsageConfig = {
     version = 1;
@@ -56,8 +73,14 @@ let
     policy.usage = {
       maxAge = "10m";
       windows = {
-        rolling = { suspendAt = "85%"; resumeBelow = "80%"; };
-        weekly = { suspendAt = "90%"; resumeBelow = "85%"; };
+        rolling = {
+          suspendAt = "85%";
+          resumeBelow = "80%";
+        };
+        weekly = {
+          suspendAt = "90%";
+          resumeBelow = "85%";
+        };
       };
     };
     modes = {
@@ -87,7 +110,7 @@ let
   # Merged into the (mutable) settings.json on activation so pi can keep
   # writing other fields (current model, etc.) without us clobbering them.
   piPackages = [
-    "${pkgs.${namespace}.pi-remote}/lib/pi-remote"
+    "https://gitea.va.reichard.io/evan/pi-remote.git@main"
     "https://gitea.va.reichard.io/evan/pi-session-broker.git@main"
     "https://gitea.va.reichard.io/evan/pi-web.git@main"
     "https://gitea.va.reichard.io/evan/pi-subagents.git@main"
@@ -100,7 +123,6 @@ let
   ];
 
   piPackagesJson = pkgs.writeText "pi-packages.json" (builtins.toJSON piPackages);
-
 
   piSessionBrokerConfigScript = pkgs.writeShellScript "pi-session-broker-config" ''
     set -euo pipefail

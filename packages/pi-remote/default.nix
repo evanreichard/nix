@@ -12,12 +12,12 @@ buildNpmPackage rec {
 
   src = fetchgit {
     url = "https://gitea.va.reichard.io/evan/pi-remote.git";
-    rev = "ec582934e31be0d8de2c323cfec43bb357ac3780";
-    hash = "sha256-/hZ0bnhOJOFyOH+Qr6OlNOY/rQIDZ75ycPLZcba5cts=";
+    rev = "43fd2d456d2a6270df3bb2d8cb8ab4910373c6cd";
+    hash = "sha256-L7dEpzAc1myTth/y5qWLf47imUCDImGIfUuJdspDI6I=";
   };
 
   nodejs = nodejs_22;
-  npmDepsHash = "sha256-XYgEFmrmJUPNgk1691Q3zEQ64Uo/a3It6rH13dKdQz0=";
+  npmDepsHash = "sha256-ygIwmycP1sUwySCnfDpQNGknEoCe2VD8TO4VlqONHt4=";
   npmFlags = [ "--legacy-peer-deps" ];
   nativeBuildInputs = [ makeWrapper ];
 
