@@ -12,8 +12,8 @@ buildNpmPackage rec {
 
   src = fetchgit {
     url = "https://gitea.va.reichard.io/evan/pi-remote.git";
-    rev = "0c18b560f5334663a75c1e73bb8e2a06417ad9aa";
-    hash = "sha256-OyY0UQyEut+9sg1pHxPSrM/3HmcxzqTYtHaFt2nk3Mc=";
+    rev = "ebf01cdc0f5fc2a85877cf89189dbe59732a90f9";
+    hash = "sha256-UHX1BRMVA7LjYhFqgTed9gVLuK9VH7VIyKWAunT6d58=";
   };
 
   nodejs = nodejs_22;
