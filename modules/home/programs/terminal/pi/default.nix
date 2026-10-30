@@ -101,11 +101,6 @@ let
 
   piPackagesJson = pkgs.writeText "pi-packages.json" (builtins.toJSON piPackages);
 
-  # Pi Remote Client - The extension reads this file; the token is a placeholder until the hub is deployed.
-  piRemoteClient = {
-    serverUrl = "https://pi-remote.va.reichard.io";
-    serverToken = "REPLACE_WITH_SERVER_TOKEN";
-  };
 
   piSessionBrokerConfigScript = pkgs.writeShellScript "pi-session-broker-config" ''
     set -euo pipefail
@@ -243,9 +238,6 @@ in
         source = ../agent-shared/config/AGENTS.md;
       };
 
-      ".pi/agent/pi-remote.json" = {
-        source = (pkgs.formats.json { }).generate "pi-remote.json" piRemoteClient;
-      };
       ".pi/agent/usage.yaml" = {
         source = piUsageConfigFile;
       };
@@ -272,6 +264,8 @@ in
         };
         pi_session_broker_token = { };
         pi_session_broker_endpoint = { };
+        pi_remote_token = { };
+        pi_remote_endpoint = { };
       }
       // lib.listToAttrs (
         map
@@ -281,6 +275,13 @@ in
           })
           piAuthApiKeys
       );
+      templates."pi-remote.json" = {
+        path = "${config.home.homeDirectory}/.pi/agent/pi-remote.json";
+        content = builtins.toJSON {
+          serverUrl = config.sops.placeholder.pi_remote_endpoint;
+          serverToken = config.sops.placeholder.pi_remote_token;
+        };
+      };
       templates."pi-session-broker.json" = {
         content = builtins.toJSON {
           gatewayUrl = config.sops.placeholder.pi_session_broker_endpoint;
