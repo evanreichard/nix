@@ -36,6 +36,7 @@ in
         conduit = enabled;
         direnv = enabled;
         git = enabled;
+        herdr = enabled;
         k9s = enabled;
         nvim = enabled;
         omp = enabled;
