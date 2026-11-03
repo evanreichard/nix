@@ -1,4 +1,5 @@
 { lib
+, stdenv
 , buildNpmPackage
 , fetchFromGitHub
 , fetchurl
@@ -78,6 +79,21 @@ buildNpmPackage rec {
     runHook postBuild
   '';
 
+  # Camoufox downloads an upstream browser binary that is not Nix-patched. LD_LIBRARY_PATH is Linux-only and
+  # alsa-lib has no Darwin build, so the library prefix is omitted there.
+  wrapArgs =
+    [ "--prefix" "PATH" ":" (lib.makeBinPath [ nodejs_22 firefox geckodriver ]) ]
+    ++ lib.optionals stdenv.isLinux [
+      "--prefix"
+      "LD_LIBRARY_PATH"
+      ":"
+      (lib.makeLibraryPath [
+        alsa-lib
+        gtk3
+        libX11
+      ])
+    ];
+
   installPhase = ''
       runHook preInstall
 
@@ -94,19 +110,7 @@ buildNpmPackage rec {
       chmod +x $out/bin/pi
 
       # Camoufox downloads an upstream browser binary that is not Nix-patched.
-      wrapProgram $out/bin/pi \
-        --prefix PATH : ${lib.makeBinPath [
-          nodejs_22
-          # evan/pi-web - Browser automation tools are needed for web-fetch support.
-          firefox
-          geckodriver
-        ]} \
-        --prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath [
-          alsa-lib
-          gtk3
-          libX11
-        ]}
-
+      wrapProgram $out/bin/pi ${lib.escapeShellArgs wrapArgs}
       runHook postInstall
   '';
 

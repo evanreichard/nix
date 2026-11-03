@@ -1,4 +1,5 @@
 { config
+, inputs
 , lib
 , pkgs
 , namespace
@@ -8,18 +9,23 @@ let
   inherit (lib) mkIf;
 
   cfg = config.${namespace}.virtualisation.podman;
+
+  # Podman Desktop - 26.05 pins Electron 42, which nixpkgs now marks EOL/insecure; unstable tracks a current Electron.
+  podmanDesktop = inputs.nixpkgs-unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system}.podman-desktop;
 in
 {
   options.${namespace}.virtualisation.podman = {
     enable = lib.mkEnableOption "podman";
     enableNvidia = lib.mkEnableOption "enable nvidia";
+    desktop = {
+      enable = lib.mkEnableOption "podman desktop GUI";
+    };
   };
 
   config = mkIf cfg.enable {
     environment.systemPackages = with pkgs; [
       podman-compose
-      podman-desktop
-    ];
+    ] ++ lib.optional cfg.desktop.enable podmanDesktop;
 
     reichard = {
       user = {

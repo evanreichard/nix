@@ -2,7 +2,6 @@
 , lib
 , config
 , namespace
-, osConfig
 , ...
 }:
 let
@@ -105,7 +104,7 @@ in
     size = 24;
   };
 
-  sops.secrets = lib.mkIf osConfig.${namespace}.security.sops.enable {
+  sops.secrets = lib.mkIf config.${namespace}.security.sops.enable {
     rke2_kubeconfig = {
       path = "${config.home.homeDirectory}/.kube/lin-va-kube";
     };

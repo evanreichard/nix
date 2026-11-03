@@ -26,7 +26,7 @@ Entrypoint. Inputs: `nixpkgs` (nixos-26.05), `nixpkgs-unstable`, `home-manager`,
 System-level NixOS and nix-darwin configurations, organized by architecture:
 
 - `systems/aarch64-linux/` — ARM Linux hosts (Asahi MacBook, Oracle Cloud nodes, headscale)
-- `systems/x86_64-linux/` — x86 Linux hosts (desktop, personal laptop, office, terminal, nix builder, utility servers, Kubernetes nodes)
+- `systems/x86_64-linux/` — x86 Linux hosts (desktop, personal laptop, terminal, nix builder, utility servers, Kubernetes nodes)
 - `systems/aarch64-darwin/` — macOS hosts (work and personal MacBooks)
 - `systems/aarch64-raw-efi/` — Raw EFI image builds (terminal image via nixos-generators)
 - `systems/x86_64-vmware/` — VMware image (RKE2 node)

@@ -74,7 +74,10 @@ in
     };
 
     virtualisation = {
-      podman = enabled;
+      podman = {
+        enable = true;
+        desktop.enable = true;
+      };
     };
 
     programs = {

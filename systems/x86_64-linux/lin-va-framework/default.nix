@@ -84,7 +84,10 @@ in
 
     security.sops = enabled;
 
-    virtualisation.podman = enabled;
+    virtualisation.podman = {
+      enable = true;
+      desktop.enable = true;
+    };
 
     display-managers.greetd = {
       defaultUser = "evanreichard";

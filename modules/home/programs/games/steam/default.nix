@@ -1,7 +1,7 @@
-{ lib
+{ pkgs
+, lib
 , config
 , namespace
-, osConfig
 , ...
 }:
 let
@@ -11,6 +11,6 @@ in
   options.${namespace}.programs.games.steam.enable = lib.mkEnableOption "Steam";
 
   config = lib.mkIf cfg.enable {
-    home.packages = [ osConfig.programs.steam.package ];
+    home.packages = [ pkgs.steam ];
   };
 }
