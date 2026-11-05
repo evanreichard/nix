@@ -286,7 +286,8 @@ in
         };
         pi_session_broker_token = { };
         pi_session_broker_endpoint = { };
-        pi_remote_token = { };
+        # Pairing replaces the shared token: this template carries only the hub address, and the extension writes
+        # machine.json and hub.json beside it as ordinary mutable state.
         pi_remote_endpoint = { };
       }
       // lib.listToAttrs (
@@ -297,11 +298,11 @@ in
           })
           piAuthApiKeys
       );
-      templates."pi-remote.json" = {
-        path = "${config.home.homeDirectory}/.pi/agent/pi-remote.json";
+      # This extension keeps its own directory, and sops-install-secrets creates the parent for a template path.
+      templates."pi-remote-config" = {
+        path = "${config.home.homeDirectory}/.pi/agent/pi-remote/config.json";
         content = builtins.toJSON {
           serverUrl = config.sops.placeholder.pi_remote_endpoint;
-          serverToken = config.sops.placeholder.pi_remote_token;
         };
       };
       templates."pi-session-broker.json" = {

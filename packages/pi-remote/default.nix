@@ -8,16 +8,16 @@
 
 buildNpmPackage rec {
   pname = "pi-remote";
-  version = "0.2.0-unstable-2026-10-30";
+  version = "0.2.0-unstable-2026-11-05";
 
   src = fetchgit {
     url = "https://gitea.va.reichard.io/evan/pi-remote.git";
-    rev = "43fd2d456d2a6270df3bb2d8cb8ab4910373c6cd";
-    hash = "sha256-L7dEpzAc1myTth/y5qWLf47imUCDImGIfUuJdspDI6I=";
+    rev = "9c2738495699386a4410d81e6758337c4fd23dbf";
+    hash = "sha256-j0oAW1OjAP5bS14Bu0P1PYSNx7m9G2gmltzXteNNyVs=";
   };
 
   nodejs = nodejs_22;
-  npmDepsHash = "sha256-ygIwmycP1sUwySCnfDpQNGknEoCe2VD8TO4VlqONHt4=";
+  npmDepsHash = "sha256-Zs34oc8dLSzgzG8qETSX7rjLgLD7y7NSbE/uqUWsnuE=";
   npmFlags = [ "--legacy-peer-deps" ];
   nativeBuildInputs = [ makeWrapper ];
 
