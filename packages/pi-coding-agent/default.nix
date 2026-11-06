@@ -22,10 +22,10 @@
 }:
 
 let
-  version = "1.4.0";
+  version = "1.5.0";
   aiModelData = fetchurl {
     url = "https://registry.npmjs.org/@earendil-works/pi-ai/-/pi-ai-${version}.tgz";
-    hash = "sha256-tA4rqLtvwzKQj4uW6DfcLR/ftF65zTgvWu0RFGKYHjw=";
+    hash = "sha256-4yD+e9K5J3grqaN9NW/lg38aqWpGQyYQ4bO5zLdI6lw=";
   };
 in
 buildNpmPackage rec {
@@ -36,10 +36,10 @@ buildNpmPackage rec {
     owner = "earendil-works";
     repo = "pi-mono";
     rev = "v${version}";
-    hash = "sha256-N9NOpiiZTbOMDMV+CxvJAgtLjJJ1/8NJBGS0cFHkhsc=";
+    hash = "sha256-eH3RuypmXeayuZ9lEag6KW3m2LSM4bDc4ogyHxjZMNI=";
   };
 
-  npmDepsHash = "sha256-aBzVz78IxZQlzPYC72Ufa2YFtkow6nZR24YBYZrv9W0=";
+  npmDepsHash = "sha256-koVd02HEhEAOkcvIuUg4X1A6P6P0B+wJp4DJLwkH62w=";
 
   # Session bridge API - lets pi-remote attach to the stock interactive session as a client.
   # Rebase on every version bump; the tests in the patch are not run by this build.
@@ -72,7 +72,7 @@ buildNpmPackage rec {
   buildPhase = ''
     runHook preBuild
 
-    for pkg in telemetry chord tui codemode mcp ai durable env agent coding-agent; do
+    for pkg in telemetry schema chord tui codemode mcp ai durable env agent coding-agent; do
       (cd packages/$pkg && npm run build)
     done
 

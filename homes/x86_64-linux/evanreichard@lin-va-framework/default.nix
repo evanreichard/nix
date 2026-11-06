@@ -63,6 +63,7 @@ in
       };
 
       terminal = {
+        tmux = enabled;
         btop = enabled;
         direnv = enabled;
         conduit = enabled;

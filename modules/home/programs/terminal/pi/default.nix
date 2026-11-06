@@ -303,6 +303,7 @@ in
         path = "${config.home.homeDirectory}/.pi/agent/pi-remote/config.json";
         content = builtins.toJSON {
           serverUrl = config.sops.placeholder.pi_remote_endpoint;
+          allowSpawn = true;
         };
       };
       templates."pi-session-broker.json" = {
