@@ -39,17 +39,49 @@ let
     inherit (cfg.sandbox) shareNet bindSshAgent;
   };
 
-  zaiPolicy = {
-    usage.windows = {
-      tokens = {
-        suspendAt = "85%";
-        resumeBelow = "80%";
-      };
-      requests = {
-        suspendAt = "90%";
-        resumeBelow = "85%";
-      };
-    };
+  # Pool Ladders - One floor per alias per account window, in percent *remaining*: pi-usage desugars
+  # them into the per-entry suspendAt/resumeBelow rules it evaluates. Each row is "alias floor", and
+  # row order is the priority statement (weakest alias first, floors strictly falling) so a weaker
+  # alias yields before a stronger one can spend the same shared pool. Rows stay strings because the
+  # order has to survive emission: mapping keys get sorted, list order does not.
+  poolLadders = {
+    "openai-codex:weekly" = [ "fast 60" "balanced 30" "deep 5" ];
+    "opencode-go:weekly" = [ "fast 30" "deep 20" ];
+    "synthetic:weekly" = [ "fast 20" "balanced 15" ];
+    "zai:tokens" = [ "balanced 20" "deep 10" ];
+  };
+
+  # Ladders Are Emitted By Hand - The YAML generator sorts mapping keys, which would reorder a ladder
+  # and fail pi-usage's falling-floor check, so the ordered rows are rendered here and concatenated
+  # ahead of the generated modes.
+  renderLadder = lib.concatMapStrings (
+    row:
+    let
+      parts = lib.splitString " " row;
+    in
+    "          ${builtins.head parts}: ${builtins.elemAt parts 1}%\n"
+  );
+  renderPools = lib.concatStrings (
+    lib.mapAttrsToList (key: rows: "      ${key}:\n        ladder:\n${renderLadder rows}") poolLadders
+  );
+
+  # Entry Rules - Uniform reserves and window opt-outs only; anything that differs per alias is a
+  # pool above. `null` disables an inherited global rule for a provider that never reports the window
+  # (Synthetic has no 5-hour allowance, Z.ai no rolling/weekly) instead of leaving a note behind.
+  reserveHysteresis = 5;
+  reserve = windows: {
+    usage.windows = lib.mapAttrs
+      (
+        _: minRemaining:
+          if minRemaining == null then
+            false
+          else
+            {
+              suspendAt = "${toString (100 - minRemaining)}%";
+              resumeBelow = "${toString (100 - minRemaining - reserveHysteresis)}%";
+            }
+      )
+      windows;
   };
   route =
     provider: model: thinking: policy:
@@ -65,46 +97,59 @@ let
           ;
       };
 
-  piUsageConfig = {
-    version = 1;
-    provider = "auto";
-    defaultMode = "balanced";
-    monitoring.refreshInterval = "5m";
-    policy.usage = {
-      maxAge = "10m";
-      windows = {
-        rolling = {
-          suspendAt = "85%";
-          resumeBelow = "80%";
-        };
-        weekly = {
-          suspendAt = "90%";
-          resumeBelow = "85%";
-        };
-      };
-    };
-    modes = {
-      fast = [
-        (route "openai-codex" "gpt-6-luna" "low" null)
-        (route "opencode-go" "gpt-6-luna" "low" null)
-        (route "synthetic" "hf:zai-org/GLM-5.3-Flash" "low" null)
-        (route "zai" "glm-5.3-flash" "low" zaiPolicy)
-      ];
-      balanced = [
-        (route "openai-codex" "gpt-6-luna" "high" null)
-        (route "synthetic" "hf:deepseek-ai/DeepSeek-V4.1-Flash-1017" "high" null)
-        (route "zai" "glm-5.3" "medium" zaiPolicy)
-        (route "opencode-go" "kimi-k3" "medium" null)
-      ];
-      deep = [
-        (route "openai-codex" "gpt-6.1-sol" "high" null)
-        (route "opencode-go" "deepseek-v4.1-flash" "high" null)
-        (route "synthetic" "hf:moonshotai/Kimi-K3" "high" null)
-        (route "zai" "glm-5.3" "high" zaiPolicy)
-      ];
-    };
+  piUsageModes = {
+    fast = [
+      (route "opencode-go" "qwen3.7-plus" "low" null)
+      (route "openai-codex" "gpt-6-luna" "medium" null)
+      (route "synthetic" "hf:deepseek-ai/DeepSeek-V4.1-Flash-1017" "low" (reserve {
+        rolling = null;
+      }))
+    ];
+    balanced = [
+      (route "synthetic" "hf:deepseek-ai/DeepSeek-V4.1-Flash-1017" "high" (reserve {
+        rolling = null;
+      }))
+      (route "zai" "glm-5.3" "medium" (reserve {
+        rolling = null;
+        weekly = null;
+        requests = 10;
+      }))
+      (route "openai-codex" "gpt-6.1-sol" "medium" null)
+    ];
+    deep = [
+      (route "openai-codex" "gpt-6.1-sol" "high" null)
+      (route "opencode-go" "kimi-k3.1-pro" "high" null)
+      (route "zai" "glm-5.3" "high" (reserve {
+        rolling = null;
+        weekly = null;
+        requests = 10;
+      }))
+    ];
   };
-  piUsageConfigFile = (pkgs.formats.yaml { }).generate "pi-usage.yaml" piUsageConfig;
+
+  piUsageConfigFile = pkgs.concatText "pi-usage.yaml" [
+    (pkgs.writeText "pi-usage-head.yaml" ''
+      version: 1
+      provider: auto
+      defaultMode: balanced
+      monitoring:
+        refreshInterval: 2m
+      policy:
+        usage:
+          # One missed refresh still counts as fresh; reserves are advisory between reads.
+          maxAge: 5m
+          hysteresis: ${toString reserveHysteresis}%
+          windows:
+            rolling:
+              suspendAt: 85%
+              resumeBelow: 80%
+            weekly:
+              suspendAt: 90%
+              resumeBelow: 85%
+          pools:
+      ${renderPools}'')
+    ((pkgs.formats.yaml { }).generate "pi-usage-modes.yaml" { modes = piUsageModes; })
+  ];
 
   # Nix-Owned Plugin List - Source of truth for `packages` in settings.json.
   # Merged into the (mutable) settings.json on activation so pi can keep
