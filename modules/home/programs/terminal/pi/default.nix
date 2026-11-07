@@ -45,10 +45,30 @@ let
   # alias yields before a stronger one can spend the same shared pool. Rows stay strings because the
   # order has to survive emission: mapping keys get sorted, list order does not.
   poolLadders = {
-    "openai-codex:weekly" = [ "fast 60" "balanced 30" "deep 5" ];
-    "opencode-go:weekly" = [ "fast 30" "deep 20" ];
-    "synthetic:weekly" = [ "fast 20" "balanced 15" ];
-    "zai:tokens" = [ "balanced 20" "deep 10" ];
+    "openai-codex:weekly" = [
+      "fast 60"
+      "balanced 30"
+      "deep 5"
+    ];
+    "opencode-go:weekly" = [
+      "fast 30"
+      "deep 20"
+    ];
+    # Monthly is Display-Only Upstream - opencode-go reports it with `blocksRouting: false` because the
+    # Zen balance keeps serving past the allowance, so only an explicit rung gates it. Without one an
+    # exhausted month keeps routing and quietly bills pay-as-you-go.
+    "opencode-go:monthly" = [
+      "fast 30"
+      "deep 5"
+    ];
+    "synthetic:weekly" = [
+      "fast 20"
+      "balanced 15"
+    ];
+    "zai:tokens" = [
+      "balanced 20"
+      "deep 10"
+    ];
   };
 
   # Ladders Are Emitted By Hand - The YAML generator sorts mapping keys, which would reorder a ladder

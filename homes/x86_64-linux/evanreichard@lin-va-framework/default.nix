@@ -73,6 +73,7 @@ in
         opencode = enabled;
         pi = enabled;
         omp = enabled;
+        herdr = enabled;
       };
     };
   };
