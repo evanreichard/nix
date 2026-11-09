@@ -54,6 +54,20 @@ sudo nix-collect-garbage --delete-old
 nix-collect-garbage --delete-old
 ```
 
+### Boot Menu Entries
+
+Garbage collection deletes generations but does not touch `/boot/grub/grub.cfg`; the menu is only rewritten when the bootloader installs, which happens on the next `nixos-rebuild` or on demand:
+
+```bash
+# Rewrite grub.cfg now, without building or switching
+sudo /run/current-system/bin/switch-to-configuration boot
+
+# Or drop only the system generations beyond the newest 5
+sudo nix-env -p /nix/var/nix/profiles/system --delete-generations +5
+```
+
+Entries left behind after their store paths are collected fail at boot with `file not found`. The menu is capped by `boot.loader.grub.configurationLimit` (default 100). systemd-boot prunes its own `loader/entries` at install time from `boot.loader.systemd-boot.configurationLimit` (20 here), so it needs no manual step.
+
 ## Home Manager
 
 ```bash
