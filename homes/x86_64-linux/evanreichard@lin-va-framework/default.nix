@@ -39,7 +39,14 @@ in
           enable = true;
           mainMod = "ALT";
           bluetooth = true;
-          monitors = [ ",highres,auto,2" ];
+          monitors = [
+            # Order matters: Hyprland's last matching monitor rule wins, so the wildcard
+            # sets the fallback and the per-output rules override it. The Dell sits left of
+            # the laptop and is vertically centred on it: (1440 - 960) / 2 = 240.
+            ", highres, auto, 2"
+            "eDP-1, highres, 0x0, 2"
+            "desc:Dell Inc. DELL P3425WE, highres, -3440x-240, auto"
+          ];
         };
         doubletake = {
           enable = true;
