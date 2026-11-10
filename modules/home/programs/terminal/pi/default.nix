@@ -177,6 +177,7 @@ let
   piPackages = [
     "https://gitea.va.reichard.io/evan/pi-remote.git@main"
     "https://gitea.va.reichard.io/evan/pi-session-broker.git@main"
+    "https://gitea.va.reichard.io/evan/pi-stats.git@main"
     "https://gitea.va.reichard.io/evan/pi-web.git@main"
     "https://gitea.va.reichard.io/evan/pi-subagents.git@main"
     "https://gitea.va.reichard.io/evan/pi-usage.git@main"
@@ -354,6 +355,8 @@ in
         # Pairing replaces the shared token: this template carries only the hub address, and the extension writes
         # machine.json and hub.json beside it as ordinary mutable state.
         pi_remote_endpoint = { };
+        # Same token the pi-stats service holds as PUSH_TOKEN; uploads are refused without it.
+        pi_stats_push_token = { };
       }
       // lib.listToAttrs (
         map
@@ -399,6 +402,14 @@ in
             "firefox"
             "http"
           ];
+        };
+      };
+      # Pi Stats Config - Read-only: the extension keeps per-file sync state in `pi-stats/` beside it.
+      templates."pi-stats.json" = {
+        path = "${config.home.homeDirectory}/.pi/agent/pi-stats.json";
+        content = builtins.toJSON {
+          serverUrl = "https://pi-stats.va.reichard.io";
+          pushToken = config.sops.placeholder.pi_stats_push_token;
         };
       };
       templates."pi-models.json" = {
