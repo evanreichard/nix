@@ -72,6 +72,8 @@ in
       enable32Bit = true;
     };
 
+    hardware.webcam.brio = enabled;
+
     services = {
       kdeconnect = enabled;
       mounts.enableMedia = true;

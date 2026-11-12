@@ -49,7 +49,7 @@ Reusable NixOS, Home Manager, and Darwin modules. This is where most of the conf
   - `security/sops/` — sops-nix secret decryption (age-based)
   - `system/` — `boot/`, `networking/` (incl. `networkmanager/`), `disk/` (disko partitioning)
   - `services/` — Headscale, Tailscale, llama-swap (LLM inference front end), OpenSSH, RKE2, printing, OctoPrint, mosh, RTL-TCP, ydotool, Open-iSCSI, Avahi, cloud-init, Sunshine, AirPlay
-  - `hardware/` — OpenGL, Asahi (Apple Silicon), battery/UPower
+  - `hardware/` — OpenGL, Asahi (Apple Silicon), battery/UPower, webcam (`webcam/brio`: Logitech Brio UVC control profile applied by a udev rule on plug-in)
   - `programs/graphical/wms/hyprland/` — System-level Hyprland WM setup
   - `display-managers/greetd/` — Shan Shui Quickshell greeter
   - `virtualisation/` — Podman, libvirtd
