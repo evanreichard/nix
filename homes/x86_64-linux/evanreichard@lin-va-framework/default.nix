@@ -41,11 +41,14 @@ in
           bluetooth = true;
           monitors = [
             # Order matters: Hyprland's last matching monitor rule wins, so the wildcard
-            # sets the fallback and the per-output rules override it. The Dell sits left of
-            # the laptop and is vertically centred on it: (1440 - 960) / 2 = 240.
+            # sets the fallback and the per-output rules override it. Both externals are
+            # vertically centred on the laptop's 1440x960 logical rect: the 1440-tall Dell
+            # gets y = (960 - 1440) / 2 = -240, the 1600-tall LG gets y = (960 - 1600) / 2
+            # = -320. Auto scale resolves to ~1.0 on both panels (110-111 ppi).
             ", highres, auto, 2"
             "eDP-1, highres, 0x0, 2"
             "desc:Dell Inc. DELL P3425WE, highres, -3440x-240, auto"
+            "desc:LG Electronics LG HDR WQHD, highres, 1440x-320, auto"
           ];
         };
         doubletake = {
