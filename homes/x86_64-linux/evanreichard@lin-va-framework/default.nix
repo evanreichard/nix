@@ -50,6 +50,7 @@ in
             "desc:Dell Inc. DELL P3425WE, highres, -3440x-240, auto"
             "desc:LG Electronics LG HDR WQHD, highres, 1440x-320, auto"
           ];
+          lidInternalOutput = "eDP-1";
         };
         doubletake = {
           enable = true;
