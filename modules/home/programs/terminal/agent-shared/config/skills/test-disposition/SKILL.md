@@ -1,6 +1,6 @@
 ---
 name: test-disposition
-description: 'Decide whether a test still earns its place: classify each as preserve/adapt/replace/remove/investigate from the contract it protects, and report a disposition table. Use when tests fail after a redesign, when a change needs shims only to keep tests green, when auditing or trimming a test suite, or when asked whether a test is still relevant.'
+description: 'Decide whether a test still earns its place: classify each as preserve/adapt/replace/remove/investigate from the contract it protects, and report a disposition table. Use when tests fail after a redesign, when a change needs shims only to keep tests green, when auditing or trimming a test suite, when a suite is green but you do not trust it, or when asked whether a test is still relevant.'
 ---
 
 # Test Disposition
@@ -27,6 +27,8 @@ For a cleanup, enumerate the suite and read for overlap: tests asserting the sam
 
 Include tests that currently pass. A passing test that pins a retired structure or duplicates another gets the same review as a failing one. Relevance is separate from flakiness: a flaky test protecting a live contract is Preserve plus a fix.
 
+A green suite is not evidence. Before classifying, find the tests that cannot fail: break the behaviour each one names and check that it notices. Where the repo has a mutation runner, that is the tool — read its survivors instead of reading tests. Where it does not, mutate by hand: one edit to the decision, one test file, revert. A test that still passes has no contract, whatever its assertion says, and is Replace, not Preserve. This step is where the findings are; classification is the paperwork afterwards.
+
 ### 3. Classify each test
 
 | Decision    | Applies when                                                        | Action                                                                            |
@@ -37,9 +39,13 @@ Include tests that currently pass. A passing test that pins a retired structure 
 | Remove      | The requirement is gone, or other tests already cover it             | Delete it, and say where that coverage lives now or that it is deliberately gone. |
 | Investigate | Unclear whether the requirement survives                             | Stop and ask. Guess-and-preserve is the failure mode this skill exists to stop.   |
 
+Adapt, Replace and Remove each name what moved: the assertion that carries the contract now, the seam that owns the behaviour, or the test that covers the requirement. "Renamed for clarity" is Adapt, because a name is part of the contract — a test whose name promises two behaviours and asserts one is a defect, not a style note.
+
+When a test's only subject has no production caller, delete the production code with it. Keeping a helper alive so its test keeps passing is the same failure as keeping the test for the design's sake.
+
 ### 4. Report before you commit
 
-One row per test once more than a couple are in scope; a single test gets one line in the reply:
+One row per test you would change, and one line per module for Preserve. The table exists for decisions, not inventory: a suite-wide audit reported as 300 rows is a wall nobody reads.
 
 | Test                      | Decision | Reason                                                                       |
 | ------------------------- | -------- | ---------------------------------------------------------------------------- |
@@ -52,7 +58,7 @@ Any `Investigate` row means the report is unfinished — resolve it with the use
 
 ### 5. Apply the dispositions
 
-Edit in the same change as the code the tests cover. Removed tests are deleted from the file, not skipped, quarantined, or disabled behind a flag.
+Edit in the same change as the code the tests cover. Removed tests are deleted from the file, not skipped, quarantined, or disabled behind a flag. Then re-run the mutation check from step 2: a survivor is a gap the audit did not find, and an entry in the repo's mutation list is how a live decision stops depending on somebody re-reading the suite.
 
 ## Hard Rules
 
@@ -60,3 +66,5 @@ Edit in the same change as the code the tests cover. Removed tests are deleted f
 - Coverage parity is the bar: the suite afterward covers every live requirement the suite before it covered.
 - Tests asserting that a collaborator was called, and nothing about the result, are asserting an implementation choice. Classify them by the behavior the caller must produce.
 - Production code exists for the design, not to keep a deprecated test green.
+- A test that passes is not a test that can fail. Tautologies on booleans, an expectation literal that cannot equal the input under test, an assertion satisfied by some other code path, an `or` that passes on any outcome, and a private accessor's identity instead of the observable effect are the recurring ways this happens — check for them explicitly.
+- Assert at the boundary the caller sees (socket, HTTP response, rendered markup, accepted connections) rather than at a collaborator's arguments or a private handle. Wire-shape assertions are the exception when both ends of the protocol live in the repo, and they say so in a comment.
