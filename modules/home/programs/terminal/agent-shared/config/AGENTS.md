@@ -55,6 +55,17 @@ Prefer a **search → targeted read** pattern:
 
 Full-file reads are fine when genuinely needed, but avoid them as the default reflex.
 
+## Tests During Architecture Changes
+
+Existing tests are evidence of intended behavior, not a fixed specification. Each one captures either a live contract or an assumption from a superseded design; deciding which is part of the work, not an obstacle to it.
+
+- **Name the contract.** State what behavior a test protects. A test that cannot be tied to a requirement, public interface, or invariant is a candidate for replacement.
+- **Disposition deliberately.** Keep tests for behavior that must still hold; adapt tests whose intent holds but whose assumed internals changed; replace or remove tests bound to a retired structure.
+- **Judge by requirement, not pass state.** A red test resolves by asserting the contract the new design establishes, or by being rewritten to it — not by faithfully porting the old assertion.
+- **Remove obsolete tests** alongside the structure they covered, rather than keeping them green through adapters, shims, or compatibility layers.
+- **State the change.** When an expectation moves, say which requirement changed or which assumption no longer holds.
+- **Report dispositions** once a change touches more than a couple of tests — see the `test-disposition` skill.
+
 ## Principles
 
 1. **Priority order**: When goals conflict, optimize in this order:
