@@ -110,21 +110,21 @@ let
 
   piUsageModes = {
     fast = [
-      (route "openai-codex" "gpt-6-luna" "low" null)
-      (route "synthetic" "hf:deepseek-ai/DeepSeek-V4.1-Flash-1017" "low" (reserve {
+      (route "synthetic" "hf:deepseek-ai/DeepSeek-V4.1-Flash-1017" "high" (reserve {
         rolling = null;
       }))
-      (route "zai" "glm-5.3-flash" "medium" (reserve {
+      (route "openai-codex" "gpt-6-luna" "high" null)
+      (route "zai" "glm-5.3-flash" "high" (reserve {
         rolling = null;
         weekly = null;
         requests = 10;
       }))
     ];
     balanced = [
+      (route "openai-codex" "gpt-6.1-sol" "medium" null)
       (route "synthetic" "hf:deepseek-ai/DeepSeek-V4.1-Flash-1017" "high" (reserve {
         rolling = null;
       }))
-      (route "openai-codex" "gpt-6.1-sol" "medium" null)
       (route "zai" "glm-5.3" "medium" (reserve {
         rolling = null;
         weekly = null;
