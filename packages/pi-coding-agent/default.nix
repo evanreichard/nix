@@ -22,10 +22,10 @@
 }:
 
 let
-  version = "1.5.0";
+  version = "1.5.2";
   aiModelData = fetchurl {
     url = "https://registry.npmjs.org/@earendil-works/pi-ai/-/pi-ai-${version}.tgz";
-    hash = "sha256-4yD+e9K5J3grqaN9NW/lg38aqWpGQyYQ4bO5zLdI6lw=";
+    hash = "sha256-1XFe+oNMI7/fEKBCtJ307hacyZAAvxbXmY+rLVM7Rfg=";
   };
 in
 buildNpmPackage rec {
@@ -36,10 +36,10 @@ buildNpmPackage rec {
     owner = "earendil-works";
     repo = "pi-mono";
     rev = "v${version}";
-    hash = "sha256-eH3RuypmXeayuZ9lEag6KW3m2LSM4bDc4ogyHxjZMNI=";
+    hash = "sha256-0dKtABQqfvCLF0WOydu5rpycMqC+N8Pc9Ex4BWKElyw=";
   };
 
-  npmDepsHash = "sha256-koVd02HEhEAOkcvIuUg4X1A6P6P0B+wJp4DJLwkH62w=";
+  npmDepsHash = "sha256-uHehffbEB2uU9U9uSpfWojzxvQyqeicbh/esCwk4neQ=";
 
   # Session bridge API - lets pi-remote attach to the stock interactive session as a client.
   # Rebase on every version bump; the tests in the patch are not run by this build.
@@ -102,6 +102,9 @@ buildNpmPackage rec {
       # Copy node_modules and the packages directory
       cp -r node_modules $out/lib/pi-coding-agent/
       cp -r packages $out/lib/pi-coding-agent/
+
+      # Workspace Link Cleanup - npm links apps/* into node_modules, and apps/ is a private app the CLI never loads.
+      find $out/lib/pi-coding-agent/node_modules -maxdepth 1 -xtype l -delete
 
       cat > $out/bin/pi <<EOF
     #!${nodejs}/bin/node

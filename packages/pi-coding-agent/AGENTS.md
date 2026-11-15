@@ -18,13 +18,13 @@ Built from the `earendil-works/pi-mono` monorepo with `buildNpmPackage`, pinned 
 
 ## Runtime Layout
 
-`installPhase` copies `node_modules` and `packages/` into `$out/lib/pi-coding-agent` and writes `$out/bin/pi` as a one-line ESM shim importing `packages/coding-agent/dist/cli.js`. The wrapper adds `nodejs_22` plus `firefox`/`geckodriver` for Firefox-based fetching. Camoufox downloads an upstream browser binary, so the wrapper must expose its runtime libraries with `LD_LIBRARY_PATH`; launch testing found `alsa-lib`, `gtk3`, and `libX11` sufficient on x86_64 Linux. The `pixman`/`cairo`/`pango`/`libjpeg`/`giflib`/`librsvg` build inputs serve the browser path too.
+`installPhase` copies `node_modules` and `packages/` into `$out/lib/pi-coding-agent` and writes `$out/bin/pi` as a one-line ESM shim importing `packages/coding-agent/dist/cli.js`. npm links app workspaces into `node_modules` (`p2` from `apps/p2` since 1.5.2); those targets are not shipped, so the copy drops dangling top-level links or the fixup phase fails on them. The wrapper adds `nodejs_22` plus `firefox`/`geckodriver` for Firefox-based fetching. Camoufox downloads an upstream browser binary, so the wrapper must expose its runtime libraries with `LD_LIBRARY_PATH`; launch testing found `alsa-lib`, `gtk3`, and `libX11` sufficient on x86_64 Linux. The `pixman`/`cairo`/`pango`/`libjpeg`/`giflib`/`librsvg` build inputs serve the browser path too.
 
-## UI Host Patch
+## Session Bridge Patch
 
-`ui-host.patch` provides API v2 for the pi-remote extension: module substitution, manifest load priority, and a UI provider receiving Pi's existing session and command actions. Extension mode replaces the terminal renderer; Pi still owns session replacement and shutdown. Keep its API version aligned with `packages/pi-remote`.
+`session-bridge.patch` adds `SESSION_BRIDGE_API_VERSION = 1` and `pi.registerSessionBridge()`, which lets a companion UI (pi-remote) attach to the interactive session Pi already owns: module-level bridge registration, the stock extension UI context, and live terminal components. Pi keeps session replacement and shutdown; the bridge only observes and wraps what extensions receive. `../pi-remote/patches/pi-<version>-session-bridge.patch` is a copy of the same file and must match it byte for byte.
 
-Rebase against the pristine release tag when updating Pi; experimental terminal-bridge work in the pi-remote scratch checkout is unrelated and must stay out of this patch. Confirm `git apply --check` and build both packages before shipping.
+Rebase against the pristine release tag on every bump, never against an installed bundle: `git clone --branch v<version>`, `git apply --reject`, resolve rejects, then regenerate with `git diff --src-prefix=i/ --dst-prefix=w/` so the `i/`/`w/` prefixes stay. Between 1.5.0 and 1.5.2 the rejected hunks were import-only (loader, extension types, interactive mode) plus the changelog header; the appended fields and methods applied with offsets. Verify with `git apply --check` on a fresh clone, `npm run build` in the checkout, and `vitest run test/session-bridge.test.ts`, since this derivation does not run that test.
 
 ## Backwards Compatibility
 
