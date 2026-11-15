@@ -50,22 +50,13 @@ let
       "balanced 30"
       "deep 5"
     ];
-    "opencode-go:weekly" = [
-      "fast 30"
-      "deep 20"
-    ];
-    # Monthly is Display-Only Upstream - opencode-go reports it with `blocksRouting: false` because the
-    # Zen balance keeps serving past the allowance, so only an explicit rung gates it. Without one an
-    # exhausted month keeps routing and quietly bills pay-as-you-go.
-    "opencode-go:monthly" = [
-      "fast 30"
-      "deep 5"
-    ];
     "synthetic:weekly" = [
       "fast 20"
       "balanced 15"
+      "deep 5"
     ];
     "zai:tokens" = [
+      "fast 30"
       "balanced 20"
       "deep 10"
     ];
@@ -119,30 +110,36 @@ let
 
   piUsageModes = {
     fast = [
-      (route "opencode-go" "qwen3.7-plus" "low" null)
-      (route "openai-codex" "gpt-6-luna" "medium" null)
+      (route "openai-codex" "gpt-6-luna" "low" null)
       (route "synthetic" "hf:deepseek-ai/DeepSeek-V4.1-Flash-1017" "low" (reserve {
         rolling = null;
+      }))
+      (route "zai" "glm-5.3-flash" "medium" (reserve {
+        rolling = null;
+        weekly = null;
+        requests = 10;
       }))
     ];
     balanced = [
       (route "synthetic" "hf:deepseek-ai/DeepSeek-V4.1-Flash-1017" "high" (reserve {
         rolling = null;
       }))
+      (route "openai-codex" "gpt-6.1-sol" "medium" null)
       (route "zai" "glm-5.3" "medium" (reserve {
         rolling = null;
         weekly = null;
         requests = 10;
       }))
-      (route "openai-codex" "gpt-6.1-sol" "medium" null)
     ];
     deep = [
       (route "openai-codex" "gpt-6.1-sol" "high" null)
-      (route "opencode-go" "kimi-k3.1-pro" "high" null)
       (route "zai" "glm-5.3" "high" (reserve {
         rolling = null;
         weekly = null;
         requests = 10;
+      }))
+      (route "synthetic" "hf:moonshotai/Kimi-K3.1-Pro" "high" (reserve {
+        rolling = null;
       }))
     ];
   };
