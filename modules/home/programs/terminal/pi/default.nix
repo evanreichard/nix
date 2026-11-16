@@ -182,7 +182,10 @@ let
     "https://gitea.va.reichard.io/evan/pi-daybreak.git@main"
     "https://github.com/sting8k/pi-vcc.git@v0.8.0"
     "npm:@juicesharp/rpiv-ask-user-question"
-    "npm:pi-imagegen"
+    {
+      source = "npm:pi-codex-image-gen";
+      skills = [ ];
+    }
   ];
 
   piPackagesJson = pkgs.writeText "pi-packages.json" (builtins.toJSON piPackages);
