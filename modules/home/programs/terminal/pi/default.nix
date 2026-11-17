@@ -121,7 +121,7 @@ let
       }))
     ];
     balanced = [
-      (route "openai-codex" "gpt-6.1-sol" "medium" null)
+      (route "openai-codex" "gpt-6.2-sol" "medium" null)
       (route "synthetic" "hf:deepseek-ai/DeepSeek-V4.1-Flash-1017" "high" (reserve {
         rolling = null;
       }))
@@ -132,7 +132,7 @@ let
       }))
     ];
     deep = [
-      (route "openai-codex" "gpt-6.1-sol" "high" null)
+      (route "openai-codex" "gpt-6.2-sol" "high" null)
       (route "zai" "glm-5.3" "high" (reserve {
         rolling = null;
         weekly = null;
